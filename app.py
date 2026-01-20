@@ -2,7 +2,7 @@
 import streamlit as st
 import datetime
 import os
-import pandas as pd  # <--- Nova importação para gerenciar a tabela
+import pandas as pd
 from src.database import GenesisData, GenesisRules
 from src.engine import GenesisEngine
 from src.config import GenesisConfig
@@ -13,7 +13,7 @@ from src.utils import slugify
 # CONFIGURAÇÃO VISUAL
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Modular v55.1", page_icon="🏗️", layout="wide")
+    st.set_page_config(page_title="Genesis Modular v55.2", page_icon="🏗️", layout="wide")
     
     st.markdown(f"""
     <style>
@@ -62,16 +62,19 @@ def load_history():
     log_file = "historico_geracao.csv"
     if os.path.exists(log_file):
         try:
-            # Lê o CSV usando ; como separador
-            df = pd.read_csv(log_file, sep=';')
-            # Converte a coluna DATA para datetime para poder ordenar
+            # Tenta ler com utf-8-sig (o novo padrão) ou utf-8
+            df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
             df['DATA'] = pd.to_datetime(df['DATA'])
-            # Ordena do mais recente para o mais antigo
             df = df.sort_values(by='DATA', ascending=False)
             return df
-        except Exception as e:
-            st.error(f"Erro ao ler histórico: {e}")
-            return None
+        except Exception:
+            # Fallback se o arquivo for antigo
+            try:
+                df = pd.read_csv(log_file, sep=';', encoding='utf-8')
+                return df
+            except Exception as e:
+                st.error(f"Erro ao ler histórico: {e}")
+                return None
     return None
 
 def show_manual():
@@ -125,7 +128,7 @@ def main():
     with c1:
         st.title("⚡ GENESIS AGENCY MODULAR")
     with c2:
-        st.markdown("### 🤖 v55.1")
+        st.markdown("### 🤖 v55.2")
 
     # --- SISTEMA DE ABAS (TABS) ---
     tab_gerador, tab_historico = st.tabs(["⚡ GERADOR DE PAUTAS", "📜 HISTÓRICO DE GERAÇÕES"])
@@ -231,8 +234,12 @@ def main():
         if df_history is not None and not df_history.empty:
             # Métricas Rápidas
             totais = len(df_history)
-            personas_top = df_history['PERSONA'].value_counts().idxmax()
-            bairro_top = df_history['BAIRRO'].value_counts().idxmax()
+            try:
+                personas_top = df_history['PERSONA'].value_counts().idxmax()
+                bairro_top = df_history['BAIRRO'].value_counts().idxmax()
+            except:
+                personas_top = "-"
+                bairro_top = "-"
             
             m1, m2, m3 = st.columns(3)
             m1.metric("Total de Pautas", totais)
@@ -258,7 +265,8 @@ def main():
             )
             
             # Botão para baixar o Excel/CSV completo
-            csv_data = df_history.to_csv(sep=';', index=False).encode('utf-8')
+            # MUDANÇA AQUI: encoding='utf-8-sig' para download também
+            csv_data = df_history.to_csv(sep=';', index=False).encode('utf-8-sig')
             st.download_button(
                 label="📥 Baixar Histórico Completo (CSV/Excel)",
                 data=csv_data,
