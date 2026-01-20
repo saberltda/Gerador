@@ -14,7 +14,7 @@ from src.utils import slugify
 def setup_ui():
     st.set_page_config(page_title="Genesis Modular v55", page_icon="🏗️", layout="wide")
     
-    # CSS Corrigido para Textos Longos
+    # CSS Corrigido para Textos Longos e Layout
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f4f6f9; }}
@@ -23,17 +23,19 @@ def setup_ui():
             border-left: 6px solid {GenesisConfig.COLOR_PRIMARY};
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
         }}
-        /* AJUSTE AQUI: word-wrap e tamanho da fonte */
+        /* TEXTO QUEBRA DE LINHA CORRETA */
         .stat-value {{ 
             font-size: 20px; 
             font-weight: bold; 
             color: {GenesisConfig.COLOR_PRIMARY}; 
             word-wrap: break-word; 
             white-space: normal;
-            line-height: 1.3;
+            line-height: 1.4;
         }}
         .stat-label {{ font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }}
         .highlight {{ color: #D4AF37; font-weight: bold; }}
+        
+        /* BOTÕES */
         div.stButton > button {{
             background: linear-gradient(45deg, {GenesisConfig.COLOR_PRIMARY}, #004080);
             color: white; border: none; height: 60px; font-size: 18px; font-weight: bold;
@@ -44,7 +46,19 @@ def setup_ui():
     """, unsafe_allow_html=True)
 
 # =========================================================
-# MANUAL DE SEO (TEXTO EDUCATIVO)
+# FUNÇÃO DE CALLBACK (CORREÇÃO DO ERRO)
+# =========================================================
+def reset_state_callback():
+    """
+    Esta função roda ANTES da tela ser redesenhada.
+    Isso evita o erro 'StreamlitAPIException'.
+    """
+    keys_to_reset = ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_formato", "k_gatilho"]
+    for key in keys_to_reset:
+        st.session_state[key] = "ALEATÓRIO"
+
+# =========================================================
+# MANUAL DE SEO
 # =========================================================
 def show_manual():
     with st.expander("📚 MANUAL DE OPERAÇÕES & GATILHOS MENTAIS (Gustavo Ferreira)"):
@@ -65,11 +79,6 @@ def show_manual():
         * **NOVIDADE:** Ativa a dopamina. Ótimo para lançamentos ou novas fases.
         * **PORQUÊ:** Justifique o preço ou a valorização. A mente busca razão.
         * **HISTÓRIA (Storytelling):** Conecta emocionalmente através da jornada de um personagem.
-
-        ---
-        ### 🎯 Aula Rápida de SEO
-        * **Money Keywords (Investimento, Segurança):** Trazem o cliente pronto para comprar.
-        * **Authority Keywords (Educação, Saúde):** Provam que você domina a cidade.
         """)
 
 # =========================================================
@@ -85,7 +94,7 @@ def main():
         st.error(f"❌ Erro Crítico: {e}")
         st.stop()
 
-    # Preparação das Listas (Com tradução para nomes bonitos)
+    # Listas
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     lista_personas = ["ALEATÓRIO"] + list(persona_map.keys())
     
@@ -94,11 +103,10 @@ def main():
     lista_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
     lista_ativos = ["ALEATÓRIO"] + dados_mestre.todos_ativos
     
-    # Mapas de Formato e Gatilho
     lista_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     lista_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
-    # 2. Sidebar (Configurações)
+    # --- SIDEBAR ---
     with st.sidebar:
         st.header("⚡ GOD MODE CONFIG")
         st.caption(f"Engine: {GenesisConfig.VERSION}")
@@ -106,7 +114,7 @@ def main():
         data_escolhida = st.date_input("Data de Publicação", datetime.date.today())
         st.markdown("---")
         
-        # Inputs (Chaves Fixas para o Reset funcionar)
+        # Inputs (Chaves Fixas)
         sel_persona_nome = st.selectbox("1. Persona / Cliente", lista_personas, key="k_persona")
         sel_bairro = st.selectbox("2. Bairro ou Macro", lista_bairros, key="k_bairro")
         sel_topico = st.selectbox("3. Tópico (Peso SEO)", lista_topicos, key="k_topico")
@@ -116,18 +124,10 @@ def main():
 
         st.markdown("---")
         
-        # --- LÓGICA DE RESET CORRIGIDA ---
-        if st.button("🔄 Resetar"):
-            # Força o valor de todas as chaves para "ALEATÓRIO"
-            st.session_state["k_persona"] = "ALEATÓRIO"
-            st.session_state["k_bairro"] = "ALEATÓRIO"
-            st.session_state["k_topico"] = "ALEATÓRIO"
-            st.session_state["k_ativo"] = "ALEATÓRIO"
-            st.session_state["k_formato"] = "ALEATÓRIO"
-            st.session_state["k_gatilho"] = "ALEATÓRIO"
-            st.rerun()
+        # CORREÇÃO AQUI: Usando 'on_click' para resetar
+        st.button("🔄 Resetar", on_click=reset_state_callback)
 
-    # 3. Área Principal
+    # --- ÁREA PRINCIPAL ---
     c1, c2 = st.columns([3, 1])
     with c1:
         st.title("⚡ GENESIS AGENCY MODULAR")
@@ -141,20 +141,17 @@ def main():
     with col_btn:
         generate_btn = st.button("CRIAR PAUTA ESTRATÉGICA ✨")
 
-    # 4. Lógica de Geração
+    # --- LÓGICA DE GERAÇÃO ---
     if generate_btn:
         try:
             with st.spinner("Processando estratégia de SEO & Gatilhos..."):
                 engine = GenesisEngine(dados_mestre)
                 
-                # --- TRADUÇÃO DOS INPUTS ---
-                
-                # Persona
+                # Traduções (Nome Bonito -> Chave Técnica)
                 persona_key_sel = "ALEATÓRIO"
                 if sel_persona_nome != "ALEATÓRIO":
                     persona_key_sel = persona_map[sel_persona_nome]
 
-                # Formato (Nome Bonito -> Chave Técnica)
                 formato_key_sel = "ALEATÓRIO"
                 if sel_formato != "ALEATÓRIO":
                     for k, v in GenesisConfig.CONTENT_FORMATS_MAP.items():
@@ -162,7 +159,6 @@ def main():
                             formato_key_sel = k
                             break
                 
-                # Gatilho (Nome Bonito -> Chave Técnica)
                 gatilho_key_sel = "ALEATÓRIO"
                 if sel_gatilho != "ALEATÓRIO":
                     for k, v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
@@ -199,14 +195,13 @@ def main():
             st.code(traceback.format_exc())
             st.stop()
 
-        # 5. Exibição dos Resultados (COLUNAS [1,1] mantidas)
+        # EXIBIÇÃO
         col_main, col_view = st.columns([1, 1])
         
         with col_main:
             bairro_display = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba (Geral)"
             zona_display = resultado['bairro']['zona'] if resultado['bairro'] else "Macro-zona"
             
-            # Recupera nomes bonitos para exibir
             formato_tecnico = resultado['formato']
             formato_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
             
