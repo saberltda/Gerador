@@ -29,8 +29,6 @@ class GenesisConfig:
         "NUNCA invente nomes de clientes (ex: Ricardo, Ana, João).",
         "NUNCA invente profissões específicas para o personagem.",
         "NUNCA crie depoimentos falsos.",
-        "USE linguagem hipotética: 'Imagine um investidor...', 'Para quem trabalha em...'.",
-        "FALE diretamente com o leitor ('Você').",
         "OBRIGATÓRIO: Pesquise locais reais no Google Maps antes de citar. Não use exemplos genéricos."
     ]
 
@@ -649,4 +647,5 @@ def main():
             st.info("👈 Clique em 'CRIAR PAUTA' para iniciar o processo criativo.")
 
 if __name__ == "__main__":
+
     main()
