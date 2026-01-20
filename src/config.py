@@ -136,13 +136,21 @@ class GenesisConfig:
         }
     }
 
-    CONTENT_FORMATS = [
-        "GUIA_DEFINITIVO", "LISTA_POLEMICA", "COMPARATIVO_TECNICO",
-        "CENARIO_ANALITICO", "CHECKLIST_TECNICO", "PREVISAO_MERCADO",
-        "ROTINA_SUGERIDA", "PERGUNTAS_RESPOSTAS", "INSIGHT_DE_CORRETOR", "DATA_DRIVEN"
-    ]
+    CONTENT_FORMATS = CONTENT_FORMATS_MAP = {
+        "GUIA_DEFINITIVO": "📘 Guia Definitivo Completo",
+        "LISTA_POLEMICA": "🔥 Lista Polêmica (Mitos & Verdades)",
+        "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Prós e Contras)",
+        "CENARIO_ANALITICO": "📊 Cenário Analítico (Investidor)",
+        "CHECKLIST_TECNICO": "✅ Checklist de Verificação",
+        "PREVISAO_MERCADO": "🔮 Previsão de Mercado Futuro",
+        "ROTINA_SUGERIDA": "📅 Rotina Sugerida (Dia a Dia)",
+        "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas (FAQ)",
+        "INSIGHT_DE_CORRETOR": "💡 Insight de Corretor (Bastidores)",
+        "DATA_DRIVEN": "📈 Análise Baseada em Dados"
+    }
 
     EMOTIONAL_TRIGGERS = [
         "MEDO_PERDA", "GANANCIA_LOGICA", "ALIVIO_IMEDIATO",
         "STATUS_ORGULHO", "SEGURANCA_TOTAL"
+
     ]
