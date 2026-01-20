@@ -11,10 +11,10 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM & CSS (Mobile Friendly)
+# 🎨 DESIGN SYSTEM & CSS (Mobile First)
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Studio v60", page_icon="💎", layout="wide")
+    st.set_page_config(page_title="Gerador de Pautas IA v1.0", page_icon="🤖", layout="wide")
     
     st.markdown(f"""
     <style>
@@ -41,50 +41,66 @@ def setup_ui():
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         .metric-sub {{ font-size: 12px; color: #666; font-style: italic; }}
         
-        /* Ajuste dos Popovers (Botões de Seleção) */
-        [data-testid="stPopover"] > div > button {{
-            background-color: white;
-            border: 1px solid #ddd;
-            color: #444;
+        /* Estilização dos Botões de Seleção (Parecem inputs mas são botões) */
+        div.stButton > button {{
             width: 100%;
-            text-align: left;
-            justify-content: space-between;
+            border-radius: 8px;
             height: 50px;
+            font-weight: 500;
         }}
-        [data-testid="stPopover"] > div > button:hover {{
-            border-color: {GenesisConfig.COLOR_PRIMARY};
-            color: {GenesisConfig.COLOR_PRIMARY};
-        }}
-
-        /* Botão Principal */
+        
+        /* Botão "Gerar" diferenciado */
         [data-testid="baseButton-secondary"] {{
             background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e);
-            color: white; border: none; height: 55px; font-size: 16px; width: 100%;
+            color: white; border: none; height: 60px; font-size: 18px; font-weight: bold;
         }}
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE MOBILE-FIRST (SEM TECLADO)
+# 🛠️ COMPONENTE "DIALOG" (Fecha ao Clicar)
 # =========================================================
+@st.dialog("Selecione uma opção")
+def show_radio_dialog(label, options, real_key):
+    """
+    Abre um Modal. Ao clicar no Radio, atualiza a chave real e fecha.
+    """
+    # Função de callback interna: Salva e Fecha
+    def _on_change():
+        st.session_state[real_key] = st.session_state[f"tmp_{real_key}"]
+        st.rerun() # Isso força o fechamento do modal
+
+    # Descobre o índice atual para manter a seleção
+    current_val = st.session_state.get(real_key, options[0])
+    try:
+        idx = options.index(current_val)
+    except ValueError:
+        idx = 0
+
+    st.write(f"Escolha para **{label}**:")
+    st.radio(
+        label, 
+        options, 
+        index=idx, 
+        key=f"tmp_{real_key}", 
+        on_change=_on_change,
+        label_visibility="collapsed"
+    )
+
 def mobile_dropdown(label, options, key, icon=""):
-    """
-    Cria um botão que abre um menu de opções (Radio) em vez de Selectbox.
-    Isso impede que o teclado do celular abra, pois não há campo de busca.
-    """
-    # Pega o valor atual ou o primeiro da lista
-    current_val = st.session_state.get(key, options[0])
-    
-    # Encurta o texto se for muito longo para caber no botão do celular
-    display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
-    
-    # Cria o Popover (Botão que abre menu)
-    with st.popover(f"{icon} {label}: {display_text}", use_container_width=True):
-        st.caption(f"Selecione {label}:")
-        # O Radio button é amigável para toque e não abre teclado
-        selection = st.radio(label, options, key=key, label_visibility="collapsed")
+    """Cria um botão que abre o Dialog acima"""
+    # Garante que a chave existe
+    if key not in st.session_state:
+        st.session_state[key] = options[0]
         
-    return selection
+    current_val = st.session_state[key]
+    display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
+    
+    # O botão em si
+    if st.button(f"{icon} {label}: {display_text}", key=f"btn_{key}"):
+        show_radio_dialog(label, options, key)
+    
+    return st.session_state[key]
 
 # =========================================================
 # LÓGICA DE CONTROLE
@@ -121,7 +137,7 @@ def show_manual():
     with st.expander("ℹ️ NOTAS RÁPIDAS"):
         c1, c2 = st.columns(2)
         with c1: st.info("**Venda:** Use Gatilhos de Escassez/Urgência.")
-        with c2: st.info("**Branding:** Use Tópicos de Autoridade (Saúde/Educação).")
+        with c2: st.info("**Branding:** Use Tópicos de Autoridade.")
 
 # =========================================================
 # APP PRINCIPAL
@@ -145,8 +161,9 @@ def main():
     l_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     l_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
-    # --- CABEÇALHO ---
-    st.title("💎 Genesis v60 (Mobile)")
+    # --- CABEÇALHO OFICIAL 1.0 ---
+    st.title("Gerador de Pautas para Inteligência Artificial")
+    st.caption("Versão 1.0 - JANEIRO/2026 | Indaiatuba/SP")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -162,7 +179,6 @@ def main():
             with c1:
                 data_pub = st.date_input("📅 Data", datetime.date.today(), key="k_data")
             with c2:
-                # Substituindo Selectbox por Mobile Dropdown
                 sel_persona = mobile_dropdown("Persona", l_personas, "k_persona", "👤")
 
             st.markdown("---")
@@ -171,7 +187,6 @@ def main():
             c_geo_mode, c_geo_select = st.columns([1, 2])
             with c_geo_mode:
                 if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
-                # Radio button já é mobile friendly
                 modo_geo = st.radio("📍 Geografia", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
             
             final_bairro_input = "ALEATÓRIO"
@@ -188,7 +203,7 @@ def main():
 
             st.markdown("---")
 
-            # 3. ESTRATÉGIA (Mobile Dropdowns)
+            # 3. ESTRATÉGIA
             c3, c4 = st.columns(2)
             with c3:
                 sel_ativo = mobile_dropdown("Imóvel", l_ativos, "k_ativo", "🏠")
@@ -260,7 +275,7 @@ def main():
                 time.sleep(0.2)
                 progress_bar.empty(); status_text.empty()
 
-                st.success("✅ Sucesso!")
+                st.success("✅ Pauta Gerada!")
                 
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
                 g_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(res['gatilho'], res['gatilho'])
