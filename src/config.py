@@ -136,7 +136,8 @@ class GenesisConfig:
         }
     }
 
-    CONTENT_FORMATS = CONTENT_FORMATS_MAP = {
+    # Mapa para a TELA (Bonito)
+    CONTENT_FORMATS_MAP = {
         "GUIA_DEFINITIVO": "📘 Guia Definitivo Completo",
         "LISTA_POLEMICA": "🔥 Lista Polêmica (Mitos & Verdades)",
         "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Prós e Contras)",
@@ -149,8 +150,11 @@ class GenesisConfig:
         "DATA_DRIVEN": "📈 Análise Baseada em Dados"
     }
 
+    # Lista para o MOTOR (Técnico)
+    # Extrai automaticamente só as CHAVES do dicionário acima
+    CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
+
     EMOTIONAL_TRIGGERS = [
         "MEDO_PERDA", "GANANCIA_LOGICA", "ALIVIO_IMEDIATO",
         "STATUS_ORGULHO", "SEGURANCA_TOTAL"
-
     ]
