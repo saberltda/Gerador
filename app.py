@@ -12,9 +12,8 @@ from src.utils import slugify
 # CONFIGURAÇÃO VISUAL (CSS)
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Modular v53", page_icon="🏗️", layout="wide")
+    st.set_page_config(page_title="Genesis Modular v53.1", page_icon="🏗️", layout="wide")
     
-    # CSS Ajustado
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f4f6f9; }}
@@ -39,45 +38,29 @@ def setup_ui():
 # MANUAL DE SEO (TEXTO EDUCATIVO)
 # =========================================================
 def show_manual():
-    with st.expander("📚 MANUAL DE OPERAÇÕES & ESTRATÉGIA SEO (Leia antes de usar)"):
+    with st.expander("📚 MANUAL DE OPERAÇÕES & GATILHOS MENTAIS (Gustavo Ferreira)"):
         st.markdown("""
-        ### 🚀 O Conceito "Genesis"
-        Este não é um simples gerador de texto. É um **Diretor Criativo de IA** projetado especificamente para dominar o ranking "Imobiliária em Indaiatuba". Ele utiliza **Probabilidade Ponderada** para priorizar conteúdos que geram dinheiro, mas sem esquecer da autoridade de marca.
+        ### 🧠 A Lógica dos Gatilhos Mentais
+        Baseado no livro "Gatilhos Mentais", organizamos as opções em dois grupos:
+
+        #### 💎 As Joias da Coroa (Alta Conversão)
+        Use quando quiser **VENDER** ou gerar uma ação imediata.
+        * **ESCASSEZ:** "Só resta 1 unidade", "O bairro está acabando". É o gatilho mais forte.
+        * **URGÊNCIA:** "O preço muda amanhã", "Condição válida até sexta". Foca no tempo.
+        * **AUTORIDADE:** "Dados exclusivos da Imobiliária Saber", "Análise de mercado". Gera confiança.
+        * **PROVA SOCIAL:** "O condomínio mais desejado", "Onde todos querem morar". Ninguém quer errar sozinho.
+
+        #### 🛡️ Gatilhos de Conexão (Retenção e Branding)
+        Use para **ENGAJAR** e criar relacionamento.
+        * **INIMIGO COMUM:** Nos unimos contra algo ruim (Ex: "Fuja da violência de SP", "Chega de pagar aluguel caro").
+        * **NOVIDADE:** Ativa a dopamina. Ótimo para lançamentos ou novas fases.
+        * **PORQUÊ:** Justifique o preço ou a valorização. A mente busca razão.
+        * **HISTÓRIA (Storytelling):** Conecta emocionalmente através da jornada de um personagem.
 
         ---
-
-        ### 🎯 Aula Rápida de SEO: Onde está o Dinheiro?
-        Ao escolher manualmente um **Tópico**, entenda o impacto no seu negócio:
-
-        #### 💰 Money Keywords (Alta Prioridade - Fundo de Funil)
-        *São tópicos onde o cliente já está com a carteira na mão. O programa prioriza estes temas em 80% das vezes no modo Aleatório.*
-        * **Investimento / Valorização:** O cliente quer saber se vai perder dinheiro.
-        * **Segurança:** Fator decisivo nº 1 para quem sai de SP.
-        * **Custo de Vida:** Matemática pura para quem está fazendo as contas da mudança.
-        * **Futuro / Plano Diretor:** Gatilho de ganância e visão de longo prazo.
-
-        #### 🏗️ Authority Keywords (Média Prioridade - Meio de Funil)
-        *Conteúdos que provam que você domina a cidade, não apenas os imóveis.*
-        * **Educação / Escolas:** Fundamental para famílias.
-        * **Logística / Viracopos:** Crucial para empresários e quem trabalha híbrido.
-        * **Saúde / Hospitais:** Decisivo para público sênior e famílias com bebês.
-
-        #### 🎨 Volume & Nicho (Baixa Prioridade - Topo de Funil)
-        *Geram tráfego, mas pouco lead qualificado. Servem para "encher o blog" e criar semântica.*
-        * **Clima, Arquitetura, Pets:** Assuntos leves. Use com moderação (ou deixe a IA sortear raramente).
-
-        ---
-
-        ### 🛠️ Como Configurar os Parâmetros
-        1. **Persona:** Quem vai ler? (Ex: Não adianta falar de "Playground" para um "Investidor", fale de ROI).
-        2. **Bairro:** Onde é o imóvel? (Se deixar Aleatório, a IA escolhe bairros compatíveis com a Persona).
-        3. **Formato:** Como o texto será estruturado?
-            * *Lista Polêmica:* Ótimo para viralizar.
-            * *Guia Definitivo:* Ótimo para rankear no Google (SEO Técnico).
-            * *Cenário Analítico:* Ótimo para convencer investidores racionais.
-        4. **Gatilho:** Qual emoção queremos despertar? (Medo de perder a oportunidade? Orgulho de morar bem?).
-
-        💡 **Dica de Ouro:** Na dúvida, deixe tudo em **ALEATÓRIO**. O robô foi treinado matematicamente para seguir a estratégia vencedora da Imobiliária Saber.
+        ### 🎯 Aula Rápida de SEO
+        * **Money Keywords (Investimento, Segurança):** Trazem o cliente pronto para comprar.
+        * **Authority Keywords (Educação, Saúde):** Provam que você domina a cidade.
         """)
 
 # =========================================================
@@ -86,7 +69,6 @@ def show_manual():
 def main():
     setup_ui()
 
-    # 1. Carregamento de Dados
     try:
         dados_mestre = GenesisData()
         regras_mestre = GenesisRules()
@@ -94,14 +76,18 @@ def main():
         st.error(f"❌ Erro Crítico: {e}")
         st.stop()
 
-    # Preparação das Listas
+    # Preparação das Listas (Com tradução para nomes bonitos)
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     lista_personas = ["ALEATÓRIO"] + list(persona_map.keys())
+    
     lista_bairros = ["ALEATÓRIO"] + sorted([b['nome'] for b in dados_mestre.bairros])
+    
     lista_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
     lista_ativos = ["ALEATÓRIO"] + dados_mestre.todos_ativos
+    
+    # Mapas de Formato e Gatilho
     lista_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
-    lista_gatilhos = ["ALEATÓRIO"] + GenesisConfig.EMOTIONAL_TRIGGERS
+    lista_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     # 2. Sidebar (Configurações)
     with st.sidebar:
@@ -111,31 +97,29 @@ def main():
         data_escolhida = st.date_input("Data de Publicação", datetime.date.today())
         st.markdown("---")
         
-        # Inputs do Usuário (Usando chaves únicas para o reset funcionar)
+        # Inputs
         sel_persona_nome = st.selectbox("1. Persona / Cliente", lista_personas, key="k_persona")
         sel_bairro = st.selectbox("2. Bairro ou Macro", lista_bairros, key="k_bairro")
         sel_topico = st.selectbox("3. Tópico (Peso SEO)", lista_topicos, key="k_topico")
         sel_ativo = st.selectbox("4. Tipo de Imóvel", lista_ativos, key="k_ativo")
         sel_formato = st.selectbox("5. Formato", lista_formatos, key="k_formato")
-        sel_gatilho = st.selectbox("6. Gatilho", lista_gatilhos, key="k_gatilho")
+        sel_gatilho = st.selectbox("6. Gatilho (G. Ferreira)", lista_gatilhos, key="k_gatilho") # <--- Novo Label
 
         st.markdown("---")
         
-        # LÓGICA DO BOTÃO RESET (LIMPA O ESTADO)
         if st.button("🔄 Resetar"):
             for key in st.session_state.keys():
                 del st.session_state[key]
             st.rerun()
 
-    # 3. Área Principal (Header)
+    # 3. Área Principal
     c1, c2 = st.columns([3, 1])
     with c1:
         st.title("⚡ GENESIS AGENCY MODULAR")
         st.markdown("**AI Content Director com Inteligência de SEO**")
     with c2:
-        st.markdown("### 🤖 v53")
+        st.markdown("### 🤖 v53.1")
     
-    # EXIBE O MANUAL AQUI
     show_manual()
 
     col_btn, _ = st.columns([1, 2])
@@ -145,19 +129,30 @@ def main():
     # 4. Lógica de Geração
     if generate_btn:
         try:
-            with st.spinner("Processando estratégia de SEO..."):
+            with st.spinner("Processando estratégia de SEO & Gatilhos..."):
                 engine = GenesisEngine(dados_mestre)
                 
-                # Traduções
+                # --- TRADUÇÃO DOS INPUTS ---
+                
+                # Persona
                 persona_key_sel = "ALEATÓRIO"
                 if sel_persona_nome != "ALEATÓRIO":
                     persona_key_sel = persona_map[sel_persona_nome]
 
+                # Formato (Nome Bonito -> Chave Técnica)
                 formato_key_sel = "ALEATÓRIO"
                 if sel_formato != "ALEATÓRIO":
                     for k, v in GenesisConfig.CONTENT_FORMATS_MAP.items():
                         if v == sel_formato:
                             formato_key_sel = k
+                            break
+                
+                # Gatilho (Nome Bonito -> Chave Técnica) [NOVO!]
+                gatilho_key_sel = "ALEATÓRIO"
+                if sel_gatilho != "ALEATÓRIO":
+                    for k, v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
+                        if v == sel_gatilho:
+                            gatilho_key_sel = k
                             break
 
                 user_selection = {
@@ -166,7 +161,7 @@ def main():
                     "topico": sel_topico,
                     "ativo": sel_ativo,
                     "formato": formato_key_sel,
-                    "gatilho": sel_gatilho
+                    "gatilho": gatilho_key_sel  # Envia "ESCASSEZ" e não "💎 ESCASSEZ..."
                 }
 
                 resultado = engine.run(user_selection)
@@ -189,14 +184,19 @@ def main():
             st.code(traceback.format_exc())
             st.stop()
 
-        # 5. Exibição dos Resultados (COLUNAS AJUSTADAS [1, 1])
-        col_main, col_view = st.columns([1, 1]) # <--- AJUSTE AQUI
+        # 5. Exibição dos Resultados
+        col_main, col_view = st.columns([1, 1])
         
         with col_main:
             bairro_display = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba (Geral)"
             zona_display = resultado['bairro']['zona'] if resultado['bairro'] else "Macro-zona"
+            
+            # Recupera nomes bonitos para exibir
             formato_tecnico = resultado['formato']
             formato_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
+            
+            gatilho_tecnico = resultado['gatilho']
+            gatilho_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(gatilho_tecnico, gatilho_tecnico)
 
             st.success("Estratégia Gerada com Sucesso!")
             
@@ -218,7 +218,7 @@ def main():
                     <div>
                         <div class="stat-label">Formato & Gatilho</div>
                         <div class="stat-value highlight">{formato_bonito}</div>
-                        <small>{resultado['gatilho']}</small>
+                        <div class="stat-value highlight" style="font-size: 18px; margin-top:5px;">{gatilho_bonito}</div>
                     </div>
                     <hr>
                     <div>
