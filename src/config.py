@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.54.0 (MARKET INTELLIGENCE 2026)"
+    VERSION = "GERADOR V.55.0 (ASSET CATALOG UPDATE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -11,9 +11,8 @@ class GenesisConfig:
     # =====================================================
     # 1. INTELIGÊNCIA DE SEO (Weighted Randomness)
     # =====================================================
-    # Mapeamento: Chave Técnica -> Nome Amigável (User Facing)
     TOPICS_MAP = {
-        # --- MONEY KEYWORDS (Fundo de Funil - Decisão Financeira) ---
+        # --- MONEY KEYWORDS (Fundo de Funil) ---
         "MERCADO_DADOS": "📈 Análise de Mercado & Dados (Yield/Vacância)",
         "INVESTIMENTO_ROI": "💰 ROI e Valorização Patrimonial (Investidor)",
         "FINANCAS_TOKEN": "💳 Financiamento Inteligente & Tokenização",
@@ -21,7 +20,7 @@ class GenesisConfig:
         "LOCALIZACAO_PREMIUM": "📍 Localização Estratégica & Mobilidade",
         "LUXO_COMPACTO": "💎 Luxo Compacto & Design Autoral",
         
-        # --- AUTHORITY & LIFESTYLE (Meio de Funil - Conexão) ---
+        # --- AUTHORITY & LIFESTYLE (Meio de Funil) ---
         "CIDADES_INTELIGENTES": "🏙️ Cidades Inteligentes & Infraestrutura",
         "HOME_OFFICE_FLEX": "💻 Home Office & Plantas Flexíveis",
         "LOGISTICA_HUB": "🚚 Logística, Viracopos e Last Mile",
@@ -29,25 +28,24 @@ class GenesisConfig:
         "SENIOR_LIVING": "🍷 Silver Economy (Acessibilidade 60+)",
         "SEGURANCA_TECH": "🛡️ Segurança Tecnológica & IA",
         
-        # --- VOLUME & NICHO (Topo de Funil - Tráfego) ---
+        # --- VOLUME & NICHO (Topo de Funil) ---
         "SHORT_STAY": "🧳 Short Stay & Rentabilidade Airbnb",
         "PETS_GARDEN": "🐾 Pet Friendly & Garden Privativo",
         "SMART_HOME": "📱 Automação Residencial (Smart Home)"
     }
 
-    # Pesos Estratégicos (Quanto maior, mais frequente o sorteio)
     TOPICS_WEIGHTS = {
-        "MERCADO_DADOS": 100,      # Ouro: Dados convencem investidor e Gen Z
-        "INVESTIMENTO_ROI": 95,    # Prata: O clássico que sempre converte
-        "FINANCAS_TOKEN": 90,      # Tendência forte 2026 (Flexibilidade)
-        "SUSTENTABILIDADE_ESG": 85,# Obrigatório para valorização futura
-        "LOCALIZACAO_PREMIUM": 85, # Imutável no imobiliário
-        "LUXO_COMPACTO": 80,       # Tendência "Downsizing Premium"
+        "MERCADO_DADOS": 100,
+        "INVESTIMENTO_ROI": 95,
+        "FINANCAS_TOKEN": 90,
+        "SUSTENTABILIDADE_ESG": 85,
+        "LOCALIZACAO_PREMIUM": 85,
+        "LUXO_COMPACTO": 80,
         "CIDADES_INTELIGENTES": 70,
         "HOME_OFFICE_FLEX": 65,
         "LOGISTICA_HUB": 60,
         "BEM_ESTAR_BIOFILIA": 50,
-        "SENIOR_LIVING": 45,       # Nicho crescente (Boomers)
+        "SENIOR_LIVING": 45,
         "SEGURANCA_TECH": 40,
         "SHORT_STAY": 35,
         "PETS_GARDEN": 30,
@@ -78,7 +76,7 @@ class GenesisConfig:
     # 3. MATRIZ DE PERSONAS (ARQUÉTIPOS AVANÇADOS 2026)
     # =====================================================
     PERSONAS = {
-        # --- OS GIGANTES DO MERCADO (Joias da Coroa) ---
+        # --- OS GIGANTES DO MERCADO ---
         "INVESTOR_DATA_DRIVEN": {
             "cluster_ref": "INVESTOR",
             "nome": "📊 INVESTIDOR 3.0 (Data-Driven)",
@@ -110,7 +108,7 @@ class GenesisConfig:
             "desejo": "Patrimônio seguro, portaria 24h e autonomia financeira imediata."
         },
 
-        # --- NICHOS ESTRATÉGICOS (Cauda Longa) ---
+        # --- NICHOS ESTRATÉGICOS ---
         "LUXURY_EXPERIENTIAL": {
             "cluster_ref": "HIGH_END",
             "nome": "✨ Buscador de Experiência (Novo Luxo)",
@@ -144,7 +142,7 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 4. FORMATOS DE CONTEÚDO (MAPA)
+    # 4. FORMATOS DE CONTEÚDO
     # =====================================================
     CONTENT_FORMATS_MAP = {
         "GUIA_DEFINITIVO": "📘 Guia Definitivo Completo",
@@ -161,17 +159,14 @@ class GenesisConfig:
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
     # =====================================================
-    # 5. GATILHOS MENTAIS (GUSTAVO FERREIRA)
+    # 5. GATILHOS MENTAIS
     # =====================================================
     EMOTIONAL_TRIGGERS_MAP = {
-        # --- AS JOIAS DA COROA (Decisão de Compra) ---
         "ESCASSEZ": "💎 ESCASSEZ (A Joia da Coroa)",
         "URGENCIA": "🚨 URGÊNCIA (Fator Tempo)",
         "AUTORIDADE": "👑 AUTORIDADE (Nós Sabemos)",
         "PROVA_SOCIAL": "👥 PROVA SOCIAL (Efeito Manada)",
         "RECIPROCIDADE": "🤝 RECIPROCIDADE (Gerar Valor)",
-        
-        # --- GATILHOS ESTRATÉGICOS (Conexão/Retenção) ---
         "NOVIDADE": "✨ Novidade (Dopamina/Inédito)",
         "CURIOSIDADE": "❓ Curiosidade (O Segredo)",
         "INIMIGO_COMUM": "🛡️ Inimigo Comum (Nós vs Eles/Caos)",
@@ -181,5 +176,59 @@ class GenesisConfig:
         "SIMPLICIDADE": "💡 Simplicidade (O Caminho Fácil)",
         "PORQUE": "🧠 O 'Porquê' (Justificativa Racional)"
     }
-    
     EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
+
+    # =====================================================
+    # 6. CATÁLOGO DE IMÓVEIS (SEO INDAIATUBA)
+    # =====================================================
+    # Chave = Cluster Técnico (Para a Engine filtrar)
+    # Lista = Opções Visíveis
+    ASSETS_CATALOG = {
+        "HIGH_END": [
+            "MANSÃO EM CONDOMÍNIO FECHADO (Luxo)",
+            "CASA TÉRREA DE ALTO PADRÃO (Piscina)",
+            "SOBRADO NEO CLÁSSICO (Condomínio)",
+            "TERRENO DE ESQUINA (Condomínio)",
+            "Lote em Condomínio de Luxo (>500m²)",
+            "Casa com Vista para Mata Preservada"
+        ],
+        "FAMILY": [
+            "CASA EM CONDOMÍNIO (3 Dormitórios)",
+            "SOBRADO COM ÁREA GOURMET",
+            "CASA TÉRREA (Acessibilidade Total)",
+            "Casa de Rua em Bairro Planejado",
+            "Sobrado Misto (Residencial/Comercial)",
+            "Villagio / Casas Geminadas (Condomínio)"
+        ],
+        "URBAN": [
+            "APARTAMENTO VARANDA GOURMET (Centro)",
+            "COBERTURA DUPLEX (Vista Panorâmica)",
+            "APARTAMENTO GARDEN (Quintal Suspenso)",
+            "Studio / Loft Moderno (Investimento)",
+            "Apartamento Compacto (1 Dormitório)",
+            "Apartamento Padrão (2 Dormitórios)"
+        ],
+        "INVESTOR": [
+            "TERRENO EM CONDOMÍNIO (Oportunidade)",
+            "LOTE PARA CONSTRUÇÃO (Flip)",
+            "Imóvel para Reforma (Retrofit)",
+            "Kitnet / Studio para Locação",
+            "Terreno Comercial em Avenida",
+            "Área para Incorporação Vertical"
+        ],
+        "LOGISTICS": [
+            "GALPÃO INDUSTRIAL AAA (Logística)",
+            "TERRENO INDUSTRIAL (Z1/Z2)",
+            "Condomínio Logístico (Módulo)",
+            "Galpão Comercial (Frente Rodovia)",
+            "Área para Centro de Distribuição",
+            "Barracão Comercial Padrão"
+        ],
+        "RURAL_LIFESTYLE": [ # Categoria Nova!
+            "CHÁCARA EM ITAICI (Lazer)",
+            "SÍTIO OU HARAS (Helvetia)",
+            "Chácara em Condomínio Fechado",
+            "Terreno de Chácara (>1.000m²)",
+            "Casa de Campo com Pomar"
+        ]
+    }
