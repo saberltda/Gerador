@@ -18,30 +18,36 @@ class GenesisEngine:
         self.config = GenesisConfig()
         self.plano = PlanoDiretor()
         self.scanner = BlogScanner()
-        # Define onde salvar o log
         self.log_file = "historico_geracao.csv"
 
     def _salvar_log(self, dados: dict):
         """Escreve uma linha no arquivo CSV para controle do usuário."""
         file_exists = os.path.isfile(self.log_file)
         
-        # Prepara os dados para o CSV
+        # Prepara os dados
         bairro_nome = dados['bairro']['nome'] if dados['bairro'] else "N/A (Cidade)"
+        
+        # CORREÇÃO: TRADUZ PARA O NOME BONITO ANTES DE SALVAR
+        formato_tecnico = dados['formato']
+        formato_bonito = self.config.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
+        
+        gatilho_tecnico = dados['gatilho']
+        gatilho_bonito = self.config.EMOTIONAL_TRIGGERS_MAP.get(gatilho_tecnico, gatilho_tecnico)
+
         linha = [
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             dados['persona']['nome'],
             bairro_nome,
             dados['topico'],
             dados['ativo_definido'],
-            dados['formato'],
-            dados['gatilho']
+            formato_bonito, # Agora salva "🔥 Lista..." e não "LISTA_..."
+            gatilho_bonito  # Agora salva "💎 Escassez..." e não "ESCASSEZ"
         ]
 
         try:
-            # MUDANÇA AQUI: encoding='utf-8-sig' para o Excel reconhecer emojis/acentos
+            # Mantém utf-8-sig para o Excel abrir com acentos corretos
             with open(self.log_file, mode='a', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f, delimiter=';')
-                # Se arquivo é novo, cria cabeçalho
                 if not file_exists:
                     writer.writerow(["DATA", "PERSONA", "BAIRRO", "TOPICO", "ATIVO", "FORMATO", "GATILHO"])
                 writer.writerow(linha)
@@ -53,9 +59,7 @@ class GenesisEngine:
         self.scanner.mapear()
         historico_recente = self.scanner.get_ultimos_titulos(20)
 
-        # =====================================================
-        # 1. DEFINIÇÃO DA PERSONA
-        # =====================================================
+        # 2. Definição da Persona
         if user_selection['persona_key'] != "ALEATÓRIO":
             persona_key = user_selection['persona_key']
         else:
@@ -64,9 +68,7 @@ class GenesisEngine:
         persona_data = self.config.PERSONAS[persona_key]
         cluster_ref = persona_data.get("cluster_ref", "FAMILY")
 
-        # =====================================================
-        # 2. DEFINIÇÃO DO BAIRRO (COM NULL SAFETY)
-        # =====================================================
+        # 3. Definição do Bairro (Com Null Safety)
         bairro_selecionado = None
         modo = "CIDADE"
         obs_tecnica = "Foco Macro (Cidade)"
@@ -84,13 +86,17 @@ class GenesisEngine:
             for b in self.data.bairros:
                 z = b.get("zona_normalizada")
                 match = False
-                if cluster_ref == "HIGH_END" and z in ["residencial_fechado", "chacaras_fechado"]: match = True
-                elif cluster_ref == "FAMILY" and z in ["residencial_fechado", "residencial_aberto", "chacaras_fechado"]: match = True
-                elif cluster_ref == "URBAN" and z in ["residencial_aberto", "mista"]: match = True
-                elif cluster_ref == "INVESTOR" and z in ["industrial", "residencial_fechado", "mista", "residencial_aberto"]: match = True
-                elif cluster_ref == "LOGISTICS" and z in ["industrial"]: match = True
-                elif cluster_ref == "CORPORATE" and z in ["mista", "industrial", "residencial_aberto"]: match = True
-                if match:
+                # Lógica de Match simplificada para não repetir código
+                clusters_zonas = {
+                    "HIGH_END": ["residencial_fechado", "chacaras_fechado"],
+                    "FAMILY": ["residencial_fechado", "residencial_aberto", "chacaras_fechado"],
+                    "URBAN": ["residencial_aberto", "mista"],
+                    "INVESTOR": ["industrial", "residencial_fechado", "mista", "residencial_aberto"],
+                    "LOGISTICS": ["industrial"],
+                    "CORPORATE": ["mista", "industrial", "residencial_aberto"]
+                }
+                zonas_aceitas = clusters_zonas.get(cluster_ref, [])
+                if z in zonas_aceitas:
                     candidatos_validos.append(b)
 
             if candidatos_validos:
@@ -104,14 +110,12 @@ class GenesisEngine:
                         obs_tecnica = "Bairro Compatível (IA - Já publicado)"
                     modo = "BAIRRO"
             
-            # --- CORREÇÃO DE SEGURANÇA (NULL SAFETY) ---
+            # Null Safety: Se falhou em achar bairro, volta para Cidade
             if modo == "BAIRRO" and bairro_selecionado is None:
                 modo = "CIDADE"
                 obs_tecnica = "Fallback: Nenhum bairro compatível encontrado."
 
-        # =====================================================
-        # 3. TÓPICO, ATIVO E REFINAMENTO
-        # =====================================================
+        # 4. Tópico (Weighted)
         if user_selection['topico'] != "ALEATÓRIO":
             topico_nome = user_selection['topico'] 
         else:
@@ -120,6 +124,7 @@ class GenesisEngine:
             chave_sorteada = random.choices(keys, weights=pesos, k=1)[0]
             topico_nome = self.config.TOPICS_MAP[chave_sorteada]
 
+        # 5. Ativo
         if user_selection['ativo'] != "ALEATÓRIO":
             ativo_final = user_selection['ativo']
             obs_ref = "Ativo Definido pelo Usuário"
@@ -137,6 +142,7 @@ class GenesisEngine:
 
         obs_tecnica += f" | {obs_ref}"
 
+        # 6. Formato e Gatilho
         if user_selection['formato'] != "ALEATÓRIO":
             formato = user_selection['formato']
         else:
@@ -147,7 +153,7 @@ class GenesisEngine:
         else:
             gatilho = random.choice(self.config.EMOTIONAL_TRIGGERS)
 
-        # Monta o pacote final
+        # Monta pacote
         pacote_final = {
             "modo": modo,
             "bairro": bairro_selecionado,
@@ -161,7 +167,7 @@ class GenesisEngine:
             "historico_titulos": historico_recente
         }
 
-        # --- GERA O LOG AUTOMÁTICO ---
+        # Salva Log
         self._salvar_log(pacote_final)
 
         return pacote_final
