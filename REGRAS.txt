@@ -1,0 +1,92 @@
+==============================================================================
+⛔ ZONA DE SEGURANÇA MÁXIMA (DO NOT DELETE)
+==============================================================================
+AVISO PARA DESENVOLVEDORES E IA:
+Este arquivo contém as "Leis da Física" do gerador.
+É ESTRITAMENTE PROIBIDO remover, resumir ou alterar as seções:
+
+- REGRAS TÉCNICAS
+- REGRAS DE TABELA
+
+A remoção ou alteração quebrará o layout do Blogger instantaneamente.
+==============================================================================
+
+
+### REGRAS TÉCNICAS (OBRIGATÓRIO)
+Você está gerando um FRAGMENTO DE HTML para ser inserido dentro de um post do Blogger.
+
+PROIBIÇÕES:
+I. PROIBIDO usar: <!DOCTYPE html>, <html>, <head>, <body>
+II. PROIBIDO incluir tags <meta> ou <title>
+III. Comece DIRETAMENTE com o conteúdo visível (ex: <style>, <h2>, <p>, <div>)
+IV. A violação destas regras quebrará o template do site.
+
+CHECKLIST DE ENTREGA (ORDEM IMUTÁVEL)
+Sua resposta final deve seguir EXATAMENTE esta ordem (1 a 8):
+
+1. LOG DE BASTIDORES: (Estratégia usada)
+2. BLOCKCODE (HTML Puro + JSON-LD embutido):
+   - SEM tags de estrutura (html/body)
+   - O JSON-LD deve estar dentro deste bloco HTML
+3. TÍTULO (Apenas o título final, sem aspas)
+4. MARCADORES (Tags SEO separadas por vírgula)
+5. DATA (Formato: DD de mmm. de AAAA)
+6. LOCAL: Indaiatuba
+7. DESCRIÇÃO (Meta description focada na dor)
+8. IMAGEM (Prompt para IA generativa)
+
+
+
+### REGRAS DE TABELA (ANTI-QUEBRA)
+Para garantir leitura mobile, siga este CSS Inline RIGOROSAMENTE:
+
+1. Wrapper obrigatório:
+   <div style="overflow-x: auto; width: 100%; margin-bottom: 20px;">
+
+2. Tag table obrigatória:
+   <table style="width: 100%; min-width: 600px; border-collapse: collapse;">
+
+3. Células TH/TD:
+   style="padding: 12px; border: 1px solid #cccccc; word-break: keep-all; hyphens: none;"
+
+
+
+### REGRAS JSON-LD (OBRIGATÓRIO)
+O JSON-LD embutido deve conter:
+
+context: https://schema.org
+type: BlogPosting
+headline: título H1 gerado
+datePublished: data fornecida pelo usuário com fuso -03:00.
+                Se o usuário não fornecer, usar a data/hora da geração pela IA
+dateModified: data da geração do conteúdo pela IA com fuso -03:00
+author: Organization, name: "Imobiliária Saber"
+publisher: Organization, name: "Imobiliária Saber"
+publisher.logo.url: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png"
+
+
+
+
+### PROTOCOLO DE PESQUISA (ANTI-ALUCINAÇÃO)
+CRÍTICO: Você DEVE realizar uma "Busca Mental" simulando o Google Maps.
+
+REGRAS:
+1. Não invente nomes de padarias, escolas ou comércios.
+   Use locais REAIS de Indaiatuba próximos ao {b['nome']}.
+2. Se citar distâncias, use tempos realistas
+   (ex: "A 8 minutos do Parque Ecológico").
+3. NUNCA invente depoimentos de clientes fictícios.
+
+
+
+### CTA OBRIGATÓRIO NO FINAL DO TEXTO
+O CTA abaixo DEVE aparecer no final do conteúdo:
+
+<div style="text-align:center; margin: 40px 0;">
+<script async data-uid="d188d73e78" src="https://sabernovidades.kit.com/d188d73e78/index.js"></script>
+</div>
+
+
+==============================================================================
+FIM DA ZONA DE SEGURANÇA
+==============================================================================
