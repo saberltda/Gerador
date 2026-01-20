@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.53.0 (MODULAR)"
+    VERSION = "GERADOR V.53.1 (GUSTAVO FERREIRA EDITION)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -11,7 +11,6 @@ class GenesisConfig:
     # =====================================================
     # 1. INTELIGÊNCIA DE SEO (Weighted Randomness)
     # =====================================================
-    # Mapeamento: Chave Técnica -> Nome Amigável
     TOPICS_MAP = {
         "INVESTIMENTO": "Valorização e Aluguel", 
         "CUSTO_VIDA": "Matemática Financeira e Custo de Vida", 
@@ -30,8 +29,6 @@ class GenesisConfig:
         "CLIMA": "Microclima e Áreas Verdes"
     }
 
-    # Pesos: Quanto maior, mais chance de ser sorteado
-    # Foco em Money Keywords (Investimento, Segurança, Custo)
     TOPICS_WEIGHTS = {
         "INVESTIMENTO": 100,
         "CUSTO_VIDA": 90,
@@ -136,7 +133,9 @@ class GenesisConfig:
         }
     }
 
-    # Mapa para a TELA (Bonito)
+    # =====================================================
+    # 4. FORMATOS DE CONTEÚDO (MAPA)
+    # =====================================================
     CONTENT_FORMATS_MAP = {
         "GUIA_DEFINITIVO": "📘 Guia Definitivo Completo",
         "LISTA_POLEMICA": "🔥 Lista Polêmica (Mitos & Verdades)",
@@ -149,12 +148,30 @@ class GenesisConfig:
         "INSIGHT_DE_CORRETOR": "💡 Insight de Corretor (Bastidores)",
         "DATA_DRIVEN": "📈 Análise Baseada em Dados"
     }
-
-    # Lista para o MOTOR (Técnico)
-    # Extrai automaticamente só as CHAVES do dicionário acima
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
-    EMOTIONAL_TRIGGERS = [
-        "MEDO_PERDA", "GANANCIA_LOGICA", "ALIVIO_IMEDIATO",
-        "STATUS_ORGULHO", "SEGURANCA_TOTAL"
-    ]
+    # =====================================================
+    # 5. GATILHOS MENTAIS (GUSTAVO FERREIRA)
+    # =====================================================
+    # As 'Joias da Coroa' estão em destaque (Uppercase)
+    EMOTIONAL_TRIGGERS_MAP = {
+        # --- AS JOIAS DA COROA (Decisão de Compra) ---
+        "ESCASSEZ": "💎 ESCASSEZ (A Joia da Coroa)",
+        "URGENCIA": "🚨 URGÊNCIA (Fator Tempo)",
+        "AUTORIDADE": "👑 AUTORIDADE (Nós Sabemos)",
+        "PROVA_SOCIAL": "👥 PROVA SOCIAL (Efeito Manada)",
+        "RECIPROCIDADE": "🤝 RECIPROCIDADE (Gerar Valor)",
+        
+        # --- GATILHOS ESTRATÉGICOS (Conexão/Retenção) ---
+        "NOVIDADE": "✨ Novidade (Dopamina/Inédito)",
+        "CURIOSIDADE": "❓ Curiosidade (O Segredo)",
+        "INIMIGO_COMUM": "🛡️ Inimigo Comum (Nós vs Eles/Caos)",
+        "ANTECIPACAO": "👀 Antecipação (Vem aí)",
+        "HISTORIA": "📖 Storytelling (Jornada do Herói)",
+        "COMPROMISSO": "💍 Compromisso e Coerência",
+        "SIMPLICIDADE": "💡 Simplicidade (O Caminho Fácil)",
+        "PORQUE": "🧠 O 'Porquê' (Justificativa Racional)"
+    }
+    
+    # Lista técnica para o motor usar nos sorteios
+    EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
