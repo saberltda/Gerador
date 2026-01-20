@@ -11,81 +11,97 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM & CSS (Full Width Moderno)
+# 🎨 DESIGN SYSTEM & CSS (Mobile Friendly)
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Studio v59.1", page_icon="💎", layout="wide")
+    st.set_page_config(page_title="Genesis Studio v60", page_icon="💎", layout="wide")
     
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
-        
-        /* Esconde Sidebar padrão */
         section[data-testid="stSidebar"] {{ display: none; }}
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
         
         /* Painel de Controle */
         .control-panel {{
-            background-color: white; padding: 25px; border-radius: 15px;
+            background-color: white; padding: 20px; border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border-top: 5px solid {GenesisConfig.COLOR_PRIMARY}; margin-bottom: 25px;
         }}
 
         /* Cards de Resultado */
         .metric-card {{
-            background: white; padding: 20px; border-radius: 12px;
+            background: white; padding: 15px; border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             border-left: 5px solid {GenesisConfig.COLOR_PRIMARY};
-            height: 100%; transition: transform 0.2s;
+            height: 100%;
         }}
-        .metric-card:hover {{ transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }}
-        .metric-label {{ font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }}
-        .metric-value {{ font-size: 18px; font-weight: 700; color: #333; line-height: 1.3; }}
-        .metric-sub {{ font-size: 13px; color: #666; margin-top: 5px; font-style: italic; }}
+        .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
+        .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
+        .metric-sub {{ font-size: 12px; color: #666; font-style: italic; }}
         
-        /* Botões */
-        div.stButton > button {{
-            height: 60px; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
-            border-radius: 10px; transition: all 0.3s ease;
+        /* Ajuste dos Popovers (Botões de Seleção) */
+        [data-testid="stPopover"] > div > button {{
+            background-color: white;
+            border: 1px solid #ddd;
+            color: #444;
+            width: 100%;
+            text-align: left;
+            justify-content: space-between;
+            height: 50px;
         }}
+        [data-testid="stPopover"] > div > button:hover {{
+            border-color: {GenesisConfig.COLOR_PRIMARY};
+            color: {GenesisConfig.COLOR_PRIMARY};
+        }}
+
+        /* Botão Principal */
         [data-testid="baseButton-secondary"] {{
             background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e);
-            color: white; border: none;
+            color: white; border: none; height: 55px; font-size: 16px; width: 100%;
         }}
-        [data-testid="baseButton-secondary"]:hover {{ box-shadow: 0 5px 15px rgba(0,50,150,0.3); opacity: 0.95; }}
-        
-        [data-testid="baseButton-primary"] {{
-            background-color: #f0f2f6; color: #555; border: 1px solid #ddd;
-        }}
-        [data-testid="baseButton-primary"]:hover {{ background-color: #e2e6ea; color: #333; border-color: #ccc; }}
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# LÓGICA DE CONTROLE (CORRIGIDA)
+# 🛠️ COMPONENTE MOBILE-FIRST (SEM TECLADO)
+# =========================================================
+def mobile_dropdown(label, options, key, icon=""):
+    """
+    Cria um botão que abre um menu de opções (Radio) em vez de Selectbox.
+    Isso impede que o teclado do celular abra, pois não há campo de busca.
+    """
+    # Pega o valor atual ou o primeiro da lista
+    current_val = st.session_state.get(key, options[0])
+    
+    # Encurta o texto se for muito longo para caber no botão do celular
+    display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
+    
+    # Cria o Popover (Botão que abre menu)
+    with st.popover(f"{icon} {label}: {display_text}", use_container_width=True):
+        st.caption(f"Selecione {label}:")
+        # O Radio button é amigável para toque e não abre teclado
+        selection = st.radio(label, options, key=key, label_visibility="collapsed")
+        
+    return selection
+
+# =========================================================
+# LÓGICA DE CONTROLE
 # =========================================================
 def reset_state_callback():
-    """
-    Força manualmente todos os widgets para o valor padrão.
-    Isso é mais seguro do que usar 'del' no session_state.
-    """
-    # 1. Reseta Selectboxes para o índice 0 ("ALEATÓRIO")
-    st.session_state["k_persona"] = "ALEATÓRIO"
-    st.session_state["k_topico"] = "ALEATÓRIO"
-    st.session_state["k_ativo"] = "ALEATÓRIO"
-    st.session_state["k_formato"] = "ALEATÓRIO"
-    st.session_state["k_gatilho"] = "ALEATÓRIO"
+    keys_to_reset = [
+        "k_persona", "k_bairro", "k_topico", 
+        "k_ativo", "k_formato", "k_gatilho", 
+        "k_modo_geo", "k_data"
+    ]
+    for k in keys_to_reset:
+        if k in st.session_state:
+            del st.session_state[k]
     
-    # 2. Reseta o Radio Button para a primeira opção
+    # Reseta valores padrão
     st.session_state["k_modo_geo"] = "🎲 Aleatório"
-    
-    # 3. Reseta a Data para Hoje
     st.session_state["k_data"] = datetime.date.today()
-    
-    # 4. Remove a chave do Bairro (pois ela é condicional e pode não existir)
-    if "k_bairro" in st.session_state:
-        del st.session_state["k_bairro"]
 
 def load_history():
     log_file = "historico_geracao.csv"
@@ -102,11 +118,10 @@ def load_history():
     return None
 
 def show_manual():
-    with st.expander("ℹ️ NOTAS RÁPIDAS (SEO & GATILHOS)"):
-        c1, c2, c3 = st.columns(3)
-        with c1: st.info("**Money Keywords:** Investimento, Segurança (Venda).")
-        with c2: st.info("**Joias da Coroa:** Escassez e Urgência (Decisão).")
-        with c3: st.info("**Dica:** Use 'Aleatório' para descobrir nichos.")
+    with st.expander("ℹ️ NOTAS RÁPIDAS"):
+        c1, c2 = st.columns(2)
+        with c1: st.info("**Venda:** Use Gatilhos de Escassez/Urgência.")
+        with c2: st.info("**Branding:** Use Tópicos de Autoridade (Saúde/Educação).")
 
 # =========================================================
 # APP PRINCIPAL
@@ -130,93 +145,82 @@ def main():
     l_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     l_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
-    # ---------------------------------------------------------
-    # CABEÇALHO
-    # ---------------------------------------------------------
-    st.title("💎 Genesis Content Studio v59.1")
-    st.markdown(f"**Diretor Criativo de IA** | Blog: {GenesisConfig.BLOG_URL}")
-
-    # ABAS PRINCIPAIS
-    tab_painel, tab_hist = st.tabs(["🎛️ PAINEL DE CRIAÇÃO", "📂 HISTÓRICO"])
+    # --- CABEÇALHO ---
+    st.title("💎 Genesis v60 (Mobile)")
+    
+    tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
     with tab_painel:
         # =====================================================
-        # ÁREA DE CONTROLE
+        # ÁREA DE CONTROLE (BOTÕES TIPO POPUP)
         # =====================================================
         with st.container(border=True):
             st.markdown("### 🛠️ Configuração da Pauta")
             
-            # LINHA 1: CONTEXTO GERAL
+            # 1. CONTEXTO
             c1, c2 = st.columns([1, 2])
             with c1:
-                data_pub = st.date_input("📅 Data Publicação", datetime.date.today(), key="k_data")
+                data_pub = st.date_input("📅 Data", datetime.date.today(), key="k_data")
             with c2:
-                sel_persona = st.selectbox("👤 Persona (Público Alvo)", l_personas, key="k_persona")
+                # Substituindo Selectbox por Mobile Dropdown
+                sel_persona = mobile_dropdown("Persona", l_personas, "k_persona", "👤")
 
             st.markdown("---")
 
-            # LINHA 2: GEOGRAFIA
+            # 2. GEOGRAFIA
             c_geo_mode, c_geo_select = st.columns([1, 2])
-            
             with c_geo_mode:
-                # Se a chave não existir (primeira execução), define padrão
-                if "k_modo_geo" not in st.session_state:
-                    st.session_state["k_modo_geo"] = "🎲 Aleatório"
-                    
-                modo_geo = st.radio(
-                    "📍 Definição Geográfica",
-                    ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"],
-                    key="k_modo_geo"
-                )
+                if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
+                # Radio button já é mobile friendly
+                modo_geo = st.radio("📍 Geografia", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
             
             final_bairro_input = "ALEATÓRIO"
             with c_geo_select:
                 if modo_geo == "📍 Bairro Específico":
-                    sel_bairro_manual = st.selectbox("Escolha o Bairro:", l_bairros, key="k_bairro")
+                    # Dropdown Mobile para Bairros
+                    sel_bairro_manual = mobile_dropdown("Bairro", l_bairros, "k_bairro", "🏘️")
                     final_bairro_input = sel_bairro_manual
                 elif modo_geo == "🏙️ Foco Cidade":
-                    st.info("ℹ️ O texto será focado na cidade de Indaiatuba (Macro).")
+                    st.success("Texto focado na Cidade (Macro)")
                     final_bairro_input = "FORCE_CITY_MODE"
                 else:
-                    st.info("ℹ️ A IA escolherá o local ideal para a Persona.")
+                    st.info("A IA escolherá o melhor local.")
 
             st.markdown("---")
 
-            # LINHA 3: ESTRATÉGIA
+            # 3. ESTRATÉGIA (Mobile Dropdowns)
             c3, c4 = st.columns(2)
             with c3:
-                sel_ativo = st.selectbox("🏠 Tipo de Imóvel", l_ativos, key="k_ativo")
+                sel_ativo = mobile_dropdown("Imóvel", l_ativos, "k_ativo", "🏠")
             with c4:
-                sel_topico = st.selectbox("🚀 Tópico (Foco SEO)", l_topicos, key="k_topico")
+                sel_topico = mobile_dropdown("Tópico", l_topicos, "k_topico", "🚀")
 
-            # LINHA 4: REFINAMENTO
             c5, c6 = st.columns(2)
             with c5:
-                sel_formato = st.selectbox("📝 Formato do Texto", l_formatos, key="k_formato")
+                sel_formato = mobile_dropdown("Formato", l_formatos, "k_formato", "📝")
             with c6:
-                sel_gatilho = st.selectbox("🧠 Gatilho Mental", l_gatilhos, key="k_gatilho")
+                sel_gatilho = mobile_dropdown("Gatilho", l_gatilhos, "k_gatilho", "🧠")
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # LINHA 5: AÇÕES
+            # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
-                st.button("🧹 LIMPAR TUDO", on_click=reset_state_callback, type="primary", use_container_width=True)
+                st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
-        # ÁREA DE RESULTADOS
+        # RESULTADOS
         # =====================================================
         if run_btn:
             show_manual()
-            
             progress_bar = st.progress(0)
             status_text = st.empty()
             
             try:
-                status_text.text("🧠 Carregando inteligência de mercado...")
-                progress_bar.progress(20)
+                status_text.text("🧠 Pensando...")
+                progress_bar.progress(30)
                 time.sleep(0.2)
                 
                 engine = GenesisEngine(dados_mestre)
@@ -241,11 +245,7 @@ def main():
                     "formato": f_key, "gatilho": g_key
                 }
                 
-                progress_bar.progress(50)
                 res = engine.run(user_sel)
-                
-                status_text.text("✍️ Escrevendo prompt otimizado...")
-                progress_bar.progress(80)
                 
                 builder = PromptBuilder()
                 h_iso = datetime.datetime.now().strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
@@ -260,56 +260,42 @@ def main():
                 time.sleep(0.2)
                 progress_bar.empty(); status_text.empty()
 
-                # DASHBOARD
-                st.success("✅ Estratégia Definida com Sucesso!")
+                st.success("✅ Sucesso!")
                 
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
                 g_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(res['gatilho'], res['gatilho'])
-                b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
+                b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba"
                 
-                k1, k2, k3, k4 = st.columns(4)
+                # Cards Mobile Friendly (2 por linha)
+                k1, k2 = st.columns(2)
                 with k1:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Persona</div><div class="metric-value">{res['persona']['nome']}</div><div class="metric-sub">{res['persona']['dor'][:45]}...</div></div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Persona</div><div class="metric-value">{res['persona']['nome'].split('(')[0]}</div></div>""", unsafe_allow_html=True)
                 with k2:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Local & Ativo</div><div class="metric-value">{b_display}</div><div class="metric-sub">{res['ativo_definido']}</div></div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Local</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
+                
+                k3, k4 = st.columns(2)
                 with k3:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Tática</div><div class="metric-value">{f_bonito}</div><div class="metric-sub">{g_bonito}</div></div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{f_bonito.split(' ')[0]} {f_bonito.split(' ')[1]}</div></div>""", unsafe_allow_html=True)
                 with k4:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">SEO</div><div class="metric-value">{res['topico']}</div><div class="metric-sub">Foco de Ranking</div></div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div class="metric-card"><div class="metric-label">SEO</div><div class="metric-value">{res['topico'].split(' ')[1]}</div></div>""", unsafe_allow_html=True)
 
                 st.markdown("<br>", unsafe_allow_html=True)
-                
-                # Prompt e Download
-                st.subheader("📋 Prompt Gerado")
-                st.text_area("Copie e cole na IA:", value=prompt, height=600)
-                
-                c_down, _ = st.columns([1, 3])
-                with c_down:
-                    st.download_button("💾 Baixar Pauta (.txt)", data=prompt, file_name=nome_arq, mime="text/plain", use_container_width=True)
+                st.text_area("Copiar Prompt:", value=prompt, height=400)
+                st.download_button("💾 Baixar .txt", data=prompt, file_name=nome_arq, mime="text/plain", use_container_width=True)
 
             except Exception as e:
                 status_text.empty(); progress_bar.empty()
-                st.error(f"Erro na execução: {e}")
+                st.error(f"Erro: {e}")
 
     # --- ABA HISTÓRICO ---
     with tab_hist:
-        st.header("📂 Arquivo de Pautas")
         df = load_history()
         if df is not None and not df.empty:
-            f_col1, f_col2 = st.columns(2)
-            with f_col1:
-                filtro_persona = st.selectbox("Filtrar por Persona:", ["TODAS"] + list(df['PERSONA'].unique()))
-            
-            df_show = df.copy()
-            if filtro_persona != "TODAS":
-                df_show = df_show[df_show['PERSONA'] == filtro_persona]
-
-            st.dataframe(df_show, use_container_width=True, hide_index=True, column_config={"DATA": st.column_config.DatetimeColumn("Data", format="DD/MM/YY HH:mm")})
-            
-            csv = df_show.to_csv(sep=';', index=False).encode('utf-8-sig')
-            st.download_button("📥 Baixar Planilha Excel", data=csv, file_name="historico_genesis.csv", mime="text/csv")
+            st.dataframe(df, use_container_width=True, hide_index=True, column_config={"DATA": st.column_config.DatetimeColumn("Data", format="DD/MM HH:mm")})
+            csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
+            st.download_button("📥 Baixar Excel", data=csv, file_name="historico_genesis.csv", mime="text/csv", use_container_width=True)
         else:
-            st.info("Histórico vazio.")
+            st.info("Sem histórico.")
 
 if __name__ == "__main__":
     main()
