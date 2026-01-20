@@ -38,7 +38,8 @@ class GenesisEngine:
         ]
 
         try:
-            with open(self.log_file, mode='a', newline='', encoding='utf-8') as f:
+            # MUDANÇA AQUI: encoding='utf-8-sig' para o Excel reconhecer emojis/acentos
+            with open(self.log_file, mode='a', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f, delimiter=';')
                 # Se arquivo é novo, cria cabeçalho
                 if not file_exists:
@@ -104,7 +105,6 @@ class GenesisEngine:
                     modo = "BAIRRO"
             
             # --- CORREÇÃO DE SEGURANÇA (NULL SAFETY) ---
-            # Se a IA tentou escolher mas falhou, garante que volta para modo CIDADE
             if modo == "BAIRRO" and bairro_selecionado is None:
                 modo = "CIDADE"
                 obs_tecnica = "Fallback: Nenhum bairro compatível encontrado."
