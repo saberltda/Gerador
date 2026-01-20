@@ -14,7 +14,7 @@ from src.utils import slugify
 def setup_ui():
     st.set_page_config(page_title="Genesis Modular v53", page_icon="🏗️", layout="wide")
     
-    # CSS para deixar bonito (Estilo "God Mode")
+    # CSS Ajustado
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f4f6f9; }}
@@ -23,8 +23,8 @@ def setup_ui():
             border-left: 6px solid {GenesisConfig.COLOR_PRIMARY};
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
         }}
-        .stat-value {{ font-size: 24px; font-weight: bold; color: {GenesisConfig.COLOR_PRIMARY}; }}
-        .stat-label {{ font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 1px; }}
+        .stat-value {{ font-size: 22px; font-weight: bold; color: {GenesisConfig.COLOR_PRIMARY}; word-wrap: break-word; }}
+        .stat-label {{ font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px; }}
         .highlight {{ color: #D4AF37; font-weight: bold; }}
         div.stButton > button {{
             background: linear-gradient(45deg, {GenesisConfig.COLOR_PRIMARY}, #004080);
@@ -36,37 +36,71 @@ def setup_ui():
     """, unsafe_allow_html=True)
 
 # =========================================================
+# MANUAL DE SEO (TEXTO EDUCATIVO)
+# =========================================================
+def show_manual():
+    with st.expander("📚 MANUAL DE OPERAÇÕES & ESTRATÉGIA SEO (Leia antes de usar)"):
+        st.markdown("""
+        ### 🚀 O Conceito "Genesis"
+        Este não é um simples gerador de texto. É um **Diretor Criativo de IA** projetado especificamente para dominar o ranking "Imobiliária em Indaiatuba". Ele utiliza **Probabilidade Ponderada** para priorizar conteúdos que geram dinheiro, mas sem esquecer da autoridade de marca.
+
+        ---
+
+        ### 🎯 Aula Rápida de SEO: Onde está o Dinheiro?
+        Ao escolher manualmente um **Tópico**, entenda o impacto no seu negócio:
+
+        #### 💰 Money Keywords (Alta Prioridade - Fundo de Funil)
+        *São tópicos onde o cliente já está com a carteira na mão. O programa prioriza estes temas em 80% das vezes no modo Aleatório.*
+        * **Investimento / Valorização:** O cliente quer saber se vai perder dinheiro.
+        * **Segurança:** Fator decisivo nº 1 para quem sai de SP.
+        * **Custo de Vida:** Matemática pura para quem está fazendo as contas da mudança.
+        * **Futuro / Plano Diretor:** Gatilho de ganância e visão de longo prazo.
+
+        #### 🏗️ Authority Keywords (Média Prioridade - Meio de Funil)
+        *Conteúdos que provam que você domina a cidade, não apenas os imóveis.*
+        * **Educação / Escolas:** Fundamental para famílias.
+        * **Logística / Viracopos:** Crucial para empresários e quem trabalha híbrido.
+        * **Saúde / Hospitais:** Decisivo para público sênior e famílias com bebês.
+
+        #### 🎨 Volume & Nicho (Baixa Prioridade - Topo de Funil)
+        *Geram tráfego, mas pouco lead qualificado. Servem para "encher o blog" e criar semântica.*
+        * **Clima, Arquitetura, Pets:** Assuntos leves. Use com moderação (ou deixe a IA sortear raramente).
+
+        ---
+
+        ### 🛠️ Como Configurar os Parâmetros
+        1. **Persona:** Quem vai ler? (Ex: Não adianta falar de "Playground" para um "Investidor", fale de ROI).
+        2. **Bairro:** Onde é o imóvel? (Se deixar Aleatório, a IA escolhe bairros compatíveis com a Persona).
+        3. **Formato:** Como o texto será estruturado?
+            * *Lista Polêmica:* Ótimo para viralizar.
+            * *Guia Definitivo:* Ótimo para rankear no Google (SEO Técnico).
+            * *Cenário Analítico:* Ótimo para convencer investidores racionais.
+        4. **Gatilho:** Qual emoção queremos despertar? (Medo de perder a oportunidade? Orgulho de morar bem?).
+
+        💡 **Dica de Ouro:** Na dúvida, deixe tudo em **ALEATÓRIO**. O robô foi treinado matematicamente para seguir a estratégia vencedora da Imobiliária Saber.
+        """)
+
+# =========================================================
 # PROGRAMA PRINCIPAL
 # =========================================================
 def main():
     setup_ui()
 
-    # 1. Carregamento de Dados (Como abrir um Table no Delphi)
+    # 1. Carregamento de Dados
     try:
-        dados_mestre = GenesisData() # Carrega assets/bairros.json
-        regras_mestre = GenesisRules() # Carrega assets/REGRAS.txt
+        dados_mestre = GenesisData()
+        regras_mestre = GenesisRules()
     except RuntimeError as e:
         st.error(f"❌ Erro Crítico: {e}")
         st.stop()
 
-    # =========================================================
-    # PREPARAÇÃO DAS LISTAS (COM NOMES AMIGÁVEIS)
-    # =========================================================
-    
-    # Personas: Mapa Reverso (Nome -> Chave)
+    # Preparação das Listas
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     lista_personas = ["ALEATÓRIO"] + list(persona_map.keys())
-    
     lista_bairros = ["ALEATÓRIO"] + sorted([b['nome'] for b in dados_mestre.bairros])
-    
-    # Tópicos: Pega apenas os valores (Nomes Bonitos)
     lista_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
-    
     lista_ativos = ["ALEATÓRIO"] + dados_mestre.todos_ativos
-    
-    # Formatos: AGORA PEGA OS NOMES BONITOS DO MAPA (Ajuste Novo)
     lista_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
-    
     lista_gatilhos = ["ALEATÓRIO"] + GenesisConfig.EMOTIONAL_TRIGGERS
 
     # 2. Sidebar (Configurações)
@@ -77,16 +111,20 @@ def main():
         data_escolhida = st.date_input("Data de Publicação", datetime.date.today())
         st.markdown("---")
         
-        # Inputs do Usuário
-        sel_persona_nome = st.selectbox("1. Persona / Cliente", lista_personas)
-        sel_bairro = st.selectbox("2. Bairro ou Macro", lista_bairros)
-        sel_topico = st.selectbox("3. Tópico (Peso SEO)", lista_topicos)
-        sel_ativo = st.selectbox("4. Tipo de Imóvel", lista_ativos)
-        sel_formato = st.selectbox("5. Formato", lista_formatos) # Mostra "🔥 Lista Polêmica"
-        sel_gatilho = st.selectbox("6. Gatilho", lista_gatilhos)
+        # Inputs do Usuário (Usando chaves únicas para o reset funcionar)
+        sel_persona_nome = st.selectbox("1. Persona / Cliente", lista_personas, key="k_persona")
+        sel_bairro = st.selectbox("2. Bairro ou Macro", lista_bairros, key="k_bairro")
+        sel_topico = st.selectbox("3. Tópico (Peso SEO)", lista_topicos, key="k_topico")
+        sel_ativo = st.selectbox("4. Tipo de Imóvel", lista_ativos, key="k_ativo")
+        sel_formato = st.selectbox("5. Formato", lista_formatos, key="k_formato")
+        sel_gatilho = st.selectbox("6. Gatilho", lista_gatilhos, key="k_gatilho")
 
         st.markdown("---")
+        
+        # LÓGICA DO BOTÃO RESET (LIMPA O ESTADO)
         if st.button("🔄 Resetar"):
+            for key in st.session_state.keys():
+                del st.session_state[key]
             st.rerun()
 
     # 3. Área Principal (Header)
@@ -95,31 +133,28 @@ def main():
         st.title("⚡ GENESIS AGENCY MODULAR")
         st.markdown("**AI Content Director com Inteligência de SEO**")
     with c2:
-        # Logo placeholder
         st.markdown("### 🤖 v53")
+    
+    # EXIBE O MANUAL AQUI
+    show_manual()
 
     col_btn, _ = st.columns([1, 2])
     with col_btn:
         generate_btn = st.button("CRIAR PAUTA ESTRATÉGICA ✨")
 
-    # 4. Lógica do Botão (O "OnClick" do Delphi)
+    # 4. Lógica de Geração
     if generate_btn:
         try:
             with st.spinner("Processando estratégia de SEO..."):
-                # A. Instancia o Motor
                 engine = GenesisEngine(dados_mestre)
                 
-                # B. Prepara os inputs (TRADUÇÃO UI -> ENGINE)
-                
-                # Tradução Persona (Nome -> Chave)
+                # Traduções
                 persona_key_sel = "ALEATÓRIO"
                 if sel_persona_nome != "ALEATÓRIO":
                     persona_key_sel = persona_map[sel_persona_nome]
 
-                # Tradução Formato (Nome Bonito -> Chave Técnica) - NOVO!
                 formato_key_sel = "ALEATÓRIO"
                 if sel_formato != "ALEATÓRIO":
-                    # Procura qual chave tem esse valor bonito
                     for k, v in GenesisConfig.CONTENT_FORMATS_MAP.items():
                         if v == sel_formato:
                             formato_key_sel = k
@@ -128,30 +163,22 @@ def main():
                 user_selection = {
                     "persona_key": persona_key_sel,
                     "bairro_nome": sel_bairro,
-                    "topico": sel_topico, # Engine trata o Aleatório/Peso
+                    "topico": sel_topico,
                     "ativo": sel_ativo,
-                    "formato": formato_key_sel, # Envia "LISTA_POLEMICA" e não "🔥 Lista..."
+                    "formato": formato_key_sel,
                     "gatilho": sel_gatilho
                 }
 
-                # C. Roda a Engine (Processamento Pesado)
                 resultado = engine.run(user_selection)
-
-                # D. Prepara o Texto Final (Builder)
                 builder = PromptBuilder()
                 
-                # Datas para o JSON-LD
                 hoje_iso = datetime.datetime.now().strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
                 d_pub = data_escolhida.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
                 
-                # Prepara regras locais
                 nome_bairro_ctx = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba"
                 regras_injetadas = regras_mestre.get_for_prompt(nome_bairro_ctx)
-
-                # Gera o Prompt
                 prompt_final = builder.build(resultado, d_pub, hoje_iso, regras_injetadas)
 
-                # Nome do arquivo para download
                 p_name = slugify(resultado['persona']['nome'])[:10]
                 ativo_name = slugify(resultado['ativo_definido'])[:10]
                 nome_arquivo = f"{d_pub.split('T')[0]}_SEO_{p_name}_{ativo_name}.txt"
@@ -162,15 +189,12 @@ def main():
             st.code(traceback.format_exc())
             st.stop()
 
-        # 5. Exibição dos Resultados (View)
-        col_main, col_view = st.columns([1, 2])
+        # 5. Exibição dos Resultados (COLUNAS AJUSTADAS [1, 1])
+        col_main, col_view = st.columns([1, 1]) # <--- AJUSTE AQUI
         
-        # Coluna da Esquerda (Resumo Visual)
         with col_main:
             bairro_display = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba (Geral)"
             zona_display = resultado['bairro']['zona'] if resultado['bairro'] else "Macro-zona"
-            
-            # Recupera o nome bonito do formato sorteado para exibir na tela
             formato_tecnico = resultado['formato']
             formato_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
 
@@ -178,11 +202,11 @@ def main():
             
             st.markdown(f"""
             <div class="big-card">
-                <div style="display:grid; grid-template-columns: 1fr; gap: 10px;">
+                <div style="display:grid; grid-template-columns: 1fr; gap: 15px;">
                     <div>
                         <div class="stat-label">Persona Alvo</div>
                         <div class="stat-value">{resultado['persona']['nome']}</div>
-                        <small>{resultado['persona']['dor']}</small>
+                        <small><i>{resultado['persona']['dor']}</i></small>
                     </div>
                     <hr>
                     <div>
@@ -197,8 +221,10 @@ def main():
                         <small>{resultado['gatilho']}</small>
                     </div>
                     <hr>
-                    <div class="stat-label">Tópico Principal</div>
-                    <div class="stat-value">{resultado['topico']}</div>
+                    <div>
+                        <div class="stat-label">Tópico Principal</div>
+                        <div class="stat-value">{resultado['topico']}</div>
+                    </div>
                     <br>
                     <div class="stat-label">Nota Técnica</div>
                     <small>{resultado['obs_tecnica']}</small>
@@ -206,7 +232,6 @@ def main():
             </div>
             """, unsafe_allow_html=True)
 
-        # Coluna da Direita (Prompt e Download)
         with col_view:
             st.subheader("📋 Prompt Final (Copiar para IA)")
             st.text_area("Conteúdo", value=prompt_final, height=600)
