@@ -2,6 +2,7 @@
 import streamlit as st
 import datetime
 import os
+import pandas as pd  # <--- Nova importação para gerenciar a tabela
 from src.database import GenesisData, GenesisRules
 from src.engine import GenesisEngine
 from src.config import GenesisConfig
@@ -9,12 +10,11 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# CONFIGURAÇÃO VISUAL (CSS AJUSTADO)
+# CONFIGURAÇÃO VISUAL
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Modular v55", page_icon="🏗️", layout="wide")
+    st.set_page_config(page_title="Genesis Modular v55.1", page_icon="🏗️", layout="wide")
     
-    # CSS Corrigido para Textos Longos e Layout
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f4f6f9; }}
@@ -23,62 +23,63 @@ def setup_ui():
             border-left: 6px solid {GenesisConfig.COLOR_PRIMARY};
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
         }}
-        /* TEXTO QUEBRA DE LINHA CORRETA */
         .stat-value {{ 
-            font-size: 20px; 
-            font-weight: bold; 
-            color: {GenesisConfig.COLOR_PRIMARY}; 
-            word-wrap: break-word; 
-            white-space: normal;
-            line-height: 1.4;
+            font-size: 20px; font-weight: bold; color: {GenesisConfig.COLOR_PRIMARY}; 
+            word-wrap: break-word; white-space: normal; line-height: 1.4;
         }}
         .stat-label {{ font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }}
         .highlight {{ color: #D4AF37; font-weight: bold; }}
         
-        /* BOTÕES */
         div.stButton > button {{
             background: linear-gradient(45deg, {GenesisConfig.COLOR_PRIMARY}, #004080);
             color: white; border: none; height: 60px; font-size: 18px; font-weight: bold;
             width: 100%; border-radius: 8px; text-transform: uppercase;
         }}
         div.stButton > button:hover {{ opacity: 0.9; }}
+        
+        /* Ajuste para as abas */
+        .stTabs [data-baseweb="tab-list"] {{ gap: 10px; }}
+        .stTabs [data-baseweb="tab"] {{
+            height: 50px; white-space: pre-wrap; background-color: white; border-radius: 5px;
+            color: {GenesisConfig.COLOR_PRIMARY};
+        }}
+        .stTabs [aria-selected="true"] {{
+            background-color: {GenesisConfig.COLOR_PRIMARY}; color: white;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# FUNÇÃO DE CALLBACK (CORREÇÃO DO ERRO)
+# CALLBACKS E UTILITÁRIOS
 # =========================================================
 def reset_state_callback():
-    """
-    Esta função roda ANTES da tela ser redesenhada.
-    Isso evita o erro 'StreamlitAPIException'.
-    """
     keys_to_reset = ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_formato", "k_gatilho"]
     for key in keys_to_reset:
         st.session_state[key] = "ALEATÓRIO"
 
-# =========================================================
-# MANUAL DE SEO
-# =========================================================
+def load_history():
+    """Carrega o CSV de histórico e retorna um DataFrame Pandas"""
+    log_file = "historico_geracao.csv"
+    if os.path.exists(log_file):
+        try:
+            # Lê o CSV usando ; como separador
+            df = pd.read_csv(log_file, sep=';')
+            # Converte a coluna DATA para datetime para poder ordenar
+            df['DATA'] = pd.to_datetime(df['DATA'])
+            # Ordena do mais recente para o mais antigo
+            df = df.sort_values(by='DATA', ascending=False)
+            return df
+        except Exception as e:
+            st.error(f"Erro ao ler histórico: {e}")
+            return None
+    return None
+
 def show_manual():
-    with st.expander("📚 MANUAL DE OPERAÇÕES & GATILHOS MENTAIS (Gustavo Ferreira)"):
+    with st.expander("📚 MANUAL DE OPERAÇÕES & GATILHOS MENTAIS"):
         st.markdown("""
-        ### 🧠 A Lógica dos Gatilhos Mentais
-        Baseado no livro "Gatilhos Mentais", organizamos as opções em dois grupos:
-
-        #### 💎 As Joias da Coroa (Alta Conversão)
-        Use quando quiser **VENDER** ou gerar uma ação imediata.
-        * **ESCASSEZ:** "Só resta 1 unidade", "O bairro está acabando". É o gatilho mais forte.
-        * **URGÊNCIA:** "O preço muda amanhã", "Condição válida até sexta". Foca no tempo.
-        * **AUTORIDADE:** "Dados exclusivos da Imobiliária Saber", "Análise de mercado". Gera confiança.
-        * **PROVA SOCIAL:** "O condomínio mais desejado", "Onde todos querem morar". Ninguém quer errar sozinho.
-
-        #### 🛡️ Gatilhos de Conexão (Retenção e Branding)
-        Use para **ENGAJAR** e criar relacionamento.
-        * **INIMIGO COMUM:** Nos unimos contra algo ruim (Ex: "Fuja da violência de SP", "Chega de pagar aluguel caro").
-        * **NOVIDADE:** Ativa a dopamina. Ótimo para lançamentos ou novas fases.
-        * **PORQUÊ:** Justifique o preço ou a valorização. A mente busca razão.
-        * **HISTÓRIA (Storytelling):** Conecta emocionalmente através da jornada de um personagem.
+        ### 🧠 Estratégia de Gatilhos (Gustavo Ferreira)
+        * **JOIAS DA COROA (Venda):** Escassez, Urgência, Autoridade, Prova Social.
+        * **CONEXÃO (Branding):** Inimigo Comum, Novidade, Porquê, História.
         """)
 
 # =========================================================
@@ -94,167 +95,178 @@ def main():
         st.error(f"❌ Erro Crítico: {e}")
         st.stop()
 
-    # Listas
+    # Prepara Listas
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     lista_personas = ["ALEATÓRIO"] + list(persona_map.keys())
-    
     lista_bairros = ["ALEATÓRIO"] + sorted([b['nome'] for b in dados_mestre.bairros])
-    
     lista_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
     lista_ativos = ["ALEATÓRIO"] + dados_mestre.todos_ativos
-    
     lista_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     lista_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
-    # --- SIDEBAR ---
+    # --- SIDEBAR FIXA ---
     with st.sidebar:
-        st.header("⚡ GOD MODE CONFIG")
-        st.caption(f"Engine: {GenesisConfig.VERSION}")
-        
+        st.header("⚡ CONFIGURAÇÃO")
         data_escolhida = st.date_input("Data de Publicação", datetime.date.today())
         st.markdown("---")
         
-        # Inputs (Chaves Fixas)
-        sel_persona_nome = st.selectbox("1. Persona / Cliente", lista_personas, key="k_persona")
-        sel_bairro = st.selectbox("2. Bairro ou Macro", lista_bairros, key="k_bairro")
-        sel_topico = st.selectbox("3. Tópico (Peso SEO)", lista_topicos, key="k_topico")
-        sel_ativo = st.selectbox("4. Tipo de Imóvel", lista_ativos, key="k_ativo")
+        sel_persona_nome = st.selectbox("1. Persona", lista_personas, key="k_persona")
+        sel_bairro = st.selectbox("2. Bairro", lista_bairros, key="k_bairro")
+        sel_topico = st.selectbox("3. Tópico", lista_topicos, key="k_topico")
+        sel_ativo = st.selectbox("4. Ativo", lista_ativos, key="k_ativo")
         sel_formato = st.selectbox("5. Formato", lista_formatos, key="k_formato")
-        sel_gatilho = st.selectbox("6. Gatilho (G. Ferreira)", lista_gatilhos, key="k_gatilho")
+        sel_gatilho = st.selectbox("6. Gatilho", lista_gatilhos, key="k_gatilho")
 
         st.markdown("---")
-        
-        # CORREÇÃO AQUI: Usando 'on_click' para resetar
-        st.button("🔄 Resetar", on_click=reset_state_callback)
+        st.button("🔄 Resetar Filtros", on_click=reset_state_callback)
 
-    # --- ÁREA PRINCIPAL ---
+    # --- CABEÇALHO ---
     c1, c2 = st.columns([3, 1])
     with c1:
         st.title("⚡ GENESIS AGENCY MODULAR")
-        st.markdown("**AI Content Director com Inteligência de SEO**")
     with c2:
-        st.markdown("### 🤖 v55.0")
-    
-    show_manual()
+        st.markdown("### 🤖 v55.1")
 
-    col_btn, _ = st.columns([1, 2])
-    with col_btn:
-        generate_btn = st.button("CRIAR PAUTA ESTRATÉGICA ✨")
+    # --- SISTEMA DE ABAS (TABS) ---
+    tab_gerador, tab_historico = st.tabs(["⚡ GERADOR DE PAUTAS", "📜 HISTÓRICO DE GERAÇÕES"])
 
-    # --- LÓGICA DE GERAÇÃO ---
-    if generate_btn:
-        try:
-            with st.spinner("Processando estratégia de SEO & Gatilhos..."):
-                engine = GenesisEngine(dados_mestre)
-                
-                # Traduções (Nome Bonito -> Chave Técnica)
-                persona_key_sel = "ALEATÓRIO"
-                if sel_persona_nome != "ALEATÓRIO":
-                    persona_key_sel = persona_map[sel_persona_nome]
-
-                formato_key_sel = "ALEATÓRIO"
-                if sel_formato != "ALEATÓRIO":
-                    for k, v in GenesisConfig.CONTENT_FORMATS_MAP.items():
-                        if v == sel_formato:
-                            formato_key_sel = k
-                            break
-                
-                gatilho_key_sel = "ALEATÓRIO"
-                if sel_gatilho != "ALEATÓRIO":
-                    for k, v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
-                        if v == sel_gatilho:
-                            gatilho_key_sel = k
-                            break
-
-                user_selection = {
-                    "persona_key": persona_key_sel,
-                    "bairro_nome": sel_bairro,
-                    "topico": sel_topico,
-                    "ativo": sel_ativo,
-                    "formato": formato_key_sel,
-                    "gatilho": gatilho_key_sel
-                }
-
-                resultado = engine.run(user_selection)
-                builder = PromptBuilder()
-                
-                hoje_iso = datetime.datetime.now().strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
-                d_pub = data_escolhida.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
-                
-                nome_bairro_ctx = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba"
-                regras_injetadas = regras_mestre.get_for_prompt(nome_bairro_ctx)
-                prompt_final = builder.build(resultado, d_pub, hoje_iso, regras_injetadas)
-
-                p_name = slugify(resultado['persona']['nome'])[:10]
-                ativo_name = slugify(resultado['ativo_definido'])[:10]
-                nome_arquivo = f"{d_pub.split('T')[0]}_SEO_{p_name}_{ativo_name}.txt"
-
-        except Exception as e:
-            st.error(f"Erro na execução: {e}")
-            import traceback
-            st.code(traceback.format_exc())
-            st.stop()
-
-        # EXIBIÇÃO
-        col_main, col_view = st.columns([1, 1])
+    # =========================================================
+    # ABA 1: GERADOR (A tela original)
+    # =========================================================
+    with tab_gerador:
+        show_manual()
         
-        with col_main:
-            bairro_display = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba (Geral)"
-            zona_display = resultado['bairro']['zona'] if resultado['bairro'] else "Macro-zona"
-            
-            formato_tecnico = resultado['formato']
-            formato_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
-            
-            gatilho_tecnico = resultado['gatilho']
-            gatilho_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(gatilho_tecnico, gatilho_tecnico)
+        col_btn, _ = st.columns([1, 2])
+        with col_btn:
+            generate_btn = st.button("CRIAR PAUTA ESTRATÉGICA ✨")
 
-            st.success("Estratégia Gerada com Sucesso!")
-            
-            st.markdown(f"""
-            <div class="big-card">
-                <div style="display:grid; grid-template-columns: 1fr; gap: 15px;">
-                    <div>
-                        <div class="stat-label">Persona Alvo</div>
-                        <div class="stat-value">{resultado['persona']['nome']}</div>
-                        <small><i>{resultado['persona']['dor']}</i></small>
+        if generate_btn:
+            try:
+                with st.spinner("Processando IA & Salvando Log..."):
+                    engine = GenesisEngine(dados_mestre)
+                    
+                    # Traduções
+                    persona_key_sel = "ALEATÓRIO"
+                    if sel_persona_nome != "ALEATÓRIO": persona_key_sel = persona_map[sel_persona_nome]
+
+                    formato_key_sel = "ALEATÓRIO"
+                    if sel_formato != "ALEATÓRIO":
+                        for k, v in GenesisConfig.CONTENT_FORMATS_MAP.items():
+                            if v == sel_formato: formato_key_sel = k; break
+                    
+                    gatilho_key_sel = "ALEATÓRIO"
+                    if sel_gatilho != "ALEATÓRIO":
+                        for k, v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
+                            if v == sel_gatilho: gatilho_key_sel = k; break
+
+                    user_selection = {
+                        "persona_key": persona_key_sel,
+                        "bairro_nome": sel_bairro,
+                        "topico": sel_topico,
+                        "ativo": sel_ativo,
+                        "formato": formato_key_sel,
+                        "gatilho": gatilho_key_sel
+                    }
+
+                    resultado = engine.run(user_selection)
+                    builder = PromptBuilder()
+                    
+                    hoje_iso = datetime.datetime.now().strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
+                    d_pub = data_escolhida.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
+                    
+                    nome_bairro_ctx = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba"
+                    regras_injetadas = regras_mestre.get_for_prompt(nome_bairro_ctx)
+                    prompt_final = builder.build(resultado, d_pub, hoje_iso, regras_injetadas)
+
+                    p_name = slugify(resultado['persona']['nome'])[:10]
+                    ativo_name = slugify(resultado['ativo_definido'])[:10]
+                    nome_arquivo = f"{d_pub.split('T')[0]}_SEO_{p_name}_{ativo_name}.txt"
+
+            except Exception as e:
+                st.error(f"Erro: {e}")
+                st.stop()
+
+            # EXIBIÇÃO RESULTADO
+            col_main, col_view = st.columns([1, 1])
+            with col_main:
+                bairro_display = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba (Geral)"
+                zona_display = resultado['bairro']['zona'] if resultado['bairro'] else "Macro-zona"
+                
+                formato_tecnico = resultado['formato']
+                formato_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
+                
+                gatilho_tecnico = resultado['gatilho']
+                gatilho_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(gatilho_tecnico, gatilho_tecnico)
+
+                st.success("✅ Pauta Gerada e Registrada no Histórico!")
+                
+                st.markdown(f"""
+                <div class="big-card">
+                    <div style="display:grid; grid-template-columns: 1fr; gap: 15px;">
+                        <div><div class="stat-label">Persona</div><div class="stat-value">{resultado['persona']['nome']}</div></div>
+                        <hr>
+                        <div><div class="stat-label">Local</div><div class="stat-value">{bairro_display}</div><small>{zona_display}</small></div>
+                        <hr>
+                        <div><div class="stat-label">Estratégia</div><div class="stat-value highlight">{formato_bonito}</div><div class="stat-value highlight" style="font-size:16px;">{gatilho_bonito}</div></div>
+                        <hr>
+                        <div><div class="stat-label">Tópico</div><div class="stat-value">{resultado['topico']}</div></div>
                     </div>
-                    <hr>
-                    <div>
-                        <div class="stat-label">Localização Foco</div>
-                        <div class="stat-value">{bairro_display}</div>
-                        <small>{zona_display}</small>
-                    </div>
-                    <hr>
-                    <div>
-                        <div class="stat-label">Formato & Gatilho</div>
-                        <div class="stat-value highlight">{formato_bonito}</div>
-                        <div class="stat-value highlight" style="font-size: 16px; margin-top:5px;">{gatilho_bonito}</div>
-                    </div>
-                    <hr>
-                    <div>
-                        <div class="stat-label">Tópico Principal</div>
-                        <div class="stat-value">{resultado['topico']}</div>
-                    </div>
-                    <br>
-                    <div class="stat-label">Ativo Selecionado</div>
-                    <div class="stat-value" style="font-size: 18px;">{resultado['ativo_definido']}</div>
-                    <br>
-                    <div class="stat-label">Nota Técnica</div>
-                    <small>{resultado['obs_tecnica']}</small>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
-        with col_view:
-            st.subheader("📋 Prompt Final (Copiar para IA)")
-            st.text_area("Conteúdo", value=prompt_final, height=700)
+            with col_view:
+                st.subheader("📋 Prompt Final")
+                st.text_area("Copiar:", value=prompt_final, height=600)
+                st.download_button("💾 Baixar .txt", data=prompt_final, file_name=nome_arquivo)
+
+    # =========================================================
+    # ABA 2: HISTÓRICO (O Visualizador de Dados)
+    # =========================================================
+    with tab_historico:
+        st.header("📜 Histórico de Gerações")
+        st.markdown("Aqui fica o registro de todas as pautas criadas por este robô.")
+        
+        df_history = load_history()
+        
+        if df_history is not None and not df_history.empty:
+            # Métricas Rápidas
+            totais = len(df_history)
+            personas_top = df_history['PERSONA'].value_counts().idxmax()
+            bairro_top = df_history['BAIRRO'].value_counts().idxmax()
             
-            st.download_button(
-                label="💾 BAIXAR ARQUIVO DE PAUTA (.txt)",
-                data=prompt_final,
-                file_name=nome_arquivo,
-                mime="text/plain"
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Total de Pautas", totais)
+            m2.metric("Persona + Usada", personas_top)
+            m3.metric("Bairro + Citado", bairro_top)
+            
+            st.divider()
+            
+            # Tabela Interativa
+            st.dataframe(
+                df_history, 
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "DATA": st.column_config.DatetimeColumn("Data", format="DD/MM/YYYY HH:mm"),
+                    "PERSONA": "Persona Alvo",
+                    "BAIRRO": "Localização",
+                    "TOPICO": "Tema SEO",
+                    "ATIVO": "Imóvel",
+                    "FORMATO": "Formato",
+                    "GATILHO": "Gatilho"
+                }
             )
+            
+            # Botão para baixar o Excel/CSV completo
+            csv_data = df_history.to_csv(sep=';', index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Baixar Histórico Completo (CSV/Excel)",
+                data=csv_data,
+                file_name="historico_completo_genesis.csv",
+                mime="text/csv"
+            )
+        else:
+            st.info("📭 Nenhum histórico encontrado ainda. Gere a primeira pauta para iniciar o registro!")
 
 if __name__ == "__main__":
     main()
