@@ -11,48 +11,60 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM & CSS (Dashboard Style)
+# 🎨 DESIGN SYSTEM & CSS (Full Width Moderno)
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Studio v58", page_icon="💎", layout="wide")
+    st.set_page_config(page_title="Genesis Studio v59", page_icon="💎", layout="wide")
     
     st.markdown(f"""
     <style>
-        .stApp {{ background-color: #f0f2f6; }}
-        section[data-testid="stSidebar"] {{ background-color: #ffffff; border-right: 1px solid #e0e0e0; }}
+        .stApp {{ background-color: #f8f9fa; }}
+        
+        /* Esconde Sidebar padrão para ganhar espaço */
+        section[data-testid="stSidebar"] {{ display: none; }}
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
         
+        /* Painel de Controle (Card Branco no Topo) */
+        .control-panel {{
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid {GenesisConfig.COLOR_PRIMARY};
+            margin-bottom: 25px;
+        }}
+
         /* Cards de Resultado */
         .metric-card {{
-            background: white; padding: 15px; border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-left: 4px solid {GenesisConfig.COLOR_PRIMARY};
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 5px solid {GenesisConfig.COLOR_PRIMARY};
             height: 100%; transition: transform 0.2s;
         }}
-        .metric-card:hover {{ transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }}
-        .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }}
-        .metric-value {{ font-size: 16px; font-weight: 700; color: #333; line-height: 1.3; }}
-        .metric-sub {{ font-size: 12px; color: #666; margin-top: 4px; font-style: italic; }}
+        .metric-card:hover {{ transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }}
+        .metric-label {{ font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }}
+        .metric-value {{ font-size: 18px; font-weight: 700; color: #333; line-height: 1.3; }}
+        .metric-sub {{ font-size: 13px; color: #666; margin-top: 5px; font-style: italic; }}
         
-        /* Botão Principal */
+        /* Botão Principal Gigante */
         div.stButton > button {{
-            background: linear-gradient(90deg, {GenesisConfig.COLOR_PRIMARY}, #00509e);
-            color: white; border: none; height: 55px; font-size: 16px; font-weight: 600;
-            width: 100%; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px;
-            box-shadow: 0 4px 6px rgba(0, 51, 102, 0.2);
+            height: 60px; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            border-radius: 10px; transition: all 0.3s ease;
         }}
-        div.stButton > button:hover {{ opacity: 0.95; box-shadow: 0 6px 12px rgba(0, 51, 102, 0.3); }}
+        /* Botão Primário (Gerar) - Azul */
+        [data-testid="baseButton-secondary"] {{
+            background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e);
+            color: white; border: none;
+        }}
+        [data-testid="baseButton-secondary"]:hover {{ box-shadow: 0 5px 15px rgba(0,50,150,0.3); opacity: 0.95; }}
         
-        /* Ajuste de Abas */
-        .stTabs [data-baseweb="tab-list"] {{ gap: 8px; }}
-        .stTabs [data-baseweb="tab"] {{
-            height: 45px; background-color: #fff; border-radius: 6px; border: 1px solid #eee;
-            color: #555; font-weight: 500;
+        /* Botão Secundário (Limpar) - Cinza/Branco */
+        [data-testid="baseButton-primary"] {{
+            background-color: #f0f2f6; color: #555; border: 1px solid #ddd;
         }}
-        .stTabs [aria-selected="true"] {{
-            background-color: {GenesisConfig.COLOR_PRIMARY}; color: white; border: none;
-        }}
+        [data-testid="baseButton-primary"]:hover {{ background-color: #e2e6ea; color: #333; border-color: #ccc; }}
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -60,9 +72,13 @@ def setup_ui():
 # LÓGICA DE CONTROLE
 # =========================================================
 def reset_state_callback():
-    """Limpa estado e reseta filtros"""
-    keys = ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_formato", "k_gatilho", "k_modo_geo"]
-    for k in keys: 
+    """Força o reset de TODAS as chaves de sessão para o estado inicial"""
+    keys_to_reset = [
+        "k_persona", "k_bairro", "k_topico", 
+        "k_ativo", "k_formato", "k_gatilho", 
+        "k_modo_geo", "k_data"
+    ]
+    for k in keys_to_reset:
         if k in st.session_state:
             del st.session_state[k]
 
@@ -81,8 +97,11 @@ def load_history():
     return None
 
 def show_manual():
-    with st.expander("📚 NOTAS TÉCNICAS (SEO & Gatilhos)"):
-        st.info("💡 **Dica de Autonomia:** Use 'Aleatório' quando quiser que a IA descubra oportunidades inexploradas. Force escolhas manuais apenas quando tiver um imóvel específico para vender.")
+    with st.expander("ℹ️ NOTAS RÁPIDAS (SEO & GATILHOS)"):
+        c1, c2, c3 = st.columns(3)
+        with c1: st.info("**Money Keywords:** Investimento, Segurança (Venda).")
+        with c2: st.info("**Joias da Coroa:** Escassez e Urgência (Decisão).")
+        with c3: st.info("**Dica:** Use 'Aleatório' para descobrir nichos.")
 
 # =========================================================
 # APP PRINCIPAL
@@ -100,91 +119,91 @@ def main():
     # Listas
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     l_personas = ["ALEATÓRIO"] + list(persona_map.keys())
-    l_bairros = sorted([b['nome'] for b in dados_mestre.bairros]) # Sem "Aleatório" aqui, pois a lógica mudou
+    l_bairros = sorted([b['nome'] for b in dados_mestre.bairros])
     l_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
     l_ativos = ["ALEATÓRIO"] + dados_mestre.todos_ativos
     l_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     l_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     # ---------------------------------------------------------
-    # BARRA LATERAL (PODER TOTAL AO USUÁRIO)
+    # CABEÇALHO
     # ---------------------------------------------------------
-    with st.sidebar:
-        st.title("🎛️ CONTROLE")
-        st.caption(f"Versão: {GenesisConfig.VERSION}")
-        data_pub = st.date_input("📅 Data da Publicação", datetime.date.today())
-        st.divider()
+    st.title("💎 Genesis Content Studio v59")
+    st.markdown(f"**Diretor Criativo de IA** | Blog: {GenesisConfig.BLOG_URL}")
 
-        # 1. CLIENTE (PERSONA)
-        st.markdown("#### 👤 1. Quem é o Cliente?")
-        sel_persona = st.selectbox("Selecione a Persona", l_personas, key="k_persona")
-        
-        st.markdown("---")
+    # ABAS PRINCIPAIS
+    tab_painel, tab_hist = st.tabs(["🎛️ PAINEL DE CRIAÇÃO", "📂 HISTÓRICO"])
 
-        # 2. LOCALIZAÇÃO (LÓGICA CONDICIONAL AQUI)
-        st.markdown("#### 📍 2. Onde é o Imóvel?")
-        
-        # O Pulo do Gato: Radio Button define se mostra ou não a lista de bairros
-        modo_geo = st.radio(
-            "Definição Geográfica:",
-            ["🎲 Aleatório (IA Decide)", "🏙️ Foco Cidade (Sem Bairro)", "📍 Bairro Específico"],
-            key="k_modo_geo",
-            horizontal=True
-        )
+    with tab_painel:
+        # =====================================================
+        # ÁREA DE CONTROLE (NOVO LAYOUT)
+        # =====================================================
+        with st.container(border=True):
+            st.markdown("### 🛠️ Configuração da Pauta")
+            
+            # LINHA 1: CONTEXTO GERAL
+            c1, c2 = st.columns([1, 2])
+            with c1:
+                data_pub = st.date_input("📅 Data Publicação", datetime.date.today(), key="k_data")
+            with c2:
+                sel_persona = st.selectbox("👤 Persona (Público Alvo)", l_personas, key="k_persona")
 
-        final_bairro_input = "ALEATÓRIO" # Padrão
-        
-        if modo_geo == "📍 Bairro Específico":
-            # Só mostra a lista se o usuário pediu especificidade
-            sel_bairro_manual = st.selectbox("Escolha o Bairro:", l_bairros, key="k_bairro")
-            final_bairro_input = sel_bairro_manual
-        elif modo_geo == "🏙️ Foco Cidade (Sem Bairro)":
-            # Envia um código que o motor sabe que força modo cidade
-            final_bairro_input = "FORCE_CITY_MODE"
-            st.caption("ℹ️ O texto falará de Indaiatuba no geral, sem citar bairros.")
-        else:
-            # Aleatório
-            st.caption("ℹ️ A IA vai analisar a Persona e escolher o melhor bairro (ou focar na cidade).")
+            st.markdown("---")
 
-        st.markdown("---")
+            # LINHA 2: GEOGRAFIA (LÓGICA CONDICIONAL)
+            c_geo_mode, c_geo_select = st.columns([1, 2])
+            
+            with c_geo_mode:
+                modo_geo = st.radio(
+                    "📍 Definição Geográfica",
+                    ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"],
+                    key="k_modo_geo"
+                )
+            
+            final_bairro_input = "ALEATÓRIO"
+            with c_geo_select:
+                if modo_geo == "📍 Bairro Específico":
+                    sel_bairro_manual = st.selectbox("Escolha o Bairro:", l_bairros, key="k_bairro")
+                    final_bairro_input = sel_bairro_manual
+                elif modo_geo == "🏙️ Foco Cidade":
+                    st.info("ℹ️ O texto será focado na cidade de Indaiatuba (Macro).")
+                    final_bairro_input = "FORCE_CITY_MODE"
+                else:
+                    st.info("ℹ️ A IA escolherá o local ideal para a Persona.")
 
-        # 3. IMÓVEL E ESTRATÉGIA
-        st.markdown("#### 🏠 3. Detalhes da Pauta")
-        sel_ativo = st.selectbox("Tipo de Imóvel", l_ativos, key="k_ativo")
-        sel_topico = st.selectbox("Tópico (SEO)", l_topicos, key="k_topico")
-        
-        c_lat1, c_lat2 = st.columns(2)
-        with c_lat1:
-            sel_formato = st.selectbox("Formato", l_formatos, key="k_formato")
-        with c_lat2:
-            sel_gatilho = st.selectbox("Gatilho", l_gatilhos, key="k_gatilho")
+            st.markdown("---")
 
-        st.divider()
-        if st.button("🔄 LIMPAR FILTROS", on_click=reset_state_callback):
-            pass
+            # LINHA 3: ESTRATÉGIA (ESPAÇAMENTO AMPLO)
+            c3, c4 = st.columns(2)
+            with c3:
+                sel_ativo = st.selectbox("🏠 Tipo de Imóvel", l_ativos, key="k_ativo")
+            with c4:
+                sel_topico = st.selectbox("🚀 Tópico (Foco SEO)", l_topicos, key="k_topico")
 
-    # ---------------------------------------------------------
-    # ÁREA PRINCIPAL
-    # ---------------------------------------------------------
-    c_title, c_ver = st.columns([5, 1])
-    with c_title:
-        st.title("Genesis Content Studio")
-    with c_ver:
-        st.markdown("### v58")
+            # LINHA 4: REFINAMENTO (COLUNAS SEPARADAS)
+            c5, c6 = st.columns(2)
+            with c5:
+                sel_formato = st.selectbox("📝 Formato do Texto", l_formatos, key="k_formato")
+            with c6:
+                sel_gatilho = st.selectbox("🧠 Gatilho Mental", l_gatilhos, key="k_gatilho")
 
-    # ABAS
-    tab_gen, tab_hist = st.tabs(["✨ GERADOR", "📂 HISTÓRICO"])
+            st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- ABA GERADOR ---
-    with tab_gen:
-        show_manual()
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        col_space, col_action, col_space2 = st.columns([1, 2, 1])
-        with col_action:
-            run_btn = st.button("🚀 GERAR ESTRATÉGIA AGORA")
+            # LINHA 5: AÇÕES (BOTÕES LADO A LADO)
+            c_reset, c_run = st.columns([1, 3])
+            with c_reset:
+                # Botão Limpar (Type Primary = Cinza no CSS acima)
+                st.button("🧹 LIMPAR TUDO", on_click=reset_state_callback, type="primary", use_container_width=True)
+            with c_run:
+                # Botão Gerar (Type Secondary = Azul no CSS acima)
+                run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
+        # =====================================================
+        # ÁREA DE RESULTADOS
+        # =====================================================
         if run_btn:
+            show_manual()
+            
             progress_bar = st.progress(0)
             status_text = st.empty()
             
@@ -209,10 +228,8 @@ def main():
                     for k,v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
                         if v == sel_gatilho: g_key = k; break
 
-                # Aqui usamos a variável 'final_bairro_input' definida pela lógica condicional
                 user_sel = {
-                    "persona_key": p_key,
-                    "bairro_nome": final_bairro_input, 
+                    "persona_key": p_key, "bairro_nome": final_bairro_input, 
                     "topico": sel_topico, "ativo": sel_ativo,
                     "formato": f_key, "gatilho": g_key
                 }
@@ -236,27 +253,33 @@ def main():
                 time.sleep(0.2)
                 progress_bar.empty(); status_text.empty()
 
-                # --- DASHBOARD ---
+                # DASHBOARD
                 st.success("✅ Estratégia Definida com Sucesso!")
                 
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
                 g_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(res['gatilho'], res['gatilho'])
                 b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
                 
-                c1, c2, c3, c4 = st.columns(4)
-                with c1:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Persona</div><div class="metric-value">{res['persona']['nome']}</div><div class="metric-sub">{res['persona']['dor'][:50]}...</div></div>""", unsafe_allow_html=True)
-                with c2:
+                # Grid de Cards (4 Colunas)
+                k1, k2, k3, k4 = st.columns(4)
+                with k1:
+                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Persona</div><div class="metric-value">{res['persona']['nome']}</div><div class="metric-sub">{res['persona']['dor'][:45]}...</div></div>""", unsafe_allow_html=True)
+                with k2:
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">Local & Ativo</div><div class="metric-value">{b_display}</div><div class="metric-sub">{res['ativo_definido']}</div></div>""", unsafe_allow_html=True)
-                with c3:
+                with k3:
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">Tática</div><div class="metric-value">{f_bonito}</div><div class="metric-sub">{g_bonito}</div></div>""", unsafe_allow_html=True)
-                with c4:
+                with k4:
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">SEO</div><div class="metric-value">{res['topico']}</div><div class="metric-sub">Foco de Ranking</div></div>""", unsafe_allow_html=True)
 
-                st.markdown("---")
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Prompt e Download
                 st.subheader("📋 Prompt Gerado")
-                st.text_area("Copie e cole na IA:", value=prompt, height=500)
-                st.download_button("💾 Baixar Pauta (.txt)", data=prompt, file_name=nome_arq, mime="text/plain")
+                st.text_area("Copie e cole na IA:", value=prompt, height=600)
+                
+                c_down, _ = st.columns([1, 3])
+                with c_down:
+                    st.download_button("💾 Baixar Pauta (.txt)", data=prompt, file_name=nome_arq, mime="text/plain", use_container_width=True)
 
             except Exception as e:
                 status_text.empty(); progress_bar.empty()
@@ -276,6 +299,7 @@ def main():
                 df_show = df_show[df_show['PERSONA'] == filtro_persona]
 
             st.dataframe(df_show, use_container_width=True, hide_index=True, column_config={"DATA": st.column_config.DatetimeColumn("Data", format="DD/MM/YY HH:mm")})
+            
             csv = df_show.to_csv(sep=';', index=False).encode('utf-8-sig')
             st.download_button("📥 Baixar Planilha Excel", data=csv, file_name="historico_genesis.csv", mime="text/csv")
         else:
