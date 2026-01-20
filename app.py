@@ -9,11 +9,12 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# CONFIGURAÇÃO VISUAL (CSS)
+# CONFIGURAÇÃO VISUAL (CSS AJUSTADO)
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Modular v53.1", page_icon="🏗️", layout="wide")
+    st.set_page_config(page_title="Genesis Modular v55", page_icon="🏗️", layout="wide")
     
+    # CSS Corrigido para Textos Longos
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f4f6f9; }}
@@ -22,8 +23,16 @@ def setup_ui():
             border-left: 6px solid {GenesisConfig.COLOR_PRIMARY};
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
         }}
-        .stat-value {{ font-size: 22px; font-weight: bold; color: {GenesisConfig.COLOR_PRIMARY}; word-wrap: break-word; }}
-        .stat-label {{ font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px; }}
+        /* AJUSTE AQUI: word-wrap e tamanho da fonte */
+        .stat-value {{ 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: {GenesisConfig.COLOR_PRIMARY}; 
+            word-wrap: break-word; 
+            white-space: normal;
+            line-height: 1.3;
+        }}
+        .stat-label {{ font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }}
         .highlight {{ color: #D4AF37; font-weight: bold; }}
         div.stButton > button {{
             background: linear-gradient(45deg, {GenesisConfig.COLOR_PRIMARY}, #004080);
@@ -97,19 +106,25 @@ def main():
         data_escolhida = st.date_input("Data de Publicação", datetime.date.today())
         st.markdown("---")
         
-        # Inputs
+        # Inputs (Chaves Fixas para o Reset funcionar)
         sel_persona_nome = st.selectbox("1. Persona / Cliente", lista_personas, key="k_persona")
         sel_bairro = st.selectbox("2. Bairro ou Macro", lista_bairros, key="k_bairro")
         sel_topico = st.selectbox("3. Tópico (Peso SEO)", lista_topicos, key="k_topico")
         sel_ativo = st.selectbox("4. Tipo de Imóvel", lista_ativos, key="k_ativo")
         sel_formato = st.selectbox("5. Formato", lista_formatos, key="k_formato")
-        sel_gatilho = st.selectbox("6. Gatilho (G. Ferreira)", lista_gatilhos, key="k_gatilho") # <--- Novo Label
+        sel_gatilho = st.selectbox("6. Gatilho (G. Ferreira)", lista_gatilhos, key="k_gatilho")
 
         st.markdown("---")
         
+        # --- LÓGICA DE RESET CORRIGIDA ---
         if st.button("🔄 Resetar"):
-            for key in st.session_state.keys():
-                del st.session_state[key]
+            # Força o valor de todas as chaves para "ALEATÓRIO"
+            st.session_state["k_persona"] = "ALEATÓRIO"
+            st.session_state["k_bairro"] = "ALEATÓRIO"
+            st.session_state["k_topico"] = "ALEATÓRIO"
+            st.session_state["k_ativo"] = "ALEATÓRIO"
+            st.session_state["k_formato"] = "ALEATÓRIO"
+            st.session_state["k_gatilho"] = "ALEATÓRIO"
             st.rerun()
 
     # 3. Área Principal
@@ -118,7 +133,7 @@ def main():
         st.title("⚡ GENESIS AGENCY MODULAR")
         st.markdown("**AI Content Director com Inteligência de SEO**")
     with c2:
-        st.markdown("### 🤖 v53.1")
+        st.markdown("### 🤖 v55.0")
     
     show_manual()
 
@@ -147,7 +162,7 @@ def main():
                             formato_key_sel = k
                             break
                 
-                # Gatilho (Nome Bonito -> Chave Técnica) [NOVO!]
+                # Gatilho (Nome Bonito -> Chave Técnica)
                 gatilho_key_sel = "ALEATÓRIO"
                 if sel_gatilho != "ALEATÓRIO":
                     for k, v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
@@ -161,7 +176,7 @@ def main():
                     "topico": sel_topico,
                     "ativo": sel_ativo,
                     "formato": formato_key_sel,
-                    "gatilho": gatilho_key_sel  # Envia "ESCASSEZ" e não "💎 ESCASSEZ..."
+                    "gatilho": gatilho_key_sel
                 }
 
                 resultado = engine.run(user_selection)
@@ -184,7 +199,7 @@ def main():
             st.code(traceback.format_exc())
             st.stop()
 
-        # 5. Exibição dos Resultados
+        # 5. Exibição dos Resultados (COLUNAS [1,1] mantidas)
         col_main, col_view = st.columns([1, 1])
         
         with col_main:
@@ -218,13 +233,16 @@ def main():
                     <div>
                         <div class="stat-label">Formato & Gatilho</div>
                         <div class="stat-value highlight">{formato_bonito}</div>
-                        <div class="stat-value highlight" style="font-size: 18px; margin-top:5px;">{gatilho_bonito}</div>
+                        <div class="stat-value highlight" style="font-size: 16px; margin-top:5px;">{gatilho_bonito}</div>
                     </div>
                     <hr>
                     <div>
                         <div class="stat-label">Tópico Principal</div>
                         <div class="stat-value">{resultado['topico']}</div>
                     </div>
+                    <br>
+                    <div class="stat-label">Ativo Selecionado</div>
+                    <div class="stat-value" style="font-size: 18px;">{resultado['ativo_definido']}</div>
                     <br>
                     <div class="stat-label">Nota Técnica</div>
                     <small>{resultado['obs_tecnica']}</small>
@@ -234,7 +252,7 @@ def main():
 
         with col_view:
             st.subheader("📋 Prompt Final (Copiar para IA)")
-            st.text_area("Conteúdo", value=prompt_final, height=600)
+            st.text_area("Conteúdo", value=prompt_final, height=700)
             
             st.download_button(
                 label="💾 BAIXAR ARQUIVO DE PAUTA (.txt)",
