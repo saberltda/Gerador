@@ -49,18 +49,24 @@ def main():
         st.error(f"❌ Erro Crítico: {e}")
         st.stop()
 
-    # Prepara listas para os Dropdowns (SelectBox)
-    # Mapeamento: Nome Amigável -> Chave Técnica (Ex: "Família" -> "EXODUS_SP_FAMILY")
+    # =========================================================
+    # PREPARAÇÃO DAS LISTAS (COM NOMES AMIGÁVEIS)
+    # =========================================================
+    
+    # Personas: Mapa Reverso (Nome -> Chave)
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     lista_personas = ["ALEATÓRIO"] + list(persona_map.keys())
     
     lista_bairros = ["ALEATÓRIO"] + sorted([b['nome'] for b in dados_mestre.bairros])
     
-    # Busca os nomes amigáveis dos tópicos definidos no config.py
+    # Tópicos: Pega apenas os valores (Nomes Bonitos)
     lista_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
     
     lista_ativos = ["ALEATÓRIO"] + dados_mestre.todos_ativos
-    lista_formatos = ["ALEATÓRIO"] + GenesisConfig.CONTENT_FORMATS
+    
+    # Formatos: AGORA PEGA OS NOMES BONITOS DO MAPA (Ajuste Novo)
+    lista_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
+    
     lista_gatilhos = ["ALEATÓRIO"] + GenesisConfig.EMOTIONAL_TRIGGERS
 
     # 2. Sidebar (Configurações)
@@ -76,7 +82,7 @@ def main():
         sel_bairro = st.selectbox("2. Bairro ou Macro", lista_bairros)
         sel_topico = st.selectbox("3. Tópico (Peso SEO)", lista_topicos)
         sel_ativo = st.selectbox("4. Tipo de Imóvel", lista_ativos)
-        sel_formato = st.selectbox("5. Formato", lista_formatos)
+        sel_formato = st.selectbox("5. Formato", lista_formatos) # Mostra "🔥 Lista Polêmica"
         sel_gatilho = st.selectbox("6. Gatilho", lista_gatilhos)
 
         st.markdown("---")
@@ -103,18 +109,28 @@ def main():
                 # A. Instancia o Motor
                 engine = GenesisEngine(dados_mestre)
                 
-                # B. Prepara os inputs
-                # Converte o nome amigável da persona de volta para a chave (KEY)
+                # B. Prepara os inputs (TRADUÇÃO UI -> ENGINE)
+                
+                # Tradução Persona (Nome -> Chave)
                 persona_key_sel = "ALEATÓRIO"
                 if sel_persona_nome != "ALEATÓRIO":
                     persona_key_sel = persona_map[sel_persona_nome]
 
+                # Tradução Formato (Nome Bonito -> Chave Técnica) - NOVO!
+                formato_key_sel = "ALEATÓRIO"
+                if sel_formato != "ALEATÓRIO":
+                    # Procura qual chave tem esse valor bonito
+                    for k, v in GenesisConfig.CONTENT_FORMATS_MAP.items():
+                        if v == sel_formato:
+                            formato_key_sel = k
+                            break
+
                 user_selection = {
                     "persona_key": persona_key_sel,
                     "bairro_nome": sel_bairro,
-                    "topico": sel_topico, # A Engine vai tratar se for "ALEATÓRIO" com pesos
+                    "topico": sel_topico, # Engine trata o Aleatório/Peso
                     "ativo": sel_ativo,
-                    "formato": sel_formato,
+                    "formato": formato_key_sel, # Envia "LISTA_POLEMICA" e não "🔥 Lista..."
                     "gatilho": sel_gatilho
                 }
 
@@ -142,7 +158,6 @@ def main():
 
         except Exception as e:
             st.error(f"Erro na execução: {e}")
-            # Em dev, mostra o erro completo para facilitar
             import traceback
             st.code(traceback.format_exc())
             st.stop()
@@ -155,6 +170,10 @@ def main():
             bairro_display = resultado['bairro']['nome'] if resultado['bairro'] else "Indaiatuba (Geral)"
             zona_display = resultado['bairro']['zona'] if resultado['bairro'] else "Macro-zona"
             
+            # Recupera o nome bonito do formato sorteado para exibir na tela
+            formato_tecnico = resultado['formato']
+            formato_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
+
             st.success("Estratégia Gerada com Sucesso!")
             
             st.markdown(f"""
@@ -173,11 +192,14 @@ def main():
                     </div>
                     <hr>
                     <div>
-                        <div class="stat-label">Tópico & Gatilho</div>
-                        <div class="stat-value highlight">{resultado['topico']}</div>
+                        <div class="stat-label">Formato & Gatilho</div>
+                        <div class="stat-value highlight">{formato_bonito}</div>
                         <small>{resultado['gatilho']}</small>
                     </div>
                     <hr>
+                    <div class="stat-label">Tópico Principal</div>
+                    <div class="stat-value">{resultado['topico']}</div>
+                    <br>
                     <div class="stat-label">Nota Técnica</div>
                     <small>{resultado['obs_tecnica']}</small>
                 </div>
