@@ -8,11 +8,6 @@ from .logic import PlanoDiretor
 from .scanner import BlogScanner
 
 class GenesisEngine:
-    """
-    O 'Maestro'.
-    Coordena subsistemas e gera LOGS de operação.
-    """
-
     def __init__(self, data_instance):
         self.data = data_instance
         self.config = GenesisConfig()
@@ -21,14 +16,15 @@ class GenesisEngine:
         self.log_file = "historico_geracao.csv"
 
     def _salvar_log(self, dados: dict):
-        """Escreve uma linha no arquivo CSV para controle do usuário."""
+        """Escreve no arquivo CSV local com nomes amigáveis."""
         file_exists = os.path.isfile(self.log_file)
         
         # Prepara os dados
         bairro_nome = dados['bairro']['nome'] if dados['bairro'] else "N/A (Cidade)"
         
-        # CORREÇÃO: TRADUZ PARA O NOME BONITO ANTES DE SALVAR
+        # --- CORREÇÃO: TRADUÇÃO PARA NOME AMIGÁVEL ---
         formato_tecnico = dados['formato']
+        # Busca no mapa; se não achar, usa o técnico mesmo
         formato_bonito = self.config.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
         
         gatilho_tecnico = dados['gatilho']
@@ -40,12 +36,13 @@ class GenesisEngine:
             bairro_nome,
             dados['topico'],
             dados['ativo_definido'],
-            formato_bonito, # Agora salva "🔥 Lista..." e não "LISTA_..."
-            gatilho_bonito  # Agora salva "💎 Escassez..." e não "ESCASSEZ"
+            formato_bonito, # Salva "🔥 Lista..." em vez de "LISTA_..."
+            gatilho_bonito  # Salva "💎 Escassez..." em vez de "ESCASSEZ"
         ]
 
         try:
-            # Mantém utf-8-sig para o Excel abrir com acentos corretos
+            # --- CORREÇÃO: UTF-8-SIG PARA EXCEL ---
+            # O 'utf-8-sig' adiciona uma 'assinatura' que avisa o Excel sobre os acentos
             with open(self.log_file, mode='a', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f, delimiter=';')
                 if not file_exists:
@@ -55,20 +52,19 @@ class GenesisEngine:
             print(f"Erro ao salvar log: {e}")
 
     def run(self, user_selection: dict):
-        # 1. Atualiza o Scanner
+        # 1. Atualiza Scanner
         self.scanner.mapear()
         historico_recente = self.scanner.get_ultimos_titulos(20)
 
-        # 2. Definição da Persona
+        # 2. Persona
         if user_selection['persona_key'] != "ALEATÓRIO":
             persona_key = user_selection['persona_key']
         else:
             persona_key = random.choice(list(self.config.PERSONAS.keys()))
-            
         persona_data = self.config.PERSONAS[persona_key]
         cluster_ref = persona_data.get("cluster_ref", "FAMILY")
 
-        # 3. Definição do Bairro (Com Null Safety)
+        # 3. Bairro (Com Segurança e Lógica de Cluster)
         bairro_selecionado = None
         modo = "CIDADE"
         obs_tecnica = "Foco Macro (Cidade)"
@@ -85,8 +81,7 @@ class GenesisEngine:
             candidatos_validos = []
             for b in self.data.bairros:
                 z = b.get("zona_normalizada")
-                match = False
-                # Lógica de Match simplificada para não repetir código
+                # Filtra zonas compatíveis com o cluster
                 clusters_zonas = {
                     "HIGH_END": ["residencial_fechado", "chacaras_fechado"],
                     "FAMILY": ["residencial_fechado", "residencial_aberto", "chacaras_fechado"],
@@ -95,8 +90,7 @@ class GenesisEngine:
                     "LOGISTICS": ["industrial"],
                     "CORPORATE": ["mista", "industrial", "residencial_aberto"]
                 }
-                zonas_aceitas = clusters_zonas.get(cluster_ref, [])
-                if z in zonas_aceitas:
+                if z in clusters_zonas.get(cluster_ref, []):
                     candidatos_validos.append(b)
 
             if candidatos_validos:
@@ -110,12 +104,12 @@ class GenesisEngine:
                         obs_tecnica = "Bairro Compatível (IA - Já publicado)"
                     modo = "BAIRRO"
             
-            # Null Safety: Se falhou em achar bairro, volta para Cidade
+            # Fallback se a IA falhar
             if modo == "BAIRRO" and bairro_selecionado is None:
                 modo = "CIDADE"
                 obs_tecnica = "Fallback: Nenhum bairro compatível encontrado."
 
-        # 4. Tópico (Weighted)
+        # 4. Tópico
         if user_selection['topico'] != "ALEATÓRIO":
             topico_nome = user_selection['topico'] 
         else:
@@ -139,7 +133,7 @@ class GenesisEngine:
             else:
                 ativo_final = random.choice(ativo_base_list)
                 obs_ref = "Ativo Aleatório"
-
+        
         obs_tecnica += f" | {obs_ref}"
 
         # 6. Formato e Gatilho
@@ -153,8 +147,7 @@ class GenesisEngine:
         else:
             gatilho = random.choice(self.config.EMOTIONAL_TRIGGERS)
 
-        # Monta pacote
-        pacote_final = {
+        pacote = {
             "modo": modo,
             "bairro": bairro_selecionado,
             "cluster_tecnico": cluster_ref,
@@ -167,7 +160,6 @@ class GenesisEngine:
             "historico_titulos": historico_recente
         }
 
-        # Salva Log
-        self._salvar_log(pacote_final)
-
-        return pacote_final
+        # Salva log local
+        self._salvar_log(pacote)
+        return pacote
