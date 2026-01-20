@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.53.2 (PERSONAS 2026 EDITION)"
+    VERSION = "GERADOR V.54.0 (MARKET INTELLIGENCE 2026)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -11,42 +11,47 @@ class GenesisConfig:
     # =====================================================
     # 1. INTELIGÊNCIA DE SEO (Weighted Randomness)
     # =====================================================
-    # Mapeamento: Chave Técnica -> Nome Amigável
+    # Mapeamento: Chave Técnica -> Nome Amigável (User Facing)
     TOPICS_MAP = {
-        "INVESTIMENTO": "Valorização e Aluguel", 
-        "CUSTO_VIDA": "Matemática Financeira e Custo de Vida", 
-        "SEGURANCA": "Segurança Pública e Patrimonial", 
-        "EDUCACAO": "Escolas e Formação dos Filhos",
-        "LOGISTICA": "Trânsito, Estradas e Viracopos",
-        "LAZER": "Gastronomia, Parques e Clubes",
-        "SAUDE": "Hospitais, Médicos e Bem-estar",
-        "FUTURO": "Plano Diretor e Obras Futuras", 
-        "CONDOMINIO": "Vida em Comunidade vs Privacidade",
-        "COMMUTE": "Vida Híbrida (SP-Indaiatuba)",
-        "LUXO": "Mercado de Alto Padrão",
-        "PETS": "Infraestrutura para Animais",
-        "HOME_OFFICE": "Conectividade e Espaço de Trabalho",
-        "ARQUITETURA": "Estilo das Casas e Tendências",
-        "CLIMA": "Microclima e Áreas Verdes"
+        # --- MONEY KEYWORDS (Fundo de Funil - Decisão Financeira) ---
+        "MERCADO_DADOS": "📈 Análise de Mercado & Dados (Yield/Vacância)",
+        "INVESTIMENTO_ROI": "💰 ROI e Valorização Patrimonial (Investidor)",
+        "FINANCAS_TOKEN": "💳 Financiamento Inteligente & Tokenização",
+        "SUSTENTABILIDADE_ESG": "🌱 Sustentabilidade ESG & Economia Verde",
+        "LOCALIZACAO_PREMIUM": "📍 Localização Estratégica & Mobilidade",
+        "LUXO_COMPACTO": "💎 Luxo Compacto & Design Autoral",
+        
+        # --- AUTHORITY & LIFESTYLE (Meio de Funil - Conexão) ---
+        "CIDADES_INTELIGENTES": "🏙️ Cidades Inteligentes & Infraestrutura",
+        "HOME_OFFICE_FLEX": "💻 Home Office & Plantas Flexíveis",
+        "LOGISTICA_HUB": "🚚 Logística, Viracopos e Last Mile",
+        "BEM_ESTAR_BIOFILIA": "🌿 Bem-Estar, Saúde e Design Biofílico",
+        "SENIOR_LIVING": "🍷 Silver Economy (Acessibilidade 60+)",
+        "SEGURANCA_TECH": "🛡️ Segurança Tecnológica & IA",
+        
+        # --- VOLUME & NICHO (Topo de Funil - Tráfego) ---
+        "SHORT_STAY": "🧳 Short Stay & Rentabilidade Airbnb",
+        "PETS_GARDEN": "🐾 Pet Friendly & Garden Privativo",
+        "SMART_HOME": "📱 Automação Residencial (Smart Home)"
     }
 
-    # Pesos: Quanto maior, mais chance de ser sorteado
+    # Pesos Estratégicos (Quanto maior, mais frequente o sorteio)
     TOPICS_WEIGHTS = {
-        "INVESTIMENTO": 100,
-        "CUSTO_VIDA": 90,
-        "SEGURANCA": 85,
-        "FUTURO": 80,
-        "EDUCACAO": 70,
-        "LOGISTICA": 60,
-        "SAUDE": 50,
-        "LAZER": 40,
-        "CONDOMINIO": 40,
-        "COMMUTE": 35,
-        "LUXO": 30,
-        "HOME_OFFICE": 20,
-        "PETS": 15,
-        "ARQUITETURA": 10,
-        "CLIMA": 5 
+        "MERCADO_DADOS": 100,      # Ouro: Dados convencem investidor e Gen Z
+        "INVESTIMENTO_ROI": 95,    # Prata: O clássico que sempre converte
+        "FINANCAS_TOKEN": 90,      # Tendência forte 2026 (Flexibilidade)
+        "SUSTENTABILIDADE_ESG": 85,# Obrigatório para valorização futura
+        "LOCALIZACAO_PREMIUM": 85, # Imutável no imobiliário
+        "LUXO_COMPACTO": 80,       # Tendência "Downsizing Premium"
+        "CIDADES_INTELIGENTES": 70,
+        "HOME_OFFICE_FLEX": 65,
+        "LOGISTICA_HUB": 60,
+        "BEM_ESTAR_BIOFILIA": 50,
+        "SENIOR_LIVING": 45,       # Nicho crescente (Boomers)
+        "SEGURANCA_TECH": 40,
+        "SHORT_STAY": 35,
+        "PETS_GARDEN": 30,
+        "SMART_HOME": 20
     }
 
     # =====================================================
@@ -153,7 +158,6 @@ class GenesisConfig:
         "INSIGHT_DE_CORRETOR": "💡 Insight de Corretor (Bastidores)",
         "DATA_DRIVEN": "📈 Análise Baseada em Dados"
     }
-    # Lista técnica para o motor usar nos sorteios
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
     # =====================================================
