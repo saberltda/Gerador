@@ -14,25 +14,22 @@ from src.utils import slugify
 # 🎨 DESIGN SYSTEM & CSS (Full Width Moderno)
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Genesis Studio v59", page_icon="💎", layout="wide")
+    st.set_page_config(page_title="Genesis Studio v59.1", page_icon="💎", layout="wide")
     
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
         
-        /* Esconde Sidebar padrão para ganhar espaço */
+        /* Esconde Sidebar padrão */
         section[data-testid="stSidebar"] {{ display: none; }}
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
         
-        /* Painel de Controle (Card Branco no Topo) */
+        /* Painel de Controle */
         .control-panel {{
-            background-color: white;
-            padding: 25px;
-            border-radius: 15px;
+            background-color: white; padding: 25px; border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border-top: 5px solid {GenesisConfig.COLOR_PRIMARY};
-            margin-bottom: 25px;
+            border-top: 5px solid {GenesisConfig.COLOR_PRIMARY}; margin-bottom: 25px;
         }}
 
         /* Cards de Resultado */
@@ -47,40 +44,48 @@ def setup_ui():
         .metric-value {{ font-size: 18px; font-weight: 700; color: #333; line-height: 1.3; }}
         .metric-sub {{ font-size: 13px; color: #666; margin-top: 5px; font-style: italic; }}
         
-        /* Botão Principal Gigante */
+        /* Botões */
         div.stButton > button {{
             height: 60px; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
             border-radius: 10px; transition: all 0.3s ease;
         }}
-        /* Botão Primário (Gerar) - Azul */
         [data-testid="baseButton-secondary"] {{
             background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e);
             color: white; border: none;
         }}
         [data-testid="baseButton-secondary"]:hover {{ box-shadow: 0 5px 15px rgba(0,50,150,0.3); opacity: 0.95; }}
         
-        /* Botão Secundário (Limpar) - Cinza/Branco */
         [data-testid="baseButton-primary"] {{
             background-color: #f0f2f6; color: #555; border: 1px solid #ddd;
         }}
         [data-testid="baseButton-primary"]:hover {{ background-color: #e2e6ea; color: #333; border-color: #ccc; }}
-
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# LÓGICA DE CONTROLE
+# LÓGICA DE CONTROLE (CORRIGIDA)
 # =========================================================
 def reset_state_callback():
-    """Força o reset de TODAS as chaves de sessão para o estado inicial"""
-    keys_to_reset = [
-        "k_persona", "k_bairro", "k_topico", 
-        "k_ativo", "k_formato", "k_gatilho", 
-        "k_modo_geo", "k_data"
-    ]
-    for k in keys_to_reset:
-        if k in st.session_state:
-            del st.session_state[k]
+    """
+    Força manualmente todos os widgets para o valor padrão.
+    Isso é mais seguro do que usar 'del' no session_state.
+    """
+    # 1. Reseta Selectboxes para o índice 0 ("ALEATÓRIO")
+    st.session_state["k_persona"] = "ALEATÓRIO"
+    st.session_state["k_topico"] = "ALEATÓRIO"
+    st.session_state["k_ativo"] = "ALEATÓRIO"
+    st.session_state["k_formato"] = "ALEATÓRIO"
+    st.session_state["k_gatilho"] = "ALEATÓRIO"
+    
+    # 2. Reseta o Radio Button para a primeira opção
+    st.session_state["k_modo_geo"] = "🎲 Aleatório"
+    
+    # 3. Reseta a Data para Hoje
+    st.session_state["k_data"] = datetime.date.today()
+    
+    # 4. Remove a chave do Bairro (pois ela é condicional e pode não existir)
+    if "k_bairro" in st.session_state:
+        del st.session_state["k_bairro"]
 
 def load_history():
     log_file = "historico_geracao.csv"
@@ -128,7 +133,7 @@ def main():
     # ---------------------------------------------------------
     # CABEÇALHO
     # ---------------------------------------------------------
-    st.title("💎 Genesis Content Studio v59")
+    st.title("💎 Genesis Content Studio v59.1")
     st.markdown(f"**Diretor Criativo de IA** | Blog: {GenesisConfig.BLOG_URL}")
 
     # ABAS PRINCIPAIS
@@ -136,7 +141,7 @@ def main():
 
     with tab_painel:
         # =====================================================
-        # ÁREA DE CONTROLE (NOVO LAYOUT)
+        # ÁREA DE CONTROLE
         # =====================================================
         with st.container(border=True):
             st.markdown("### 🛠️ Configuração da Pauta")
@@ -150,10 +155,14 @@ def main():
 
             st.markdown("---")
 
-            # LINHA 2: GEOGRAFIA (LÓGICA CONDICIONAL)
+            # LINHA 2: GEOGRAFIA
             c_geo_mode, c_geo_select = st.columns([1, 2])
             
             with c_geo_mode:
+                # Se a chave não existir (primeira execução), define padrão
+                if "k_modo_geo" not in st.session_state:
+                    st.session_state["k_modo_geo"] = "🎲 Aleatório"
+                    
                 modo_geo = st.radio(
                     "📍 Definição Geográfica",
                     ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"],
@@ -173,14 +182,14 @@ def main():
 
             st.markdown("---")
 
-            # LINHA 3: ESTRATÉGIA (ESPAÇAMENTO AMPLO)
+            # LINHA 3: ESTRATÉGIA
             c3, c4 = st.columns(2)
             with c3:
                 sel_ativo = st.selectbox("🏠 Tipo de Imóvel", l_ativos, key="k_ativo")
             with c4:
                 sel_topico = st.selectbox("🚀 Tópico (Foco SEO)", l_topicos, key="k_topico")
 
-            # LINHA 4: REFINAMENTO (COLUNAS SEPARADAS)
+            # LINHA 4: REFINAMENTO
             c5, c6 = st.columns(2)
             with c5:
                 sel_formato = st.selectbox("📝 Formato do Texto", l_formatos, key="k_formato")
@@ -189,13 +198,11 @@ def main():
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # LINHA 5: AÇÕES (BOTÕES LADO A LADO)
+            # LINHA 5: AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
-                # Botão Limpar (Type Primary = Cinza no CSS acima)
                 st.button("🧹 LIMPAR TUDO", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
-                # Botão Gerar (Type Secondary = Azul no CSS acima)
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
@@ -260,7 +267,6 @@ def main():
                 g_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(res['gatilho'], res['gatilho'])
                 b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
                 
-                # Grid de Cards (4 Colunas)
                 k1, k2, k3, k4 = st.columns(4)
                 with k1:
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">Persona</div><div class="metric-value">{res['persona']['nome']}</div><div class="metric-sub">{res['persona']['dor'][:45]}...</div></div>""", unsafe_allow_html=True)
