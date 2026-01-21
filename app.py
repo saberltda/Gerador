@@ -11,10 +11,10 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM & CSS (Híbrido PC/Mobile)
+# 🎨 DESIGN SYSTEM & CSS (VISUAL REFINADO)
 # =========================================================
 def setup_ui():
-    st.set_page_config(page_title="Gerador de Pautas IA v1.0", page_icon="🤖", layout="wide")
+    st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
     st.markdown(f"""
     <style>
@@ -23,23 +23,48 @@ def setup_ui():
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
         
-        /* Ajuste dos Botões de Popover para parecerem Inputs */
-        button[data-testid="stPopoverButton"] {{
-            border: 1px solid #ddd;
+        /* --- ESTILO DOS BOTÕES DE SELEÇÃO (MÁGICA VISUAL) --- */
+        /* Transforma botões comuns em "Inputs Falsos" bonitos */
+        div[data-testid="stButton"] button {{
+            background-color: white !important;
+            border: 1px solid #ddd !important;
+            color: #444 !important;
             width: 100%;
-            justify-content: flex-start;
-            padding-left: 15px;
+            height: 52px;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: 500;
-            color: #444;
-            background-color: white;
-            height: 50px;
+            display: flex;
+            justify-content: flex-start !important; /* Alinha texto à esquerda */
+            padding-left: 15px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
         }}
         
-        /* Botão Gerar */
-        [data-testid="baseButton-secondary"] {{
-            background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e);
-            color: white; border: none; height: 60px; font-size: 18px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        div[data-testid="stButton"] button:hover {{
+            border-color: {GenesisConfig.COLOR_PRIMARY} !important;
+            color: {GenesisConfig.COLOR_PRIMARY} !important;
+            background-color: #f0f7ff !important;
+        }}
+        
+        /* Botão "Limpar" diferente */
+        div[data-testid="column"] button[kind="primary"] {{
+            background-color: #ff4b4b !important;
+            color: white !important;
+            justify-content: center !important;
+            border: none !important;
+        }}
+
+        /* Botão "Gerar" (Destaque) */
+        button[kind="secondary"] {{
+            background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e) !important;
+            color: white !important;
+            height: 60px !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            justify-content: center !important; /* Centraliza texto do botão Gerar */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+            border: none !important;
         }}
 
         /* Cards de Resultado */
@@ -55,54 +80,53 @@ def setup_ui():
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTES DE UI INTELIGENTES (AUTO-CLOSE FIX)
+# 🛠️ COMPONENTE: INPUT HÍBRIDO (DIALOG + AUTO CLOSE)
 # =========================================================
+# Esta é a lógica do código antigo que funciona bem, 
+# mas agora acionada por botões estilizados pelo CSS acima.
 
-def smart_dropdown(label, options, key, icon=""):
+@st.dialog("Faça sua seleção")
+def open_selection_dialog(label, options, key):
+    st.write(f"Escolha uma opção para **{label}**:")
+    
+    current = st.session_state.get(key, options[0])
+    try:
+        idx = options.index(current)
+    except:
+        idx = 0
+        
+    # O Radio Button dentro do Modal
+    new_val = st.radio(
+        label, 
+        options, 
+        index=idx, 
+        key=f"radio_{key}",
+        label_visibility="collapsed"
+    )
+    
+    # Lógica de Auto-Close: Se mudou, salva e recarrega (fechando o modal)
+    if new_val != current:
+        st.session_state[key] = new_val
+        st.rerun()
+
+def hybrid_select(label, options, key, icon=""):
     """
-    Versão 2.1: Com AUTO-CLOSE.
-    Ao selecionar uma opção, o menu fecha automaticamente.
+    Cria um botão que parece um Dropdown.
+    Ao clicar, abre o Dialog. Ao selecionar, fecha sozinho.
     """
-    # Inicializa o valor se não existir
+    # Inicializa estado
     if key not in st.session_state:
         st.session_state[key] = options[0]
-
-    # Inicializa o contador de reset (O segredo do Auto-Close)
-    # Mudando a key do popover, ele é destruído e recriado (fechado)
-    reset_key = f"pop_reset_{key}"
-    if reset_key not in st.session_state:
-        st.session_state[reset_key] = 0
-        
+    
     current_val = st.session_state[key]
     
-    # Texto encurtado para caber no botão
-    display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
+    # Texto encurtado para caber no botão visual
+    display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
     
-    # A Key dinâmica força o fechamento após atualização
-    popover_dynamic_key = f"popover_{key}_{st.session_state[reset_key]}"
-
-    with st.popover(f"{icon} {label}: {display_text}", use_container_width=True):
-        st.markdown(f"**Selecione {label}:**")
+    # Este botão aciona o Dialog
+    if st.button(f"{icon} {label}:  {display_text}", key=f"btn_trigger_{key}"):
+        open_selection_dialog(label, options, key)
         
-        try:
-            idx = options.index(current_val)
-        except ValueError:
-            idx = 0
-            
-        new_selection = st.radio(
-            label,
-            options,
-            index=idx,
-            key=f"radio_{key}_{st.session_state[reset_key]}", # Key também dinâmica
-            label_visibility="collapsed"
-        )
-
-        if new_selection != current_val:
-            st.session_state[key] = new_selection
-            # Incrementa o contador para mudar a ID do popover na próxima renderização
-            st.session_state[reset_key] += 1 
-            st.rerun() # Recarrega a página -> Popover antigo morre -> Novo nasce fechado
-            
     return st.session_state[key]
 
 # =========================================================
@@ -117,9 +141,6 @@ def reset_state_callback():
     for k in keys_to_reset:
         if k in st.session_state:
             del st.session_state[k]
-        # Reseta também os contadores de popover
-        if f"pop_reset_{k}" in st.session_state:
-            del st.session_state[f"pop_reset_{k}"]
     
     st.session_state["k_modo_geo"] = "🎲 Aleatório"
     st.session_state["k_data"] = datetime.date.today()
@@ -167,7 +188,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 2.1 (Auto-Close UI) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 3.0 (Robust Logic + Modern UI) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -177,15 +198,18 @@ def main():
             # 1. CONTEXTO E PERSONA
             c1, c2 = st.columns([1, 2])
             with c1:
+                # Data input nativo é bom em mobile e PC
                 data_pub = st.date_input("📅 Data", datetime.date.today(), key="k_data")
             with c2:
-                sel_persona = smart_dropdown("Persona", l_personas, "k_persona", "👤")
+                # Dropdown Híbrido
+                sel_persona = hybrid_select("Persona", l_personas, "k_persona", "👤")
 
             st.markdown("---")
 
             # 2. GEOGRAFIA
             if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
             
+            # Tenta st.pills (Streamlit novo) ou fallback para radio horizontal
             try:
                 modo_geo = st.pills("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], default="🎲 Aleatório", key="k_modo_geo")
             except:
@@ -195,7 +219,7 @@ def main():
             
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
-                sel_bairro_manual = smart_dropdown("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
+                sel_bairro_manual = hybrid_select("Bairro", l_bairros, "k_bairro", "🏘️")
                 final_bairro_input = sel_bairro_manual
             elif modo_geo == "🏙️ Foco Cidade":
                 final_bairro_input = "FORCE_CITY_MODE"
@@ -203,26 +227,28 @@ def main():
 
             st.markdown("---")
 
-            # 3. ESTRATÉGIA
+            # 3. ESTRATÉGIA (Grid 2x2)
             c3, c4 = st.columns(2)
             with c3:
-                sel_ativo = smart_dropdown("Imóvel", l_ativos, "k_ativo", "🏠")
+                sel_ativo = hybrid_select("Imóvel", l_ativos, "k_ativo", "🏠")
             with c4:
-                sel_topico = smart_dropdown("Tópico", l_topicos, "k_topico", "🚀")
+                sel_topico = hybrid_select("Tópico", l_topicos, "k_topico", "🚀")
 
             c5, c6 = st.columns(2)
             with c5:
-                sel_formato = smart_dropdown("Formato", l_formatos, "k_formato", "📝")
+                sel_formato = hybrid_select("Formato", l_formatos, "k_formato", "📝")
             with c6:
-                sel_gatilho = smart_dropdown("Gatilho", l_gatilhos, "k_gatilho", "🧠")
+                sel_gatilho = hybrid_select("Gatilho", l_gatilhos, "k_gatilho", "🧠")
 
             st.markdown("<br>", unsafe_allow_html=True)
 
             # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
+                # Botão Limpar (Vermelho no CSS)
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
+                # Botão Gerar (Azul Degradê no CSS)
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
