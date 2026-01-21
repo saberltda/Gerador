@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.55.1 (ANTI-LISTING FIX)"
+    VERSION = "GERADOR V.55.2 (GATILHOS EXPANDIDOS)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -165,22 +165,36 @@ class GenesisConfig:
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
     # =====================================================
-    # 5. GATILHOS MENTAIS
+    # 5. GATILHOS MENTAIS (COMPLETO - GUSTAVO FERREIRA)
     # =====================================================
     EMOTIONAL_TRIGGERS_MAP = {
+        # --- AS JOIAS DA COROA (Core Triggers) ---
         "ESCASSEZ": "💎 ESCASSEZ (A Joia da Coroa)",
-        "URGENCIA": "🚨 URGÊNCIA (Fator Tempo)",
-        "AUTORIDADE": "👑 AUTORIDADE (Nós Sabemos)",
-        "PROVA_SOCIAL": "👥 PROVA SOCIAL (Efeito Manada)",
-        "RECIPROCIDADE": "🤝 RECIPROCIDADE (Gerar Valor)",
-        "NOVIDADE": "✨ Novidade (Dopamina/Inédito)",
-        "CURIOSIDADE": "❓ Curiosidade (O Segredo)",
-        "INIMIGO_COMUM": "🛡️ Inimigo Comum (Nós vs Eles/Caos)",
-        "ANTECIPACAO": "👀 Antecipação (Vem aí)",
-        "HISTORIA": "📖 Storytelling (Jornada do Herói)",
+        "URGENCIA": "🚨 URGÊNCIA (Agora ou Nunca)",
+        "AUTORIDADE": "👑 AUTORIDADE (Quem Sabe Faz)",
+        "RECIPROCIDADE": "🤝 RECIPROCIDADE (Dar para Receber)",
+        "PROVA_SOCIAL": "👥 PROVA SOCIAL (O Que Todos Dizem)",
+        "PORQUE": "🧠 O PORQUÊ (A Razão Lógica)",
+        
+        # --- GATILHOS EMOCIONAIS E ESTRATÉGICOS ---
+        "ANTECIPACAO": "👀 Antecipação (O Futuro Chegando)",
+        "NOVIDADE": "✨ Novidade (Dopamina/O Novo)",
+        "CURIOSIDADE": "❓ Curiosidade (O Gap de Informação)",
+        "HISTORIA": "📖 História (Conexão/Storytelling)",
+        "INIMIGO_COMUM": "🛡️ Inimigo Comum (Nós vs O Caos)",
         "COMPROMISSO": "💍 Compromisso e Coerência",
-        "SIMPLICIDADE": "💡 Simplicidade (O Caminho Fácil)",
-        "PORQUE": "🧠 O 'Porquê' (Justificativa Racional)"
+        "DESAPEGO": "🤷 Descaso/Desapego (Não Preciso Vender)",
+        "ESPECIFICIDADE": "🎯 Especificidade (Números Exatos)",
+        "GARANTIA": "🛡️ Garantia (Reversão de Risco)",
+        "CONTRASTE": "⚖️ Contraste (Referência de Valor)",
+        "SIMPLICIDADE": "📉 Simplicidade (O Caminho Fácil)",
+        "EXCLUSIVIDADE": "🌟 Exclusividade (VIP/Acesso Restrito)",
+        "SEMELHANCA": "👯 Semelhança/Rapport (Somos Iguais)",
+        "PERTENCIMENTO": "🤲 Pertencimento (Comunidade/Tribo)",
+        "SURPRESA": "🎁 Surpresa (Quebra de Padrão)",
+        "POLARIZACAO": "⚡ Polarização (Assumir um Lado)",
+        "HUMANIZACAO": "😊 Humanização (Pessoas Reais)",
+        "MEDO": "😨 Medo (De Perder/Ficar de Fora)"
     }
     EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
 
