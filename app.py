@@ -11,12 +11,13 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM (LIMPO E NATIVO)
+# 🎨 DESIGN SYSTEM (CLEAN & RESPONSIVE)
 # =========================================================
 def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
-    # CSS Mínimo apenas para Cards e Títulos (Sem mexer em botões)
+    # CSS focado apenas nos Cards de Resultado e ajustes finos
+    # Removemos qualquer cor forçada de botão para garantir contraste perfeito
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
@@ -34,61 +35,71 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         
-        /* Ajuste sutil para o Container de Rolagem parecer um menu */
-        [data-testid="stVerticalBlockBorderWrapper"] {{
+        /* Ajuste sutil para o Container de Rolagem dentro do Popover */
+        div[data-testid="stVerticalBlockBorderWrapper"] {{
             border-radius: 8px;
+            border: 1px solid #eee;
         }}
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE INTELIGENTE: SCROLLABLE DROPDOWN
+# 🛠️ COMPONENTE MESTRE: SCROLL + AUTO-CLOSE
 # =========================================================
-def scrollable_select(label, options, key, icon="", height=None):
+def smart_select(label, options, key, icon=""):
     """
-    Combina o melhor dos dois mundos:
-    1. Popover (Menu que fecha/abre)
-    2. Container com altura fixa (Cria barra de rolagem para listas longas)
-    3. Radio Button (Não abre teclado no celular)
+    O componente definitivo.
+    1. Usa Popover (Visual Limpo).
+    2. Usa Container (Scroll em listas grandes).
+    3. Usa Key Rotation (Fecha sozinho ao clicar).
     """
-    # Inicializa estado
+    
+    # 1. Inicializa o valor selecionado
     if key not in st.session_state:
         st.session_state[key] = options[0]
-    
-    current_val = st.session_state[key]
-    
-    # Texto do botão principal (Encurtado)
-    display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
-    
-    # Define altura do scroll baseada no tamanho da lista
-    # Se for lista pequena, não fixa altura (fica automático). Se for grande, fixa 300px.
-    if height is None:
-        scroll_height = 300 if len(options) > 8 else None
-    else:
-        scroll_height = height
+        
+    # 2. Inicializa o contador de rotação (O Segredo do Auto-Close)
+    # Se esse número mudar, o Popover é recriado do zero (fechado)
+    reset_key_name = f"reset_counter_{key}"
+    if reset_key_name not in st.session_state:
+        st.session_state[reset_key_name] = 0
 
-    # O Popover cria o efeito de "Dropdown"
-    with st.popover(f"{icon} {label}: {display_text}", use_container_width=True):
+    current_val = st.session_state[key]
+    display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
+    
+    # Define se precisa de scroll (listas grandes)
+    scroll_height = 300 if len(options) > 8 else None
+
+    # 3. Cria o Popover com ID Dinâmica
+    popover_id = f"pop_{key}_{st.session_state[reset_key_name]}"
+    
+    with st.popover(f"{icon} {label}: {display_text}", use_container_width=True, key=popover_id):
         st.caption(f"Selecione **{label}**:")
         
-        # O Container cria a BARRA DE ROLAGEM se a lista for grande
+        # Container com scroll (se necessário)
         with st.container(height=scroll_height, border=False):
+            
+            # Encontra o índice seguro
             try:
                 idx = options.index(current_val)
             except:
                 idx = 0
             
+            # Radio Button (não abre teclado no celular)
+            # A Key do rádio também precisa ser única para não dar conflito
             new_val = st.radio(
                 label,
                 options,
                 index=idx,
-                key=f"radio_{key}",
+                key=f"rad_{key}_{st.session_state[reset_key_name]}",
                 label_visibility="collapsed"
             )
             
-            # Auto-Close: Se mudar, salva e recarrega para fechar o menu
+            # 4. Lógica de Fechamento
             if new_val != current_val:
                 st.session_state[key] = new_val
+                # Incrementa o contador -> Muda a ID do Popover -> Força recriação (Fechado)
+                st.session_state[reset_key_name] += 1
                 st.rerun()
 
     return st.session_state[key]
@@ -103,8 +114,12 @@ def reset_state_callback():
         "k_modo_geo", "k_data"
     ]
     for k in keys_to_reset:
+        # Apaga o valor
         if k in st.session_state:
             del st.session_state[k]
+        # Apaga também o contador do popover para evitar lixo de memória
+        if f"reset_counter_{k}" in st.session_state:
+            del st.session_state[f"reset_counter_{k}"]
     
     st.session_state["k_modo_geo"] = "🎲 Aleatório"
     st.session_state["k_data"] = datetime.date.today()
@@ -152,7 +167,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 4.0 (Scroll Fixed) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 5.0 (Auto-Close & Scroll) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -164,8 +179,7 @@ def main():
             with c1:
                 data_pub = st.date_input("📅 Data", datetime.date.today(), key="k_data")
             with c2:
-                # Persona (Lista curta, scroll automático)
-                sel_persona = scrollable_select("Persona", l_personas, "k_persona", "👤")
+                sel_persona = smart_select("Persona", l_personas, "k_persona", "👤")
 
             st.markdown("---")
 
@@ -181,8 +195,8 @@ def main():
             
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
-                # Bairro (Lista LONGA -> Scroll height ativado automaticamente)
-                sel_bairro_manual = scrollable_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
+                # Bairro: Lista grande -> Vai ativar o scroll e o auto-close
+                sel_bairro_manual = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
                 final_bairro_input = sel_bairro_manual
             elif modo_geo == "🏙️ Foco Cidade":
                 final_bairro_input = "FORCE_CITY_MODE"
@@ -193,15 +207,15 @@ def main():
             # 3. ESTRATÉGIA (Grid 2x2)
             c3, c4 = st.columns(2)
             with c3:
-                sel_ativo = scrollable_select("Imóvel", l_ativos, "k_ativo", "🏠")
+                sel_ativo = smart_select("Imóvel", l_ativos, "k_ativo", "🏠")
             with c4:
-                sel_topico = scrollable_select("Tópico", l_topicos, "k_topico", "🚀")
+                sel_topico = smart_select("Tópico", l_topicos, "k_topico", "🚀")
 
             c5, c6 = st.columns(2)
             with c5:
-                sel_formato = scrollable_select("Formato", l_formatos, "k_formato", "📝")
+                sel_formato = smart_select("Formato", l_formatos, "k_formato", "📝")
             with c6:
-                sel_gatilho = scrollable_select("Gatilho", l_gatilhos, "k_gatilho", "🧠")
+                sel_gatilho = smart_select("Gatilho", l_gatilhos, "k_gatilho", "🧠")
 
             st.markdown("<br>", unsafe_allow_html=True)
 
