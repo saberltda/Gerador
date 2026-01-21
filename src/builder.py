@@ -130,6 +130,7 @@ class PromptBuilder:
 - EXECUTE busca mental como se estivesse usando Google Maps para o contexto: {contexto_geo}.
 - Identifique de 3 a 5 estabelecimentos REAIS.
 - Use tempos de deslocamento REALISTAS.
+- ALERTA: Cuidado com nomes de bairros similares que são distantes entre si.
 """
 
         bloco_regras = f"""
@@ -141,7 +142,7 @@ class PromptBuilder:
 
         return f"""
 ## GENESIS MAGNETO V.7.5 — IMOBILIÁRIA MODE
-**Objetivo:** Texto de Conversão Imobiliária (HTML Fragment).
+**Objetivo:** Texto de Conversão Imobiliária (SOMENTE VENDAS - NÃO TRABALHAMOS COM LOCAÇÃO).
 
 ### 🛡️ PROTOCOLO DE VERACIDADE
 {anti_hallucination_txt}
@@ -153,6 +154,7 @@ class PromptBuilder:
 2. **VENDA O CONCEITO.** Fale sobre o **Padrão Construtivo** da região.
    - ERRADO: "Esta casa tem piscina."
    - CERTO: "Imóveis neste condomínio costumam oferecer lazer completo..."
+3. **ZERO LOCAÇÃO:** Não mencione aluguel ou inquilinos. Foco total em Compra/Venda/Investimento.
 
 ---
 
@@ -183,7 +185,7 @@ APLIQUE AS REGRAS:
 1. **Introdução:** Conecte a dor do cliente ao bairro.
 2. **Diagnóstico:** Por que {d['bairro']['nome'] if d['bairro'] else 'Indaiatuba'} é a solução?
 3. **Tipologia:** Vantagens de "{ativo}" (categoria).
-4. **Conclusão:** Convite para consultoria.
+4. **Conclusão:** NÃO CONVIDE PARA CONVERSAR/WHATSAPP. O objetivo é fazer o leitor baixar o material ou se inscrever na lista abaixo. Encerre gerando curiosidade para o conteúdo extra.
 
 ---
 
@@ -246,6 +248,7 @@ Use este estilo HTML:
 3. **A PONTE (CRÍTICO):** Conecte o tema (ex: nova obra) com a valorização imobiliária ou qualidade de vida.
 4. **CONCLUSÃO DE VENDA:**
    - Encerre oferecendo ajuda para morar na cidade.
+   - NÃO CONVIDE PARA BATE-PAPO. O foco é a inscrição na newsletter abaixo.
 
 ---
 
