@@ -11,12 +11,11 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM (SAFE CSS)
+# 🎨 DESIGN SYSTEM (MINIMALIST WHITE)
 # =========================================================
 def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
-    # CSS Ajustado
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
@@ -24,51 +23,72 @@ def setup_ui():
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
 
-        /* --- BOTÕES COM CARA DE INPUT (DROPDOWN VISUAL) --- */
+        /* --- BOTÕES UNIFICADOS (ESTILO "CLEAN/WHITE") --- */
         div[data-testid="stButton"] button {{
             width: 100%;
             height: 50px;
+            background-color: white !important;
+            border: 1px solid #ddd !important;
+            color: #444 !important;
             border-radius: 8px;
-            display: flex;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        }}
+
+        /* Alinhamento de Texto: Esquerda para Inputs, Centro para Ações */
+        /* Padrão (Inputs/Dropdowns) -> Esquerda */
+        div[data-testid="stButton"] button {{
             justify-content: flex-start !important;
             padding-left: 15px !important;
             text-align: left !important;
-            border: 1px solid #ddd;
-            background-color: white;
-            color: #333;
-            transition: border 0.2s;
         }}
         
-        div[data-testid="stButton"] button:hover {{
-            border-color: {GenesisConfig.COLOR_PRIMARY};
-            color: {GenesisConfig.COLOR_PRIMARY};
-        }}
-        
-        /* Ajuste específico para os botões de ação (Limpar/Gerar) ficarem centralizados */
+        /* Exceção: Botões de Ação (Limpar e Gerar) -> Centralizados */
         div[data-testid="column"] button[kind="primary"], 
         div[data-testid="column"] button[kind="secondary"] {{
             justify-content: center !important;
             text-align: center !important;
-            border: none !important;
+            padding-left: 0 !important;
+            height: 60px !important; /* Um pouco mais altos */
         }}
         
-        /* --- BOTÃO GERAR (COR NOVA: LIGHT CYAN/BLUE) --- */
-        /* Gradiente mais claro e vibrante para não sumir ícones azuis */
+        /* Hover Genérico (Fica azul na borda e texto) */
+        div[data-testid="stButton"] button:hover {{
+            border-color: {GenesisConfig.COLOR_PRIMARY} !important;
+            color: {GenesisConfig.COLOR_PRIMARY} !important;
+            background-color: #fff !important;
+        }}
+
+        /* --- BOTÃO GERAR (SIMPLIFICADO) --- */
+        /* Removemos o gradiente. Agora é branco com borda e texto mais forte */
         button[kind="secondary"] {{
-            background: linear-gradient(90deg, #00C9FF 0%, #92FE9D 100%) !important; /* Opção 1: Fresh Mint */
-            background: linear-gradient(135deg, #00c6ff, #0072ff) !important; /* DEFINITIVO: Vivid Blue/Cyan */
+            border: 2px solid {GenesisConfig.COLOR_PRIMARY} !important; /* Borda mais grossa para destaque sutil */
+            color: {GenesisConfig.COLOR_PRIMARY} !important;
+            font-weight: 700 !important;
+        }}
+        
+        /* Hover do Gerar: Preenche suavemente */
+        button[kind="secondary"]:hover {{
+            background-color: {GenesisConfig.COLOR_PRIMARY} !important;
             color: white !important;
-            height: 60px !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-            box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3) !important;
-            border: none !important;
+        }}
+
+        /* --- BOTÃO LIMPAR --- */
+        button[kind="primary"] {{
+            border: 1px solid #ff4b4b !important;
+            color: #ff4b4b !important;
+        }}
+        button[kind="primary"]:hover {{
+            background-color: #ff4b4b !important;
+            color: white !important;
         }}
 
         /* Cards de Resultado */
         .metric-card {{
             background: white; padding: 15px; border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border-left: 5px solid {GenesisConfig.COLOR_PRIMARY};
             height: 100%;
         }}
@@ -79,7 +99,7 @@ def setup_ui():
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE MESTRE (STATE OF THE ART - DO NOT CHANGE)
+# 🛠️ COMPONENTE MESTRE (DIALOG + SCROLL + AUTO-CLOSE)
 # =========================================================
 
 @st.dialog("Faça sua seleção")
@@ -92,8 +112,7 @@ def open_selection_dialog(label, options, key):
     except:
         idx = 0
     
-    # Lógica de Scroll Inteligente:
-    # Só fixa a altura (criando scroll) se a lista tiver mais de 10 itens.
+    # Scroll apenas se necessário
     h_scroll = 300 if len(options) > 10 else None
     
     with st.container(height=h_scroll, border=False):
@@ -105,24 +124,24 @@ def open_selection_dialog(label, options, key):
             label_visibility="collapsed"
         )
     
-    # O SEGREDO DO AUTO-CLOSE:
+    # Auto-Close ao mudar
     if new_val != current:
         st.session_state[key] = new_val
         st.rerun()
 
 def smart_select(label, options, key, icon=""):
     """
-    Componente Dropdown Híbrido (Botão -> Modal -> Radio -> Scroll).
+    Componente Dropdown Visualmente Limpo.
     """
     if key not in st.session_state:
         st.session_state[key] = options[0]
     
     current_val = str(st.session_state[key])
     
-    # Encurta texto longo
+    # Encurta texto
     display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
     
-    # Renderiza o Botão Gatilho
+    # Botão Gatilho
     if st.button(f"{icon} {label}:  {display_text}", key=f"btn_trig_{key}"):
         open_selection_dialog(label, options, key)
         
@@ -150,7 +169,6 @@ def load_history():
         try:
             df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
             
-            # Converte as colunas de data
             if 'DATA_PUB' in df.columns:
                 df['DATA_PUB'] = pd.to_datetime(df['DATA_PUB'])
             if 'CRIADO_EM' in df.columns:
@@ -195,7 +213,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 6.1 (Fix Session State & Bright UI) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 6.2 (Minimalist White) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -211,15 +229,13 @@ def main():
 
             st.markdown("---")
 
-            # 2. GEOGRAFIA (CORREÇÃO DE ERRO DE SESSION STATE AQUI)
+            # 2. GEOGRAFIA
             if "k_modo_geo" not in st.session_state: 
                 st.session_state["k_modo_geo"] = "🎲 Aleatório"
             
             try:
-                # REMOVIDO o parâmetro 'default', pois a 'key' já existe no session_state
                 modo_geo = st.pills("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
             except:
-                # Fallback para versões antigas
                 modo_geo = st.radio("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], horizontal=True, key="k_modo_geo")
             
             final_bairro_input = "ALEATÓRIO"
@@ -252,9 +268,10 @@ def main():
             # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
+                # Botão Limpar (Branco com texto vermelho/borda vermelha no CSS)
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
-                # Botão com cor Azul Claro Vibrante (definido no CSS)
+                # Botão Gerar (Branco com texto azul/borda azul forte no CSS)
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
