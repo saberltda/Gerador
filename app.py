@@ -11,17 +11,49 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM (CLEAN & COMPATIBLE)
+# 🎨 DESIGN SYSTEM (SAFE CSS)
 # =========================================================
 def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
+    # CSS focado apenas em alinhamento e estrutura.
+    # Evitamos forçar cores de fundo para não quebrar o Modo Escuro/Claro nativo.
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
         section[data-testid="stSidebar"] {{ display: none; }}
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
+
+        /* --- BOTÕES COM CARA DE INPUT --- */
+        /* Alinha o texto dos botões à esquerda para parecer um dropdown */
+        div[data-testid="stButton"] button {{
+            width: 100%;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: flex-start !important; /* Texto à esquerda */
+            padding-left: 15px !important;
+            text-align: left !important;
+            border: 1px solid #ddd;
+        }}
+        
+        /* Ajuste específico para os botões de ação (Limpar/Gerar) para centralizar */
+        div[data-testid="column"] button[kind="primary"], 
+        div[data-testid="column"] button[kind="secondary"] {{
+            justify-content: center !important;
+            text-align: center !important;
+            border: none !important;
+        }}
+        
+        /* Botão Gerar (Destaque) */
+        button[kind="secondary"] {{
+            background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e) !important;
+            color: white !important;
+            height: 60px !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+        }}
 
         /* Cards de Resultado */
         .metric-card {{
@@ -33,71 +65,65 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         
-        /* Ajuste para o Container de Rolagem */
-        div[data-testid="stVerticalBlockBorderWrapper"] {{
-            border-radius: 8px;
-            border: 1px solid #eee;
+        /* Cor do texto do botão em modo claro (garantia de contraste) */
+        @media (prefers-color-scheme: light) {{
+            div[data-testid="stButton"] button {{
+                color: #333;
+                background-color: white;
+            }}
         }}
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE MESTRE: SCROLL + AUTO-CLOSE (FIXED)
+# 🛠️ COMPONENTE: DIALOG COM SCROLL (AUTO-CLOSE)
 # =========================================================
+
+@st.dialog("Faça sua seleção")
+def open_selection_dialog(label, options, key):
+    st.write(f"Escolha uma opção para **{label}**:")
+    
+    current = st.session_state.get(key, options[0])
+    try:
+        idx = options.index(current)
+    except:
+        idx = 0
+    
+    # Define altura do scroll: Automático se for curto, 300px se for longo
+    # Isso resolve o problema da lista "infinita"
+    h_scroll = 300 if len(options) > 10 else None
+    
+    with st.container(height=h_scroll, border=False):
+        new_val = st.radio(
+            label, 
+            options, 
+            index=idx, 
+            key=f"radio_modal_{key}",
+            label_visibility="collapsed"
+        )
+    
+    # Lógica de Auto-Close:
+    # Se o valor mudou, atualiza o estado e recarrega a página (fechando o modal)
+    if new_val != current:
+        st.session_state[key] = new_val
+        st.rerun()
+
 def smart_select(label, options, key, icon=""):
     """
-    Componente Dropdown Inteligente.
-    Correção v5.1: Removido 'use_container_width' do popover para evitar TypeError
-    em versões antigas do Streamlit.
+    Botão que abre um Modal com Scroll.
     """
-    
-    # 1. Inicializa o valor selecionado
     if key not in st.session_state:
         st.session_state[key] = options[0]
-        
-    # 2. Inicializa o contador de rotação (O Segredo do Auto-Close)
-    reset_key_name = f"reset_counter_{key}"
-    if reset_key_name not in st.session_state:
-        st.session_state[reset_key_name] = 0
-
+    
     current_val = str(st.session_state[key])
-    display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
     
-    # Define se precisa de scroll (listas grandes)
-    scroll_height = 300 if len(options) > 8 else None
-
-    # 3. Cria o Popover com ID Dinâmica
-    popover_id = f"pop_{key}_{st.session_state[reset_key_name]}"
+    # Texto encurtado para caber no botão visual
+    display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
     
-    # FIX: Removemos use_container_width=True para compatibilidade máxima
-    with st.popover(f"{icon} {label}: {display_text}", key=popover_id):
-        st.caption(f"Selecione **{label}**:")
+    # Botão Gatilho (Estilizado pelo CSS para alinhar à esquerda)
+    if st.button(f"{icon} {label}:  {display_text}", key=f"btn_trig_{key}"):
+        open_selection_dialog(label, options, key)
         
-        # Container com scroll (se necessário)
-        with st.container(height=scroll_height, border=False):
-            
-            # Encontra o índice seguro
-            try:
-                idx = options.index(st.session_state[key])
-            except:
-                idx = 0
-            
-            # Radio Button (não abre teclado no celular)
-            new_val = st.radio(
-                label,
-                options,
-                index=idx,
-                key=f"rad_{key}_{st.session_state[reset_key_name]}",
-                label_visibility="collapsed"
-            )
-            
-            # 4. Lógica de Fechamento
-            if new_val != st.session_state[key]:
-                st.session_state[key] = new_val
-                # Incrementa o contador -> Muda a ID do Popover -> Força recriação (Fechado)
-                st.session_state[reset_key_name] += 1
-                st.rerun()
-
     return st.session_state[key]
 
 # =========================================================
@@ -112,8 +138,6 @@ def reset_state_callback():
     for k in keys_to_reset:
         if k in st.session_state:
             del st.session_state[k]
-        if f"reset_counter_{k}" in st.session_state:
-            del st.session_state[f"reset_counter_{k}"]
     
     st.session_state["k_modo_geo"] = "🎲 Aleatório"
     st.session_state["k_data"] = datetime.date.today()
@@ -161,7 +185,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 5.1 (Fixed Compatibility) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 6.0 (Dialog + Scroll) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -189,6 +213,7 @@ def main():
             
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
+                # Bairro: Lista LONGA -> O Dialog vai aplicar st.container(height=300)
                 sel_bairro_manual = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
                 final_bairro_input = sel_bairro_manual
             elif modo_geo == "🏙️ Foco Cidade":
