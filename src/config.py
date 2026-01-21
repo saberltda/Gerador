@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.7.3 (PORTAL FIX)"
+    VERSION = "GERADOR V.7.5 (FINAL STABLE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -283,3 +283,4 @@ class GenesisConfig:
             "🚌 Mobilidade Urbana e Transporte Público"
         ]
     }
+
