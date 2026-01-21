@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import datetime
 import os
@@ -178,28 +177,34 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.5 (Historico Datado) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.6 (Final Robust) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
     with tab_painel:
         with st.container(border=True):
             
-            # 0. SELETOR DE MODO
+            # 0. SELETOR DE MODO (AGORA BLINDADO COM MAPEAMENTO)
             if "k_tipo_pauta" not in st.session_state: st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
+
+            # Dicionário de Mapeamento: Texto UI -> Código Interno
+            MAPA_MODOS = {
+                "🏢 Imobiliária": "IMOBILIARIA",
+                "📢 Portal da Cidade": "PORTAL"
+            }
+            opcoes_pauta = list(MAPA_MODOS.keys())
             
             try:
-                tipo_pauta_ui = st.pills("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], key="k_tipo_pauta")
+                tipo_pauta_ui = st.pills("Tipo de Pauta", opcoes_pauta, key="k_tipo_pauta")
             except:
-                tipo_pauta_ui = st.radio("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], horizontal=True, key="k_tipo_pauta")
+                tipo_pauta_ui = st.radio("Tipo de Pauta", opcoes_pauta, horizontal=True, key="k_tipo_pauta")
             
-            # --- TRADUÇÃO SEGURA PARA CÓDIGO ---
-            if "Portal" in tipo_pauta_ui:
-                eh_portal = True
-                tipo_pauta_code = "PORTAL"
-            else:
-                eh_portal = False
-                tipo_pauta_code = "IMOBILIARIA"
+            # Garante que não quebre se o widget retornar None na inicialização
+            if not tipo_pauta_ui: tipo_pauta_ui = opcoes_pauta[0]
+
+            # --- TRADUÇÃO SEGURA ---
+            tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA") # Default seguro
+            eh_portal = (tipo_pauta_code == "PORTAL")
 
             # Define ativos
             if not eh_portal:
@@ -263,6 +268,7 @@ def main():
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
                 def reset_state_callback():
+                    # Callback único e seguro
                     for k in ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_formato", "k_gatilho", "k_modo_geo", "k_data", "k_tipo_pauta"]:
                         if k in st.session_state: del st.session_state[k]
                     st.session_state["k_modo_geo"] = "🎲 Aleatório"
