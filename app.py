@@ -37,45 +37,37 @@ def setup_ui():
             box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
         }}
 
-        /* Alinhamento de Texto: Esquerda para Inputs, Centro para Ações */
-        /* Padrão (Inputs/Dropdowns) -> Esquerda */
         div[data-testid="stButton"] button {{
             justify-content: flex-start !important;
             padding-left: 15px !important;
             text-align: left !important;
         }}
         
-        /* Exceção: Botões de Ação (Limpar e Gerar) -> Centralizados */
         div[data-testid="column"] button[kind="primary"], 
         div[data-testid="column"] button[kind="secondary"] {{
             justify-content: center !important;
             text-align: center !important;
             padding-left: 0 !important;
-            height: 60px !important; /* Um pouco mais altos */
+            height: 60px !important;
         }}
         
-        /* Hover Genérico (Fica azul na borda e texto) */
         div[data-testid="stButton"] button:hover {{
             border-color: {GenesisConfig.COLOR_PRIMARY} !important;
             color: {GenesisConfig.COLOR_PRIMARY} !important;
             background-color: #fff !important;
         }}
 
-        /* --- BOTÃO GERAR (SIMPLIFICADO) --- */
-        /* Removemos o gradiente. Agora é branco com borda e texto mais forte */
         button[kind="secondary"] {{
-            border: 2px solid {GenesisConfig.COLOR_PRIMARY} !important; /* Borda mais grossa para destaque sutil */
+            border: 2px solid {GenesisConfig.COLOR_PRIMARY} !important;
             color: {GenesisConfig.COLOR_PRIMARY} !important;
             font-weight: 700 !important;
         }}
         
-        /* Hover do Gerar: Preenche suavemente */
         button[kind="secondary"]:hover {{
             background-color: {GenesisConfig.COLOR_PRIMARY} !important;
             color: white !important;
         }}
 
-        /* --- BOTÃO LIMPAR --- */
         button[kind="primary"] {{
             border: 1px solid #ff4b4b !important;
             color: #ff4b4b !important;
@@ -85,7 +77,6 @@ def setup_ui():
             color: white !important;
         }}
 
-        /* Cards de Resultado */
         .metric-card {{
             background: white; padding: 15px; border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -95,6 +86,14 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         
+        /* Classe utilitária para Labels "Falsos" de alinhamento */
+        .fake-label {
+            font-size: 14px;
+            margin-bottom: 7px; /* Igual ao label nativo do Streamlit */
+            color: #31333F;
+            font-family: "Source Sans Pro", sans-serif;
+            visibility: visible;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -112,7 +111,6 @@ def open_selection_dialog(label, options, key):
     except:
         idx = 0
     
-    # Scroll apenas se necessário
     h_scroll = 300 if len(options) > 10 else None
     
     with st.container(height=h_scroll, border=False):
@@ -124,25 +122,27 @@ def open_selection_dialog(label, options, key):
             label_visibility="collapsed"
         )
     
-    # Auto-Close ao mudar
     if new_val != current:
         st.session_state[key] = new_val
         st.rerun()
 
-def smart_select(label, options, key, icon=""):
+def smart_select(label, options, key, icon="", use_label=True):
     """
     Componente Dropdown Visualmente Limpo.
+    use_label: Se True, desenha um texto em cima do botão para alinhar com Inputs nativos.
     """
     if key not in st.session_state:
         st.session_state[key] = options[0]
     
     current_val = str(st.session_state[key])
-    
-    # Encurta texto
     display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
     
-    # Botão Gatilho
-    if st.button(f"{icon} {label}:  {display_text}", key=f"btn_trig_{key}"):
+    # Renderiza Label "Fantasma" para alinhamento se solicitado
+    if use_label:
+        st.markdown(f"<p class='fake-label'>{label}</p>", unsafe_allow_html=True)
+
+    # Botão Gatilho (Sem label interno no texto do botão para ficar limpo)
+    if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"):
         open_selection_dialog(label, options, key)
         
     return st.session_state[key]
@@ -154,13 +154,14 @@ def reset_state_callback():
     keys_to_reset = [
         "k_persona", "k_bairro", "k_topico", 
         "k_ativo", "k_formato", "k_gatilho", 
-        "k_modo_geo", "k_data"
+        "k_modo_geo", "k_data", "k_tipo_pauta"
     ]
     for k in keys_to_reset:
         if k in st.session_state:
             del st.session_state[k]
     
     st.session_state["k_modo_geo"] = "🎲 Aleatório"
+    st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
     st.session_state["k_data"] = datetime.date.today()
 
 def load_history():
@@ -202,30 +203,52 @@ def main():
         st.error(f"❌ Erro de Sistema: {e}")
         st.stop()
 
-    # Listas
+    # Listas Básicas
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     l_personas = ["ALEATÓRIO"] + list(persona_map.keys())
     l_bairros = sorted([b['nome'] for b in dados_mestre.bairros])
     l_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
-    l_ativos = ["ALEATÓRIO"] + dados_mestre.todos_ativos
     l_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     l_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 6.2 (Minimalist White) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.0 (Portal System) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
     with tab_painel:
         with st.container(border=True):
             
+            # 0. SELETOR DE MODO (IMOBILIÁRIA vs PORTAL)
+            if "k_tipo_pauta" not in st.session_state:
+                st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
+            
+            try:
+                tipo_pauta = st.pills("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], key="k_tipo_pauta")
+            except:
+                tipo_pauta = st.radio("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], horizontal=True, key="k_tipo_pauta")
+            
+            # Define lista de ativos baseada no modo
+            if tipo_pauta == "🏢 Imobiliária":
+                lista_ativos_display = ["ALEATÓRIO"] + dados_mestre.todos_ativos_imoveis
+                label_ativo = "Imóvel"
+                icon_ativo = "🏠"
+            else:
+                lista_ativos_display = ["ALEATÓRIO"] + dados_mestre.todos_ativos_portal
+                label_ativo = "Categoria do Portal"
+                icon_ativo = "📰"
+
+            st.markdown("---")
+
             # 1. CONTEXTO E PERSONA
             c1, c2 = st.columns([1, 2])
             with c1:
-                data_pub = st.date_input("📅 Data", datetime.date.today(), key="k_data")
+                # O date_input tem label nativo
+                data_pub = st.date_input("Data de Publicação", datetime.date.today(), key="k_data")
             with c2:
-                sel_persona = smart_select("Persona", l_personas, "k_persona", "👤")
+                # O smart_select agora desenha um label "fake" em cima para alinhar com o Date
+                sel_persona = smart_select("Persona Alvo", l_personas, "k_persona", "👤", use_label=True)
 
             st.markdown("---")
 
@@ -234,15 +257,15 @@ def main():
                 st.session_state["k_modo_geo"] = "🎲 Aleatório"
             
             try:
-                modo_geo = st.pills("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
+                modo_geo = st.pills("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
             except:
-                modo_geo = st.radio("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], horizontal=True, key="k_modo_geo")
+                modo_geo = st.radio("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], horizontal=True, key="k_modo_geo")
             
             final_bairro_input = "ALEATÓRIO"
             
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
-                sel_bairro_manual = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
+                sel_bairro_manual = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️", use_label=True)
                 final_bairro_input = sel_bairro_manual
             elif modo_geo == "🏙️ Foco Cidade":
                 final_bairro_input = "FORCE_CITY_MODE"
@@ -250,28 +273,27 @@ def main():
 
             st.markdown("---")
 
-            # 3. ESTRATÉGIA
+            # 3. ESTRATÉGIA (DINÂMICA)
             c3, c4 = st.columns(2)
             with c3:
-                sel_ativo = smart_select("Imóvel", l_ativos, "k_ativo", "🏠")
+                # Aqui o label muda dependendo se é Imobiliária ou Portal
+                sel_ativo = smart_select(label_ativo, lista_ativos_display, "k_ativo", icon_ativo, use_label=True)
             with c4:
-                sel_topico = smart_select("Tópico", l_topicos, "k_topico", "🚀")
+                sel_topico = smart_select("Tópico de Apoio", l_topicos, "k_topico", "🚀", use_label=True)
 
             c5, c6 = st.columns(2)
             with c5:
-                sel_formato = smart_select("Formato", l_formatos, "k_formato", "📝")
+                sel_formato = smart_select("Formato do Conteúdo", l_formatos, "k_formato", "📝", use_label=True)
             with c6:
-                sel_gatilho = smart_select("Gatilho", l_gatilhos, "k_gatilho", "🧠")
+                sel_gatilho = smart_select("Gatilho Mental", l_gatilhos, "k_gatilho", "🧠", use_label=True)
 
             st.markdown("<br>", unsafe_allow_html=True)
 
             # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
-                # Botão Limpar (Branco com texto vermelho/borda vermelha no CSS)
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
-                # Botão Gerar (Branco com texto azul/borda azul forte no CSS)
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
@@ -283,7 +305,7 @@ def main():
             status_text = st.empty()
             
             try:
-                status_text.text("🧠 Carregando contexto imobiliário...")
+                status_text.text("🧠 Carregando contexto...")
                 progress_bar.progress(20)
                 
                 engine = GenesisEngine(dados_mestre)
