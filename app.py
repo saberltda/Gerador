@@ -16,7 +16,7 @@ from src.utils import slugify
 def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
-    # CSS focado apenas em alinhamento e estrutura.
+    # CSS Ajustado
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
@@ -52,17 +52,17 @@ def setup_ui():
             border: none !important;
         }}
         
-        /* --- BOTÃO GERAR (DESIGN MAIS LEVE) --- */
-        /* Gradiente ajustado para Azul Royal mais vibrante e menos "preto" */
+        /* --- BOTÃO GERAR (COR NOVA: LIGHT CYAN/BLUE) --- */
+        /* Gradiente mais claro e vibrante para não sumir ícones azuis */
         button[kind="secondary"] {{
-            background: linear-gradient(135deg, #4facfe, #00f2fe) !important; /* Fallback */
-            background: linear-gradient(135deg, #2b5876, #4e4376) !important; /* Fallback 2 */
-            background: linear-gradient(135deg, #1e69de, #00509e) !important; /* DEINITIVO: Azul Royal Tech */
+            background: linear-gradient(90deg, #00C9FF 0%, #92FE9D 100%) !important; /* Opção 1: Fresh Mint */
+            background: linear-gradient(135deg, #00c6ff, #0072ff) !important; /* DEFINITIVO: Vivid Blue/Cyan */
             color: white !important;
             height: 60px !important;
             font-size: 18px !important;
             font-weight: bold !important;
-            box-shadow: 0 4px 15px rgba(30, 105, 222, 0.3) !important;
+            box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3) !important;
+            border: none !important;
         }}
 
         /* Cards de Resultado */
@@ -81,11 +81,6 @@ def setup_ui():
 # =========================================================
 # 🛠️ COMPONENTE MESTRE (STATE OF THE ART - DO NOT CHANGE)
 # =========================================================
-# ESTE CÓDIGO RESOLVE 4 PROBLEMAS DE UX SIMULTANEAMENTE:
-# 1. VISUAL: Parece um dropdown nativo (botão branco alinhado).
-# 2. SCROLL: Usa st.container() para criar barra de rolagem em listas longas.
-# 3. AUTO-CLOSE: Usa st.rerun() para fechar o modal assim que clica.
-# 4. MOBILE: Usa st.dialog() e st.radio() que não abrem teclado no celular.
 
 @st.dialog("Faça sua seleção")
 def open_selection_dialog(label, options, key):
@@ -111,8 +106,6 @@ def open_selection_dialog(label, options, key):
         )
     
     # O SEGREDO DO AUTO-CLOSE:
-    # Detecta mudança de estado e força o recarregamento da página.
-    # Isso destrói o Modal imediatamente, simulando um "fechar ao clicar".
     if new_val != current:
         st.session_state[key] = new_val
         st.rerun()
@@ -126,7 +119,7 @@ def smart_select(label, options, key, icon=""):
     
     current_val = str(st.session_state[key])
     
-    # Encurta texto longo para não quebrar o botão
+    # Encurta texto longo
     display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
     
     # Renderiza o Botão Gatilho
@@ -157,14 +150,13 @@ def load_history():
         try:
             df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
             
-            # Converte as colunas de data se existirem
+            # Converte as colunas de data
             if 'DATA_PUB' in df.columns:
                 df['DATA_PUB'] = pd.to_datetime(df['DATA_PUB'])
             if 'CRIADO_EM' in df.columns:
                 df['CRIADO_EM'] = pd.to_datetime(df['CRIADO_EM'])
-                # Ordena pelo log mais recente
                 df = df.sort_values(by='CRIADO_EM', ascending=False)
-            elif 'DATA' in df.columns: # Compatibilidade com logs antigos
+            elif 'DATA' in df.columns:
                 df['DATA'] = pd.to_datetime(df['DATA'])
                 df = df.sort_values(by='DATA', ascending=False)
                 
@@ -203,7 +195,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 6.0 (State of the Art UI) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 6.1 (Fix Session State & Bright UI) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -219,12 +211,15 @@ def main():
 
             st.markdown("---")
 
-            # 2. GEOGRAFIA
-            if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
+            # 2. GEOGRAFIA (CORREÇÃO DE ERRO DE SESSION STATE AQUI)
+            if "k_modo_geo" not in st.session_state: 
+                st.session_state["k_modo_geo"] = "🎲 Aleatório"
             
             try:
-                modo_geo = st.pills("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], default="🎲 Aleatório", key="k_modo_geo")
+                # REMOVIDO o parâmetro 'default', pois a 'key' já existe no session_state
+                modo_geo = st.pills("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
             except:
+                # Fallback para versões antigas
                 modo_geo = st.radio("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], horizontal=True, key="k_modo_geo")
             
             final_bairro_input = "ALEATÓRIO"
@@ -259,7 +254,7 @@ def main():
             with c_reset:
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
-                # Botão agora com gradiente Azul Royal (definido no CSS)
+                # Botão com cor Azul Claro Vibrante (definido no CSS)
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
@@ -294,7 +289,7 @@ def main():
                     "persona_key": p_key, "bairro_nome": final_bairro_input, 
                     "topico": sel_topico, "ativo": sel_ativo,
                     "formato": f_key, "gatilho": g_key,
-                    "data_pub_obj": data_pub # Passando a data escolhida
+                    "data_pub_obj": data_pub
                 }
                 
                 # Execução
@@ -344,7 +339,6 @@ def main():
     with tab_hist:
         df = load_history()
         if df is not None and not df.empty:
-            # Configuração das colunas para exibir as duas datas corretamente
             st.dataframe(
                 df, 
                 use_container_width=True, 
