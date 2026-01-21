@@ -15,8 +15,12 @@ class GenesisEngine:
         self.scanner = BlogScanner()
         self.log_file = "historico_geracao.csv"
 
-    def _salvar_log(self, dados: dict):
-        """Escreve no arquivo CSV local com nomes amigáveis e Horário de Brasília."""
+    def _salvar_log(self, dados: dict, data_pub_usuario: datetime.date):
+        """
+        Salva o log com DUAS datas:
+        1. Data de Publicação (Definida pelo usuário)
+        2. Data de Criação (Timestamp real de geração)
+        """
         file_exists = os.path.isfile(self.log_file)
         
         # Prepara os dados
@@ -29,12 +33,16 @@ class GenesisEngine:
         gatilho_tecnico = dados['gatilho']
         gatilho_bonito = self.config.EMOTIONAL_TRIGGERS_MAP.get(gatilho_tecnico, gatilho_tecnico)
 
-        # --- CORREÇÃO DE FUSO HORÁRIO (UTC-3 BRASÍLIA) ---
+        # 1. Data de Publicação (Formatada)
+        data_pub_str = data_pub_usuario.strftime("%Y-%m-%d")
+
+        # 2. Data de Criação (Fuso Horário UTC-3 Brasília)
         fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
-        data_hora_br = datetime.datetime.now(fuso_br).strftime("%Y-%m-%d %H:%M:%S")
+        data_criacao_str = datetime.datetime.now(fuso_br).strftime("%Y-%m-%d %H:%M:%S")
 
         linha = [
-            data_hora_br,
+            data_pub_str,       # Data escolhida (Post)
+            data_criacao_str,   # Data real (Log)
             dados['persona']['nome'],
             bairro_nome,
             dados['topico'],
@@ -47,8 +55,9 @@ class GenesisEngine:
             # Salva com UTF-8-SIG para acentos no Excel
             with open(self.log_file, mode='a', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f, delimiter=';')
+                # Cabeçalho atualizado com as duas datas
                 if not file_exists:
-                    writer.writerow(["DATA", "PERSONA", "BAIRRO", "TOPICO", "ATIVO", "FORMATO", "GATILHO"])
+                    writer.writerow(["DATA_PUB", "CRIADO_EM", "PERSONA", "BAIRRO", "TOPICO", "ATIVO", "FORMATO", "GATILHO"])
                 writer.writerow(linha)
         except Exception as e:
             print(f"Erro ao salvar log: {e}")
@@ -72,12 +81,10 @@ class GenesisEngine:
         obs_tecnica = "Foco Macro (Cidade)"
 
         if user_selection['bairro_nome'] != "ALEATÓRIO":
-            # Verifica código especial de cidade forçada
             if user_selection['bairro_nome'] == "FORCE_CITY_MODE":
                 modo = "CIDADE"
                 obs_tecnica = "Usuário forçou modo Cidade"
             else:
-                # Busca o bairro na lista
                 for b in self.data.bairros:
                     if b['nome'] == user_selection['bairro_nome']:
                         bairro_selecionado = b
@@ -86,7 +93,6 @@ class GenesisEngine:
                     modo = "BAIRRO"
                     obs_tecnica = "Bairro Definido pelo Usuário"
         else:
-            # Lógica de Sorteio Inteligente
             candidatos_validos = []
             for b in self.data.bairros:
                 z = b.get("zona_normalizada")
@@ -102,7 +108,6 @@ class GenesisEngine:
                     candidatos_validos.append(b)
 
             if candidatos_validos:
-                # 65% de chance de escolher bairro, 35% de chance de ir para cidade
                 if random.random() < 0.65:
                     ineditos = [b for b in candidatos_validos if not self.scanner.ja_publicado(b["nome"])]
                     if ineditos:
@@ -113,7 +118,6 @@ class GenesisEngine:
                         obs_tecnica = "Bairro Compatível (IA - Já publicado)"
                     modo = "BAIRRO"
             
-            # Fallback
             if modo == "BAIRRO" and bairro_selecionado is None:
                 modo = "CIDADE"
                 obs_tecnica = "Fallback: Nenhum bairro compatível encontrado."
@@ -169,5 +173,9 @@ class GenesisEngine:
             "historico_titulos": historico_recente
         }
 
-        self._salvar_log(pacote)
+        # Passamos a data extraída do user_selection para o log
+        # Nota: 'data_pub' deve ser injetada no dicionário user_selection no app.py
+        data_pub = user_selection.get('data_pub_obj', datetime.date.today())
+        self._salvar_log(pacote, data_pub)
+        
         return pacote
