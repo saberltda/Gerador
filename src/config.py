@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.55.3 (CATÁLOGO EXPANDIDO SEO)"
+    VERSION = "GERADOR V.7.0 (MODO PORTAL + IMOBILIÁRIA)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -9,7 +9,7 @@ class GenesisConfig:
     FUSO_PADRAO = "-03:00"
 
     # =====================================================
-    # 1. INTELIGÊNCIA DE SEO (Weighted Randomness)
+    # 1. INTELIGÊNCIA DE SEO (Tópicos Gerais)
     # =====================================================
     TOPICS_MAP = {
         # --- MONEY KEYWORDS (Fundo de Funil) ---
@@ -53,7 +53,7 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 2. REGRAS DE SEGURANÇA (ALTO NÍVEL)
+    # 2. REGRAS DE SEGURANÇA
     # =====================================================
     STRICT_GUIDELINES = [
         "NUNCA invente nomes de clientes (ex: Ricardo, Ana, João).",
@@ -79,10 +79,9 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 3. MATRIZ DE PERSONAS (ARQUÉTIPOS AVANÇADOS 2026)
+    # 3. MATRIZ DE PERSONAS
     # =====================================================
     PERSONAS = {
-        # --- OS GIGANTES DO MERCADO ---
         "INVESTOR_DATA_DRIVEN": {
             "cluster_ref": "INVESTOR",
             "nome": "📊 INVESTIDOR 3.0 (Data-Driven)",
@@ -113,8 +112,6 @@ class GenesisConfig:
             "dor": "Medo de descapitalização e segurança física no imóvel.",
             "desejo": "Patrimônio seguro, portaria 24h e autonomia financeira imediata."
         },
-
-        # --- NICHOS ESTRATÉGICOS ---
         "LUXURY_EXPERIENTIAL": {
             "cluster_ref": "HIGH_END",
             "nome": "✨ Buscador de Experiência (Novo Luxo)",
@@ -165,10 +162,9 @@ class GenesisConfig:
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
     # =====================================================
-    # 5. GATILHOS MENTAIS (COMPLETO - GUSTAVO FERREIRA)
+    # 5. GATILHOS MENTAIS
     # =====================================================
     EMOTIONAL_TRIGGERS_MAP = {
-        # --- AS JOIAS DA COROA (Core Triggers) ---
         "ESCASSEZ": "💎 ESCASSEZ (A Joia da Coroa)",
         "URGENCIA": "🚨 URGÊNCIA (Agora ou Nunca)",
         "AUTORIDADE": "👑 AUTORIDADE (Quem Sabe Faz)",
@@ -176,7 +172,6 @@ class GenesisConfig:
         "PROVA_SOCIAL": "👥 PROVA SOCIAL (O Que Todos Dizem)",
         "PORQUE": "🧠 O PORQUÊ (A Razão Lógica)",
         
-        # --- GATILHOS EMOCIONAIS E ESTRATÉGICOS ---
         "ANTECIPACAO": "👀 Antecipação (O Futuro Chegando)",
         "NOVIDADE": "✨ Novidade (Dopamina/O Novo)",
         "CURIOSIDADE": "❓ Curiosidade (O Gap de Informação)",
@@ -199,7 +194,7 @@ class GenesisConfig:
     EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
 
     # =====================================================
-    # 6. CATÁLOGO DE IMÓVEIS (SEO INDAIATUBA) - EXPANDIDO
+    # 6. CATÁLOGO DE IMÓVEIS (MODO IMOBILIÁRIA)
     # =====================================================
     ASSETS_CATALOG = {
         "HIGH_END": [
@@ -212,14 +207,14 @@ class GenesisConfig:
         ],
         "FAMILY": [
             "CASA EM CONDOMÍNIO (3 Dormitórios / 1 Suíte)",
-            "CASA EM CONDOMÍNIO (2 Dormitórios / Entrada Facilitada)", # Adicionado
+            "CASA EM CONDOMÍNIO (2 Dormitórios / Entrada Facilitada)",
             "SOBRADO COM ÁREA GOURMET (3 Dormitórios)",
             "CASA TÉRREA (Acessibilidade Total)",
             "Casa de Rua em Bairro Planejado (3 Dorms)",
             "Villagio / Casas Geminadas (2 Dormitórios)"
         ],
         "URBAN": [
-            "APARTAMENTO 3 DORMITÓRIOS (Família)", # Adicionado
+            "APARTAMENTO 3 DORMITÓRIOS (Família)",
             "APARTAMENTO 2 DORMITÓRIOS (Varanda Gourmet)",
             "COBERTURA DUPLEX (Vista Panorâmica)",
             "APARTAMENTO GARDEN (Quintal Suspenso)",
@@ -248,5 +243,33 @@ class GenesisConfig:
             "Chácara em Condomínio Fechado (Segurança)",
             "Terreno de Chácara (1.000m² a 5.000m²)",
             "Casa de Campo com Pomar Formado"
+        ]
+    }
+
+    # =====================================================
+    # 7. CATÁLOGO DO PORTAL (NOVO - MODO PORTAL)
+    # =====================================================
+    # Categorias expandidas para Notícias e Utilidade Pública
+    PORTAL_CATALOG = {
+        "NOTICIAS": [
+            "📰 Notícia de Trânsito / Obras Viárias",
+            "📰 Notícia sobre Segurança Pública",
+            "📰 Nova Lei Municipal (Aprovada ou em Pauta)",
+            "📰 Evento Cultural / Agenda da Cidade",
+            "📰 Inauguração de Novo Comércio/Serviço",
+            "📰 Clima e Tempo (Alerta Defesa Civil)"
+        ],
+        "UTILIDADE": [
+            "💡 Utilidade Pública (Água/Luz/Impostos)",
+            "💉 Campanha de Saúde / Vacinação",
+            "🏫 Matrículas Escolares e Educação",
+            "🐕 Causa Animal / Adoção de Pets",
+            "♻️ Coleta de Lixo e Reciclagem"
+        ],
+        "CURIOSIDADES": [
+            "🏛️ História de Indaiatuba (Bairros Antigos)",
+            "🌳 Parques e Áreas de Lazer (Guia)",
+            "🍽️ Dicas de Gastronomia Local",
+            "🚌 Mobilidade Urbana e Transporte Público"
         ]
     }
