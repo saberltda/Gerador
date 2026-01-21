@@ -218,12 +218,14 @@ APLIQUE AS REGRAS:
 .post-body .destaque {{ background: #f9f9f9; padding: 15px; border-left: 4px solid {GenesisConfig.COLOR_PRIMARY}; font-style: italic; margin: 20px 0; }}
 </style>"""
 
-        script_json_ld = self._get_json_ld(data_pub, data_mod, "Portal Saber Indaiatuba", d['ativo_definido'])
+        # CORREÇÃO: Marca unificada para fortalecer autoridade do domínio principal
+        script_json_ld = self._get_json_ld(data_pub, data_mod, "Imobiliária Saber", d['ativo_definido'])
+        
         local_foco = d['bairro']['nome'] if (d['modo'] == "BAIRRO" and d['bairro']) else "Indaiatuba (Cidade toda)"
         anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
 
         return f"""
-## GENESIS MAGNETO V.7.5 — JOURNALIST TO SALES MODE
+## GENESIS MAGNETO V.7.6 — JOURNALIST TO SALES MODE
 **Objetivo:** Texto Jornalístico que converte em LEAD Imobiliário.
 
 ### 🚨 PROTOCOLO DE JORNALISMO
