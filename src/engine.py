@@ -16,56 +16,47 @@ class GenesisEngine:
         self.log_file = "historico_geracao.csv"
 
     def _salvar_log(self, dados: dict, data_pub_usuario: datetime.date):
-        """
-        Salva o log com DUAS datas:
-        1. Data de Publicação (Definida pelo usuário)
-        2. Data de Criação (Timestamp real de geração)
-        """
+        # ... (Mantém o código de log igual ao anterior v6.1) ...
+        # (Se quiser economizar espaço aqui, o código é o mesmo da versão anterior)
+        # Vou focar na mudança do método run:
+        pass 
+
+    # Mantenha o método _salvar_log original ou copie da versão anterior.
+    # Vou reescrever o _salvar_log aqui para garantir que você tenha o arquivo completo e funcional.
+    def _salvar_log(self, dados: dict, data_pub_usuario: datetime.date):
         file_exists = os.path.isfile(self.log_file)
-        
-        # Prepara os dados
         bairro_nome = dados['bairro']['nome'] if dados['bairro'] else "N/A (Cidade)"
-        
-        # Tradução para nomes amigáveis
         formato_tecnico = dados['formato']
         formato_bonito = self.config.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
-        
         gatilho_tecnico = dados['gatilho']
         gatilho_bonito = self.config.EMOTIONAL_TRIGGERS_MAP.get(gatilho_tecnico, gatilho_tecnico)
-
-        # 1. Data de Publicação (Formatada)
+        
         data_pub_str = data_pub_usuario.strftime("%Y-%m-%d")
-
-        # 2. Data de Criação (Fuso Horário UTC-3 Brasília)
         fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
         data_criacao_str = datetime.datetime.now(fuso_br).strftime("%Y-%m-%d %H:%M:%S")
 
         linha = [
-            data_pub_str,       # Data escolhida (Post)
-            data_criacao_str,   # Data real (Log)
-            dados['persona']['nome'],
-            bairro_nome,
-            dados['topico'],
-            dados['ativo_definido'],
-            formato_bonito,
-            gatilho_bonito
+            data_pub_str, data_criacao_str, dados['persona']['nome'],
+            bairro_nome, dados['topico'], dados['ativo_definido'],
+            formato_bonito, gatilho_bonito
         ]
-
         try:
-            # Salva com UTF-8-SIG para acentos no Excel
             with open(self.log_file, mode='a', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f, delimiter=';')
-                # Cabeçalho atualizado com as duas datas
                 if not file_exists:
                     writer.writerow(["DATA_PUB", "CRIADO_EM", "PERSONA", "BAIRRO", "TOPICO", "ATIVO", "FORMATO", "GATILHO"])
                 writer.writerow(linha)
         except Exception as e:
-            print(f"Erro ao salvar log: {e}")
+            print(f"Erro log: {e}")
 
     def run(self, user_selection: dict):
         # 1. Atualiza Scanner
         self.scanner.mapear()
         historico_recente = self.scanner.get_ultimos_titulos(20)
+
+        # Captura o TIPO DA PAUTA (Imobiliária ou Portal)
+        tipo_pauta = user_selection.get("tipo_pauta", "🏢 Imobiliária")
+        eh_portal = "Portal" in tipo_pauta
 
         # 2. Persona
         if user_selection['persona_key'] != "ALEATÓRIO":
@@ -75,7 +66,7 @@ class GenesisEngine:
         persona_data = self.config.PERSONAS[persona_key]
         cluster_ref = persona_data.get("cluster_ref", "FAMILY")
 
-        # 3. Bairro (Com Segurança)
+        # 3. Bairro (Lógica unificada)
         bairro_selecionado = None
         modo = "CIDADE"
         obs_tecnica = "Foco Macro (Cidade)"
@@ -93,9 +84,11 @@ class GenesisEngine:
                     modo = "BAIRRO"
                     obs_tecnica = "Bairro Definido pelo Usuário"
         else:
+            # Sorteio inteligente de bairro (igual ao anterior)
             candidatos_validos = []
             for b in self.data.bairros:
                 z = b.get("zona_normalizada")
+                # Mapeamento simplificado para evitar erro se chave não existir
                 clusters_zonas = {
                     "HIGH_END": ["residencial_fechado", "chacaras_fechado"],
                     "FAMILY": ["residencial_fechado", "residencial_aberto", "chacaras_fechado"],
@@ -104,7 +97,10 @@ class GenesisEngine:
                     "LOGISTICS": ["industrial"],
                     "CORPORATE": ["mista", "industrial", "residencial_aberto"]
                 }
-                if z in clusters_zonas.get(cluster_ref, []):
+                # Se for portal, aceita qualquer bairro
+                target_zones = clusters_zonas.get(cluster_ref, []) if not eh_portal else ["residencial_aberto", "residencial_fechado", "mista", "industrial"]
+                
+                if z in target_zones:
                     candidatos_validos.append(b)
 
             if candidatos_validos:
@@ -126,39 +122,41 @@ class GenesisEngine:
         if user_selection['topico'] != "ALEATÓRIO":
             topico_nome = user_selection['topico'] 
         else:
+            # Se for Portal, talvez não devesse pegar tópico de SEO imobiliário, mas vamos manter como apoio
             keys = list(self.config.TOPICS_MAP.keys())
             pesos = [self.config.TOPICS_WEIGHTS[k] for k in keys]
             chave_sorteada = random.choices(keys, weights=pesos, k=1)[0]
             topico_nome = self.config.TOPICS_MAP[chave_sorteada]
 
-        # 5. Ativo
+        # 5. Ativo (Aqui a lógica muda se for Portal)
         if user_selection['ativo'] != "ALEATÓRIO":
             ativo_final = user_selection['ativo']
-            obs_ref = "Ativo Definido pelo Usuário"
-            if bairro_selecionado:
+            obs_ref = "Definido pelo Usuário"
+            # Só refina se for IMOBILIÁRIA. Se for PORTAL, aceita o tema direto (ex: Notícia)
+            if not eh_portal and bairro_selecionado:
                  ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, [ativo_final])
                  obs_ref += f" | {obs_ajuste}"
         else:
-            ativo_base_list = self.data.ativos_por_cluster.get(cluster_ref, ["Imóvel Padrão"])
-            if modo == "BAIRRO" and bairro_selecionado:
-                ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, ativo_base_list)
-                obs_ref = obs_ajuste
+            if eh_portal:
+                # Sorteia um tema do Portal
+                todos_portal = []
+                for l in self.data.ativos_portal.values(): todos_portal.extend(l)
+                ativo_final = random.choice(todos_portal)
+                obs_ref = "Tema Portal Aleatório"
             else:
-                ativo_final = random.choice(ativo_base_list)
-                obs_ref = "Ativo Aleatório"
+                ativo_base_list = self.data.ativos_por_cluster.get(cluster_ref, ["Imóvel Padrão"])
+                if modo == "BAIRRO" and bairro_selecionado:
+                    ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, ativo_base_list)
+                    obs_ref = obs_ajuste
+                else:
+                    ativo_final = random.choice(ativo_base_list)
+                    obs_ref = "Ativo Aleatório"
         
         obs_tecnica += f" | {obs_ref}"
 
         # 6. Formato e Gatilho
-        if user_selection['formato'] != "ALEATÓRIO":
-            formato = user_selection['formato']
-        else:
-            formato = random.choice(self.config.CONTENT_FORMATS)
-
-        if user_selection['gatilho'] != "ALEATÓRIO":
-            gatilho = user_selection['gatilho']
-        else:
-            gatilho = random.choice(self.config.EMOTIONAL_TRIGGERS)
+        formato = user_selection['formato'] if user_selection['formato'] != "ALEATÓRIO" else random.choice(self.config.CONTENT_FORMATS)
+        gatilho = user_selection['gatilho'] if user_selection['gatilho'] != "ALEATÓRIO" else random.choice(self.config.EMOTIONAL_TRIGGERS)
 
         pacote = {
             "modo": modo,
@@ -170,11 +168,10 @@ class GenesisEngine:
             "formato": formato,
             "gatilho": gatilho,
             "obs_tecnica": obs_tecnica,
-            "historico_titulos": historico_recente
+            "historico_titulos": historico_recente,
+            "tipo_pauta": "PORTAL" if eh_portal else "IMOBILIARIA" # <--- O SEGREDO
         }
 
-        # Passamos a data extraída do user_selection para o log
-        # Nota: 'data_pub' deve ser injetada no dicionário user_selection no app.py
         data_pub = user_selection.get('data_pub_obj', datetime.date.today())
         self._salvar_log(pacote, data_pub)
         
