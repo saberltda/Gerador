@@ -14,9 +14,7 @@ class GenesisData:
         # 1. ATIVOS DA IMOBILIÁRIA (Define o dicionário principal)
         self.ativos_imobiliaria = GenesisConfig.ASSETS_CATALOG
         
-        # --- CORREÇÃO DO ERRO (ALIAS DE COMPATIBILIDADE) ---
         self.ativos_por_cluster = self.ativos_imobiliaria 
-        # ---------------------------------------------------
 
         self.todos_ativos_imoveis = []
         for lista in self.ativos_imobiliaria.values():
@@ -31,10 +29,11 @@ class GenesisData:
             self.todos_ativos_portal.extend(lista)
         self.todos_ativos_portal = list(set(self.todos_ativos_portal))
         
-        # --- ORDENAÇÃO INTELIGENTE (PINNED POST) ---
+        # --- ORDENAÇÃO INTELIGENTE (FIXAR NOTÍCIAS NO TOPO) ---
         self.todos_ativos_portal.sort()
         
         # Força "NOTÍCIAS DO DIA" para o topo da lista (Índice 0)
+        # O Streamlit adiciona "Aleatório" antes deste índice 0
         ITEM_DESTAQUE = "NOTÍCIAS DO DIA"
         if ITEM_DESTAQUE in self.todos_ativos_portal:
             self.todos_ativos_portal.remove(ITEM_DESTAQUE)
@@ -48,8 +47,6 @@ class GenesisData:
             if os.path.exists(f"../{path}"):
                 path = f"../{path}"
             else:
-                # Fallback silencioso ou erro controlado se necessário
-                # Mas aqui mantemos o erro crítico para alertar falta de arquivo
                 raise RuntimeError(
                     f"ERRO CRÍTICO: Arquivo '{path}' não encontrado. "
                     "Verifique se a pasta 'assets' está na raiz do projeto."
@@ -99,8 +96,6 @@ class GenesisRules:
             raise RuntimeError(f"Erro ao ler REGRAS.txt: {e}")
 
     def get_for_prompt(self, contexto_local: str) -> str:
-        # Substitui variáveis dinâmicas dentro do texto de regras
-        # Agora suporta mais formatos para não quebrar se o txt mudar
         txt = self.raw_text
         txt = txt.replace("{b['nome']}", contexto_local)
         txt = txt.replace("{{BAIRRO}}", contexto_local)
