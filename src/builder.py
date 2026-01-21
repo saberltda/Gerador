@@ -268,15 +268,22 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 ---
 
 ## 3. CHECKLIST DE ENTREGA (OBRIGATÓRIO)
-1. LOG BASTIDORES
+1. LOG BASTIDORES:
+()
 2. BLOCKCODE HTML (Código Puro) contendo:
    - O Script JSON-LD **EXATAMENTE** como gerado abaixo:
      {script_json_ld}
    - **OBRIGATÓRIO: Ao final do texto, insira EXATAMENTE este código de captura:**
      {self.CTA_CAPTURE_CODE}
-3. TÍTULO (H1)
-4. MARCADORES: {tags_otimizadas}
-5. DATA: {data_fmt}
-6. DESCRIÇÃO
-7. IMAGEM PROMPT
+3. TÍTULO:
+(H1)
+4. MARCADORES:
+{tags_otimizadas}
+5. DATA:
+{data_fmt}
+6. DESCRIÇÃO:
+(conforme as instruções do bloco de REGRAS)
+7. IMAGEM PROMPT:
+(conforme as instruções do bloco de REGRAS)
 """.strip()
+
