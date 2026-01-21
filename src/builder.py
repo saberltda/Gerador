@@ -147,13 +147,22 @@ class PromptBuilder:
 .post-body p {{ font-size: 19px; line-height: 1.6; }}
 </style>"""
 
-        # RETORNO FINAL: O Prompt completo
+        # RETORNO FINAL: O Prompt completo com TRAVA ANTI-ANÚNCIO
         return f"""
-## GENESIS MAGNETO V.53.0 — QUALITY GOD MODE
+## GENESIS MAGNETO V.55.1 — CONSULTANCY MODE
 **Objetivo:** Gerar texto final pronto para Blogger (HTML Fragment).
 
 ### 🛡️ PROTOCOLO DE VERACIDADE
 {anti_hallucination_txt}
+
+---
+
+## ⛔ TRAVA ANTI-ANÚNCIO (CRÍTICO)
+1. **VOCÊ NÃO ESTÁ VENDENDO UMA UNIDADE ESPECÍFICA.** Não descreva uma casa como se ela existisse (ex: "esta sala ampla", "esta cozinha").
+2. **VOCÊ ESTÁ VENDENDO O CONCEITO.** Fale sobre o **Padrão Construtivo** da região.
+   - ERRADO: "Esta casa na Vila Suíça tem piscina aquecida."
+   - CERTO: "Na Vila Suíça, é comum encontrar casas que valorizam o lazer com piscinas privativas..."
+3. **Foco na Curadoria:** Aja como um consultor explicando por que aquele *tipo* de imóvel naquele *bairro* resolve a dor do cliente.
 
 ---
 
@@ -164,7 +173,7 @@ class PromptBuilder:
 - **Gatilho:** {d['gatilho']}
 
 ## 2. O PRODUTO E CONTEXTO
-- **ATIVO:** {ativo}
+- **ATIVO (TIPOLOGIA):** {ativo} (Trate como categoria/padrão da região, não unidade única)
 - **LOCAL:** {contexto_geo}
 - **ZONEAMENTO:** {zoning_info}
 - **TEMA:** {d['topico']}
@@ -183,10 +192,10 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 {bloco_regras}
 
 ## 4. ESTRUTURA MÍNIMA DO TEXTO
-1. **Introdução enxuta**
-2. **Diagnóstico da Situação** (Dor: {p['dor']} -> Desejo: {p['desejo']})
-3. **Corpo Técnico** (Rotina, Dados, Riscos x Benefícios)
-4. **Conclusão Estratégica** (Sem convite comercial direto, foco em clareza).
+1. **Introdução Conectiva:** (Conecte a dor do cliente ao cenário atual do mercado e do bairro).
+2. **Diagnóstico do Local:** (Por que {d['bairro']['nome'] if d['bairro'] else 'Indaiatuba'} é a solução? Cite as âncoras locais).
+3. **Análise da Tipologia:** (Fale sobre as vantagens de morar em "{ativo}" de forma genérica/técnica. Ex: "Imóveis deste padrão costumam oferecer...").
+4. **Conclusão Estratégica:** (Convite para receber uma curadoria personalizada de imóveis desse perfil).
 
 ---
 
@@ -197,7 +206,7 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
    - Inclua o Script JSON-LD:
      {script_json_ld}
    - Inclua o CTA Kit.com no final.
-3. TÍTULO (H1)
+3. TÍTULO (H1) - (Deve ser atrativo e focar no benefício/bairro, não pareça classificado de jornal)
 4. MARCADORES: {tags_otimizadas}
 5. DATA: {data_fmt}
 6. LOCAL: Indaiatuba
