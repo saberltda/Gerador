@@ -1,13 +1,11 @@
 ==============================================================================
-⛔ ZONA DE SEGURANÇA MÁXIMA (DO NOT DELETE)
+⛔ ZONA DE SEGURANÇA (DO NOT DELETE)
 ==============================================================================
 AVISO PARA DESENVOLVEDORES E IA:
 Este arquivo contém as "Leis da Física" do gerador.
-É ESTRITAMENTE PROIBIDO remover, resumir ou alterar as seções:
-
-- REGRAS TÉCNICAS
-- REGRAS DE TABELA
+É ESTRITAMENTE PROIBIDO remover, resumir ou alterar as seções
 ==============================================================================
+
 
 
 ### REGRAS TÉCNICAS (OBRIGATÓRIO)
@@ -51,7 +49,7 @@ Para garantir leitura mobile, siga este CSS Inline RIGOROSAMENTE:
    <table style="width: 100%; min-width: 600px; border-collapse: collapse;">
 
 3. Células TH/TD:
-   style="padding: 12px; border: 1px solid #cccccc; word-break: keep-all; hyphens: none;"
+   style="padding: 12px; border: 1px solid #cccccc; word-break: keep-all; hyphens: none;
 
 
 
@@ -63,13 +61,11 @@ ATENÇÃO, MUITO CUIDADO AQUI:
 - SE A PAUTA for IMOBILIARIA: type: BlogPosting
 - SE A PAUTA for PORTAL: type: NewsArticle
 headline: título H1 gerado
-datePublished: data fornecida pelo usuário com fuso -03:00.
-                Se o usuário não fornecer, usar a data/hora da geração pela IA
+datePublished: data fornecida pelo usuário com fuso -03:00. Se o usuário não fornecer, usar a data/hora da geração pela IA.
 dateModified: data da geração do conteúdo pela IA com fuso -03:00
 author: Organization, name: "Imobiliária Saber"
 publisher: Organization, name: "Imobiliária Saber"
 publisher.logo.url: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png"
-
 
 
 
@@ -93,8 +89,10 @@ O CTA abaixo DEVE aparecer no final do conteúdo:
 </div>
 
 
+
 ==============================================================================
 FIM DA ZONA DE SEGURANÇA
 ==============================================================================
+
 
 
