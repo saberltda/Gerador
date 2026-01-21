@@ -55,7 +55,9 @@ Para garantir leitura mobile, siga este CSS Inline RIGOROSAMENTE:
 O JSON-LD embutido deve conter:
 
 context: https://schema.org
-type: BlogPosting
+ATENÇÃO, MUITO CUIDADO AQUI:
+- SE A PAUTA for IMOBILIARIA: type: BlogPosting
+- SE A PAUTA for PORTAL: type: BlogPosting
 headline: título H1 gerado
 datePublished: data fornecida pelo usuário com fuso -03:00.
                 Se o usuário não fornecer, usar a data/hora da geração pela IA
@@ -90,3 +92,4 @@ O CTA abaixo DEVE aparecer no final do conteúdo:
 ==============================================================================
 FIM DA ZONA DE SEGURANÇA
 ==============================================================================
+
