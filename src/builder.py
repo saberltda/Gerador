@@ -1,20 +1,13 @@
 # src/builder.py
 import datetime
+import re
 from .config import GenesisConfig
 
 class PromptBuilder:
-    """
-    O 'Redator'.
-    Responsável por montar a string final do Prompt que será enviada para a IA.
-    Ele injeta o JSON-LD, o CSS inline e garante que as regras do arquivo TXT
-    estejam visíveis para o modelo.
-    """
-
     def __init__(self):
         pass
 
     def _format_date_blogger(self, iso_date_str):
-        """Converte AAAA-MM-DD para 'DD de mmm. de AAAA' (Estilo Blogger)"""
         try:
             dt_part = iso_date_str.split("T")[0]
             dt = datetime.datetime.strptime(dt_part, "%Y-%m-%d")
@@ -27,189 +20,225 @@ class PromptBuilder:
             return iso_date_str
 
     def _generate_seo_tags(self, d):
-        """Gera as tags (marcadores) do post com base na inteligência de cluster."""
-        tags = ["Indaiatuba", "Imóveis Indaiatuba"]
+        tags = ["Indaiatuba", "Indaiatuba SP"]
         
-        # Mapa de tags por cluster (Hardcoded para performance)
-        cluster_map = {
-            "HIGH_END": ["Altíssimo Padrão", "Casas de Luxo", "Condomínios Fechados", "Mansões Indaiatuba"],
-            "FAMILY": ["Qualidade de Vida", "Casas em Condomínio", "Morar com Família", "Segurança"],
-            "URBAN": ["Apartamentos", "Centro de Indaiatuba", "Oportunidade", "Imóveis Urbanos"],
-            "INVESTOR": ["Investimento Imobiliário", "Mercado Imobiliário", "Valorização", "Terrenos"],
-            "LOGISTICS": ["Galpões Industriais", "Logística", "Área Industrial", "Aeroporto Viracopos"],
-            "CORPORATE": ["Salas Comerciais", "Escritórios", "Imóveis Corporativos"]
-        }
-        
-        # Adiciona tags do cluster técnico
-        tags.extend(cluster_map.get(d['cluster_tecnico'], []))
+        # Tags dinâmicas baseadas no modo
+        if d['tipo_pauta'] == "PORTAL":
+            tags.append("Notícias Indaiatuba")
+            tags.append("Utilidade Pública")
+            tags.append("Portal da Cidade")
+        else:
+            tags.append("Imóveis Indaiatuba")
+            tags.append("Mercado Imobiliário")
+            cluster_map = {
+                "HIGH_END": ["Altíssimo Padrão", "Luxo"],
+                "FAMILY": ["Casas em Condomínio", "Família"],
+                "URBAN": ["Apartamentos", "Centro"],
+                "INVESTOR": ["Investimento", "Oportunidade"],
+                "LOGISTICS": ["Industrial", "Galpões"],
+            }
+            tags.extend(cluster_map.get(d['cluster_tecnico'], []))
 
-        # Adiciona tags específicas do bairro (se houver)
         if d['modo'] == "BAIRRO" and d['bairro']:
             tags.append(d['bairro']['nome'])
-            tags.append(f"Morar no {d['bairro']['nome']}")
-            tags.append(d['bairro']['zona'])
+            tags.append(f"Viver no {d['bairro']['nome']}")
 
-        # Adiciona o tipo de ativo limpo (ex: "Casa / Sobrado" -> "Casa")
-        ativo_clean = d['ativo_definido'].split("/")[0].strip()
+        # Limpa o ativo para tag
+        ativo_clean = d['ativo_definido'].split("(")[0].strip()
         tags.append(ativo_clean)
 
-        # Remove duplicatas mantendo a ordem (set não garante ordem)
         seen = set()
         final_tags = []
         for t in tags:
-            if t not in seen:
-                seen.add(t)
-                final_tags.append(t)
-
-        return ", ".join(final_tags[:10]) # Limita a 10 tags
+            t_c = t.replace("/", "").strip()
+            if t_c and t_c not in seen:
+                seen.add(t_c)
+                final_tags.append(t_c)
+        return ", ".join(final_tags[:12])
 
     def get_format_instructions(self, formato):
-        """Instruções de redação específicas para cada formato de conteúdo."""
         structures = {
             "GUIA_DEFINITIVO": "Guia organizado em seções técnicas, com passos lógicos.",
-            "LISTA_POLEMICA": "Lista numerada que confronte mitos comuns do mercado.",
-            "COMPARATIVO_TECNICO": "Comparação objetiva (pode usar tabela) com prós e contras.",
-            "CENARIO_ANALITICO": "Construção de cenários: 'Se o investidor fizer X...', 'No cenário Y...'.",
-            "CHECKLIST_TECNICO": "Checklists de verificação (documentos, itens físicos, entorno).",
-            "PERGUNTAS_RESPOSTAS": "Formato FAQ direto, com perguntas de quem está decidindo.",
-            "DATA_DRIVEN": "Texto orientado a dados (m², distâncias, tempos de deslocamento).",
-            "INSIGHT_DE_CORRETOR": "Bastidores do mercado, visão de corretor experiente.",
-            "ROTINA_SUGERIDA": "Descreva rotinas típicas ligando horário, deslocamento e uso de serviços.",
-            "PREVISAO_MERCADO": "Análise de futuro com base em infraestrutura e obras planejadas."
+            "LISTA_POLEMICA": "Lista numerada que confronte mitos comuns.",
+            "COMPARATIVO_TECNICO": "Comparação objetiva (tabela/lista) Prós vs Contras.",
+            "DATA_DRIVEN": "Texto orientado a fatos, datas e números reais.",
         }
-        return structures.get(formato, "Estrutura livre, técnica, focada em decisão do leitor.")
+        return structures.get(formato, "Estrutura clara, objetiva e informativa.")
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada: str):
         """
         O GRANDE MONTADOR.
-        Junta todas as peças (Persona, Bairro, Regras, SEO) e cria o texto final.
+        Decide qual 'Cérebro' usar: Corretor ou Jornalista.
         """
+        if d['tipo_pauta'] == "PORTAL":
+            return self._build_portal_prompt(d, data_pub, data_mod, regras_texto_ajustada)
+        else:
+            return self._build_real_estate_prompt(d, data_pub, data_mod, regras_texto_ajustada)
+
+    # =========================================================================
+    # 🧠 MODO 1: IMOBILIÁRIA (Foco em Vendas, Dor, Desejo)
+    # =========================================================================
+    def _build_real_estate_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
         p = d['persona']
         ativo = d['ativo_definido']
         tags_otimizadas = self._generate_seo_tags(d)
-
-        # Bloco JSON-LD (Schema.org) para o Google entender o post
-        script_json_ld = """
-{
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": "TITULO H1 DEFINIDO PELO GERADOR",
-    "datePublished": "%s",
-    "dateModified": "%s",
-    "author": {
-        "@type": "Organization",
-        "name": "Imobiliária Saber"
-    },
-    "publisher": {
-        "@type": "Organization",
-        "name": "Imobiliária Saber",
-        "logo": {
-            "@type": "ImageObject",
-            "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png"
-        }
-    }
-}
-""" % (data_pub, data_mod)
-
-        # Contexto geográfico para o prompt
-        if d['modo'] == "BAIRRO" and d['bairro']:
-            contexto_geo = f"Bairro Específico: {d['bairro']['nome']}"
-            zoning_info = f"Zoneamento oficial: {d['bairro']['zona']} ({d['obs_tecnica']})"
-        else:
-            contexto_geo = "Cidade: Indaiatuba (Panorama Geral, sem bairro específico)"
-            zoning_info = "Macro-zoneamento urbano (foco na cidade como um todo)."
-
-        # Regras de Anti-Alucinação (extraídas do Config)
-        anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
-
-        # Instrução de Âncora (Google Maps mental)
-        ancora_instruction = f"""
-**ÂNCORAS LOCAIS (MODO SEARCH):**
-- EXECUTE busca mental como se estivesse usando Google Maps para o contexto: {contexto_geo}.
-- Identifique de 3 a 5 estabelecimentos REAIS (escolas, mercados, serviços de saúde).
-- Use tempos de deslocamento REALISTAS.
-- PROIBIDO usar nomes genéricos.
-"""
-
-        # Bloco de Regras lido do arquivo TXT (Já com o nome do bairro injetado)
-        bloco_regras = f"""
-# ==========================================
-# 🔐 ZONA DE SEGURANÇA MÁXIMA (REGRAS.txt)
-# ==========================================
-{regras_texto_ajustada}
-"""
-
-        # CSS inline para garantir beleza no Blogger
+        
+        # ... (Mantém a lógica de JSON-LD e CSS igual) ...
         estilo_html = f"""<style>
 .post-body h2 {{ color: {GenesisConfig.COLOR_PRIMARY}; font-family: 'Segoe UI', Arial, sans-serif; }}
 .post-body h3 {{ color: {GenesisConfig.COLOR_PRIMARY}; font-family: 'Segoe UI', Arial, sans-serif; }}
 .post-body p {{ font-size: 19px; line-height: 1.6; }}
 </style>"""
 
-        # RETORNO FINAL: O Prompt completo com TRAVA ANTI-ANÚNCIO
+        script_json_ld = self._get_json_ld(data_pub, data_mod, "Imobiliária Saber", d['ativo_definido'])
+
+        if d['modo'] == "BAIRRO" and d['bairro']:
+            contexto_geo = f"Bairro Específico: {d['bairro']['nome']}"
+            zoning_info = f"Zoneamento: {d['bairro']['zona']}"
+        else:
+            contexto_geo = "Cidade: Indaiatuba (Panorama Geral)"
+            zoning_info = "Macro-zoneamento urbano."
+
+        anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
+
         return f"""
-## GENESIS MAGNETO V.55.1 — CONSULTANCY MODE
-**Objetivo:** Gerar texto final pronto para Blogger (HTML Fragment).
+## GENESIS MAGNETO V.7.0 — IMOBILIÁRIA MODE
+**Objetivo:** Texto de Conversão Imobiliária (HTML Fragment).
 
 ### 🛡️ PROTOCOLO DE VERACIDADE
 {anti_hallucination_txt}
 
 ---
 
-## ⛔ TRAVA ANTI-ANÚNCIO (CRÍTICO)
-1. **VOCÊ NÃO ESTÁ VENDENDO UMA UNIDADE ESPECÍFICA.** Não descreva uma casa como se ela existisse (ex: "esta sala ampla", "esta cozinha").
-2. **VOCÊ ESTÁ VENDENDO O CONCEITO.** Fale sobre o **Padrão Construtivo** da região.
-   - ERRADO: "Esta casa na Vila Suíça tem piscina aquecida."
-   - CERTO: "Na Vila Suíça, é comum encontrar casas que valorizam o lazer com piscinas privativas..."
-3. **Foco na Curadoria:** Aja como um consultor explicando por que aquele *tipo* de imóvel naquele *bairro* resolve a dor do cliente.
+## ⛔ TRAVA ANTI-ANÚNCIO
+1. **VOCÊ NÃO ESTÁ VENDENDO UMA UNIDADE ESPECÍFICA.**
+2. **VENDA O CONCEITO.** Fale sobre o Padrão Construtivo da região.
+3. **Foco na Curadoria:** Aja como um consultor, não um classificado.
 
 ---
 
-## 1. O CLIENTE ALVO
+## 1. O CLIENTE
 **PERFIL:** {p['nome']}
 - **Dor:** {p['dor']}
 - **Desejo:** {p['desejo']}
 - **Gatilho:** {d['gatilho']}
 
-## 2. O PRODUTO E CONTEXTO
-- **ATIVO (TIPOLOGIA):** {ativo} (Trate como categoria/padrão da região, não unidade única)
+## 2. O PRODUTO
+- **TIPOLOGIA:** {ativo}
 - **LOCAL:** {contexto_geo}
 - **ZONEAMENTO:** {zoning_info}
 - **TEMA:** {d['topico']}
 - **FORMATO:** {self.get_format_instructions(d['formato'])}
-{ancora_instruction}
 
 ---
 
-## 3. REGRAS TÉCNICAS E JSON-LD
-Você está escrevendo um **FRAGMENTO DE HTML** com JSON-LD embutido.
-
-Use este estilo mínimo:
+## 3. REGRAS E ESTRUTURA
+Estilo HTML Mínimo:
 {estilo_html}
 
-APLIQUE AS REGRAS DA CONSTITUIÇÃO:
-{bloco_regras}
+REGRAS:
+{regras_texto_ajustada}
 
-## 4. ESTRUTURA MÍNIMA DO TEXTO
-1. **Introdução Conectiva:** (Conecte a dor do cliente ao cenário atual do mercado e do bairro).
-2. **Diagnóstico do Local:** (Por que {d['bairro']['nome'] if d['bairro'] else 'Indaiatuba'} é a solução? Cite as âncoras locais).
-3. **Análise da Tipologia:** (Fale sobre as vantagens de morar em "{ativo}" de forma genérica/técnica. Ex: "Imóveis deste padrão costumam oferecer...").
-4. **Conclusão Estratégica:** (Convite para receber uma curadoria personalizada de imóveis desse perfil).
+**ESTRUTURA SUGERIDA:**
+1. **Introdução:** Conecte a dor ({p['dor']}) ao cenário de {contexto_geo}.
+2. **Diagnóstico:** Por que esse bairro/região resolve o problema?
+3. **Tipologia:** Fale sobre "{ativo}" como solução de estilo de vida.
+4. **Conclusão:** Convite para curadoria personalizada.
 
 ---
 
-## 6. CHECKLIST FINAL DE ENTREGA
-
-1. LOG DE BASTIDORES
-2. BLOCKCODE (HTML PURO + JSON-LD)
-   - Inclua o Script JSON-LD:
-     {script_json_ld}
-   - Inclua o CTA Kit.com no final.
-3. TÍTULO (H1) - (Deve ser atrativo e focar no benefício/bairro, não pareça classificado de jornal)
+## 4. CHECKLIST DE ENTREGA
+1. LOG BASTIDORES
+2. BLOCKCODE HTML (Com JSON-LD)
+   {script_json_ld}
+   - Inclua CTA Kit.com
+3. TÍTULO (H1 Persuasivo)
 4. MARCADORES: {tags_otimizadas}
 5. DATA: {data_fmt}
-6. LOCAL: Indaiatuba
-7. DESCRIÇÃO (Meta)
-8. IMAGEM (Prompt)
+6. DESCRIÇÃO
+7. IMAGEM PROMPT
 """.strip()
+
+    # =========================================================================
+    # 🧠 MODO 2: PORTAL DA CIDADE (Foco em Notícia, Utilidade, Fatos)
+    # =========================================================================
+    def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
+        data_fmt = self._format_date_blogger(data_pub)
+        ativo = d['ativo_definido'] # Ex: "Notícia de Trânsito"
+        tags_otimizadas = self._generate_seo_tags(d)
+        
+        estilo_html = f"""<style>
+.post-body h2 {{ color: #2c3e50; font-family: 'Georgia', serif; border-bottom: 2px solid #eee; padding-bottom: 10px; }}
+.post-body h3 {{ color: {GenesisConfig.COLOR_PRIMARY}; font-family: 'Segoe UI', Arial, sans-serif; margin-top: 25px; }}
+.post-body p {{ font-size: 19px; line-height: 1.6; color: #333; }}
+.post-body .destaque {{ background: #f9f9f9; padding: 15px; border-left: 4px solid {GenesisConfig.COLOR_PRIMARY}; font-style: italic; }}
+</style>"""
+
+        script_json_ld = self._get_json_ld(data_pub, data_mod, "Portal Saber Indaiatuba", d['ativo_definido'])
+
+        local_foco = d['bairro']['nome'] if (d['modo'] == "BAIRRO" and d['bairro']) else "Indaiatuba (Cidade toda)"
+
+        return f"""
+## GENESIS MAGNETO V.7.0 — JOURNALIST MODE (PORTAL)
+**Objetivo:** Texto Jornalístico ou Utilidade Pública (HTML Fragment).
+
+### 🚨 PROTOCOLO DE JORNALISMO (CRÍTICO)
+1. **FATOS REAIS:** Se o tema for notícia (ex: Trânsito, Obras), você DEVE buscar fatos reais recentes em Indaiatuba.
+   - **AÇÃO OBRIGATÓRIA:** Faça uma busca mental por eventos REAIS recentes sobre "{ativo}" em Indaiatuba (2025-2026).
+   - **SE NÃO HOUVER NOTÍCIA RECENTE:** Transforme o texto em um **GUIA DE UTILIDADE PÚBLICA** atemporal (ex: "Como evitar trânsito", "Telefones úteis", "Direitos do cidadão").
+2. **NÃO INVENTE EVENTOS:** Jamais invente um acidente ou uma obra que não existe. Se não achar, escreva sobre *prevenção* ou *orientação*.
+3. **TOM DE VOZ:** Imparcial, informativo, prestação de serviço. Sem "adjetivos de vendedor" (lindo, maravilhoso).
+4. **USE O BAIRRO:** Se foi selecionado "{local_foco}", cite ele como contexto, mas apenas se fizer sentido factual.
+
+---
+
+## 1. A PAUTA
+- **TEMA PRINCIPAL:** {ativo}
+- **LOCAL DE COBERTURA:** {local_foco}
+- **PÚBLICO ALVO:** Cidadãos de Indaiatuba (Foco em utilidade, não venda).
+- **GATILHO:** {d['gatilho']} (Use apenas para atrair leitura, não venda).
+
+## 2. ESTRUTURA JORNALÍSTICA
+Use este estilo HTML:
+{estilo_html}
+
+**ROTEIRO:**
+1. **Manchete (H1):** Direta e informativa. (Ex: "Cronograma de Coleta de Lixo...", "Novas regras para...")
+2. **Lide (1º parágrafo):** O que, onde, quando e por que. Responda a dúvida do cidadão imediatamente.
+3. **Desenvolvimento:** Detalhes técnicos, horários, endereços, telefones úteis.
+   - Use a classe CSS: <div class="destaque">Dica importante ou Resumo</div>
+4. **Serviço:** Links úteis, telefones da prefeitura/órgãos competentes.
+5. **Conclusão:** Convite para compartilhar a informação.
+
+---
+
+## 3. CHECKLIST DE ENTREGA
+1. LOG BASTIDORES (Explique se achou notícia real ou se fez guia atemporal)
+2. BLOCKCODE HTML (Com JSON-LD)
+   {script_json_ld}
+3. TÍTULO (H1 Jornalístico)
+4. MARCADORES: {tags_otimizadas}
+5. DATA: {data_fmt}
+6. DESCRIÇÃO (Resumo da notícia)
+7. IMAGEM PROMPT (Fotojornalismo ou Ilustrativa neutra)
+""".strip()
+
+    def _get_json_ld(self, d_pub, d_mod, author_name, headline):
+        return """
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "%s",
+    "datePublished": "%s",
+    "dateModified": "%s",
+    "author": { "@type": "Organization", "name": "%s" },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Imobiliária Saber",
+        "logo": { "@type": "ImageObject", "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png" }
+    }
+}
+</script>
+""" % (headline, d_pub, d_mod, author_name)
