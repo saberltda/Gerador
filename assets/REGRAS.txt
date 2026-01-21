@@ -6,8 +6,6 @@ Este arquivo contém as "Leis da Física" do gerador.
 É ESTRITAMENTE PROIBIDO remover, resumir ou alterar as seções
 ==============================================================================
 
-
-
 ### REGRAS TÉCNICAS (OBRIGATÓRIO)
 Você está gerando um FRAGMENTO DE HTML para ser inserido dentro de um post do Blogger.
 
@@ -37,8 +35,6 @@ Indaiatuba
 8. IMAGEM:
 (Prompt para fotógrafo profissional ou IA generativa, sempre em português pt-br)
 
-
-
 ### REGRAS DE TABELA (ANTI-QUEBRA)
 Para garantir leitura mobile, siga este CSS Inline RIGOROSAMENTE:
 
@@ -50,8 +46,6 @@ Para garantir leitura mobile, siga este CSS Inline RIGOROSAMENTE:
 
 3. Células TH/TD:
    style="padding: 12px; border: 1px solid #cccccc; word-break: keep-all; hyphens: none;
-
-
 
 ### REGRAS JSON-LD (OBRIGATÓRIO)
 O JSON-LD embutido deve conter:
@@ -67,8 +61,6 @@ author: Organization, name: "Imobiliária Saber"
 publisher: Organization, name: "Imobiliária Saber"
 publisher.logo.url: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png"
 
-
-
 ### PROTOCOLO DE PESQUISA (ANTI-ALUCINAÇÃO)
 CRÍTICO: Você DEVE realizar uma "Busca Mental" simulando o Google Maps.
 
@@ -79,16 +71,12 @@ REGRAS:
    (ex: "A 8 minutos do Parque Ecológico").
 3. NUNCA invente depoimentos de clientes fictícios.
 
-
-
 ### CTA OBRIGATÓRIO NO FINAL DO TEXTO
 O CTA abaixo DEVE aparecer no final do conteúdo:
 
 <div style="text-align:center; margin: 40px 0;">
 <script async data-uid="d188d73e78" src="https://sabernovidades.kit.com/d188d73e78/index.js"></script>
 </div>
-
-
 
 ==============================================================================
 FIM DA ZONA DE SEGURANÇA
