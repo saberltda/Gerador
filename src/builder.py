@@ -37,6 +37,10 @@ class PromptBuilder:
             tags.append("Utilidade Pública")
             tags.append("Portal da Cidade")
             tags.append("Viver em Indaiatuba")
+            # Tags extras para notícias do dia
+            if "NOTÍCIAS DO DIA" in d.get('ativo_definido', '').upper():
+                 tags.append("Últimas Notícias")
+                 tags.append("Indaiatuba Agora")
         else:
             tags.append("Imóveis Indaiatuba")
             tags.append("Mercado Imobiliário")
@@ -108,6 +112,7 @@ class PromptBuilder:
         ativo = d['ativo_definido']
         tags_otimizadas = self._generate_seo_tags(d)
 
+        # Imobiliária usa sempre BlogPosting
         script_json_ld = self._get_json_ld(data_pub, data_mod, "Imobiliária Saber", d['ativo_definido'])
 
         if d['modo'] == "BAIRRO" and d['bairro']:
@@ -211,6 +216,11 @@ APLIQUE AS REGRAS:
         ativo = d['ativo_definido']
         tags_otimizadas = self._generate_seo_tags(d)
         
+        # CORREÇÃO: Cálculo dinâmico do ano para evitar bugs futuros
+        # Pega o ano atual e o anterior para contextualizar "Fatos Recentes"
+        ano_atual = datetime.datetime.now().year
+        range_anos = f"({ano_atual-1}-{ano_atual})"
+
         estilo_html = f"""<style>
 .post-body h2 {{ color: #2c3e50; font-family: 'Georgia', serif; border-bottom: 2px solid #eee; padding-bottom: 10px; }}
 .post-body h3 {{ color: {GenesisConfig.COLOR_PRIMARY}; font-family: 'Segoe UI', Arial, sans-serif; margin-top: 25px; }}
@@ -218,18 +228,18 @@ APLIQUE AS REGRAS:
 .post-body .destaque {{ background: #f9f9f9; padding: 15px; border-left: 4px solid {GenesisConfig.COLOR_PRIMARY}; font-style: italic; margin: 20px 0; }}
 </style>"""
 
-        # CORREÇÃO: Marca unificada para fortalecer autoridade do domínio principal
+        # Marca unificada para fortalecer autoridade
         script_json_ld = self._get_json_ld(data_pub, data_mod, "Imobiliária Saber", d['ativo_definido'])
         
         local_foco = d['bairro']['nome'] if (d['modo'] == "BAIRRO" and d['bairro']) else "Indaiatuba (Cidade toda)"
         anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
 
         return f"""
-## GENESIS MAGNETO V.7.6 — JOURNALIST TO SALES MODE
+## GENESIS MAGNETO V.9.1 — JOURNALIST TO SALES MODE
 **Objetivo:** Texto Jornalístico que converte em LEAD Imobiliário.
 
 ### 🚨 PROTOCOLO DE JORNALISMO
-1. **FATOS REAIS:** Busque fatos reais recentes (2025-2026) sobre "{ativo}". Se não houver, faça um GUIA DE UTILIDADE PÚBLICA.
+1. **FATOS REAIS:** Busque fatos reais recentes {range_anos} sobre "{ativo}". Se não houver, faça um GUIA DE UTILIDADE PÚBLICA.
 2. **TOM:** Comece informativo, termine consultivo.
 3. **A PONTE:** Use a notícia para provar que a cidade é boa para MORAR.
 
@@ -273,11 +283,19 @@ Use este estilo HTML:
         safe_headline = headline.replace('"', '\\"')
         safe_author = author_name.replace('"', '\\"')
         
+        # LÓGICA GOOGLE NEWS DISCOVER (EXPANDIDA)
+        # Se for "Notícias do Dia" OU contiver o emoji de jornal/palavra chave, vira NewsArticle
+        schema_type = "BlogPosting"
+        tit_upper = safe_headline.upper()
+        
+        if "NOTÍCIAS DO DIA" in tit_upper or "📰" in tit_upper or "NOTÍCIA" in tit_upper or "NOTICIA" in tit_upper:
+             schema_type = "NewsArticle"
+
         return """
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@type": "%s",
     "headline": "%s",
     "datePublished": "%s",
     "dateModified": "%s",
@@ -289,4 +307,4 @@ Use este estilo HTML:
     }
 }
 </script>
-""" % (safe_headline, d_pub, d_mod, safe_author)
+""" % (schema_type, safe_headline, d_pub, d_mod, safe_author)
