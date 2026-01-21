@@ -16,33 +16,35 @@ class GenesisEngine:
         self.log_file = "historico_geracao.csv"
 
     def _salvar_log(self, dados: dict):
-        """Escreve no arquivo CSV local com nomes amigáveis."""
+        """Escreve no arquivo CSV local com nomes amigáveis e Horário de Brasília."""
         file_exists = os.path.isfile(self.log_file)
         
         # Prepara os dados
         bairro_nome = dados['bairro']['nome'] if dados['bairro'] else "N/A (Cidade)"
         
-        # --- CORREÇÃO: TRADUÇÃO PARA NOME AMIGÁVEL ---
+        # Tradução para nomes amigáveis
         formato_tecnico = dados['formato']
-        # Busca no mapa; se não achar, usa o técnico mesmo
         formato_bonito = self.config.CONTENT_FORMATS_MAP.get(formato_tecnico, formato_tecnico)
         
         gatilho_tecnico = dados['gatilho']
         gatilho_bonito = self.config.EMOTIONAL_TRIGGERS_MAP.get(gatilho_tecnico, gatilho_tecnico)
 
+        # --- CORREÇÃO DE FUSO HORÁRIO (UTC-3 BRASÍLIA) ---
+        fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
+        data_hora_br = datetime.datetime.now(fuso_br).strftime("%Y-%m-%d %H:%M:%S")
+
         linha = [
-            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            data_hora_br,
             dados['persona']['nome'],
             bairro_nome,
             dados['topico'],
             dados['ativo_definido'],
-            formato_bonito, # Salva "🔥 Lista..." em vez de "LISTA_..."
-            gatilho_bonito  # Salva "💎 Escassez..." em vez de "ESCASSEZ"
+            formato_bonito,
+            gatilho_bonito
         ]
 
         try:
-            # --- CORREÇÃO: UTF-8-SIG PARA EXCEL ---
-            # O 'utf-8-sig' adiciona uma 'assinatura' que avisa o Excel sobre os acentos
+            # Salva com UTF-8-SIG para acentos no Excel
             with open(self.log_file, mode='a', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f, delimiter=';')
                 if not file_exists:
@@ -64,24 +66,30 @@ class GenesisEngine:
         persona_data = self.config.PERSONAS[persona_key]
         cluster_ref = persona_data.get("cluster_ref", "FAMILY")
 
-        # 3. Bairro (Com Segurança e Lógica de Cluster)
+        # 3. Bairro (Com Segurança)
         bairro_selecionado = None
         modo = "CIDADE"
         obs_tecnica = "Foco Macro (Cidade)"
 
         if user_selection['bairro_nome'] != "ALEATÓRIO":
-            for b in self.data.bairros:
-                if b['nome'] == user_selection['bairro_nome']:
-                    bairro_selecionado = b
-                    break
-            if bairro_selecionado:
-                modo = "BAIRRO"
-                obs_tecnica = "Bairro Definido pelo Usuário"
+            # Verifica código especial de cidade forçada
+            if user_selection['bairro_nome'] == "FORCE_CITY_MODE":
+                modo = "CIDADE"
+                obs_tecnica = "Usuário forçou modo Cidade"
+            else:
+                # Busca o bairro na lista
+                for b in self.data.bairros:
+                    if b['nome'] == user_selection['bairro_nome']:
+                        bairro_selecionado = b
+                        break
+                if bairro_selecionado:
+                    modo = "BAIRRO"
+                    obs_tecnica = "Bairro Definido pelo Usuário"
         else:
+            # Lógica de Sorteio Inteligente
             candidatos_validos = []
             for b in self.data.bairros:
                 z = b.get("zona_normalizada")
-                # Filtra zonas compatíveis com o cluster
                 clusters_zonas = {
                     "HIGH_END": ["residencial_fechado", "chacaras_fechado"],
                     "FAMILY": ["residencial_fechado", "residencial_aberto", "chacaras_fechado"],
@@ -94,6 +102,7 @@ class GenesisEngine:
                     candidatos_validos.append(b)
 
             if candidatos_validos:
+                # 65% de chance de escolher bairro, 35% de chance de ir para cidade
                 if random.random() < 0.65:
                     ineditos = [b for b in candidatos_validos if not self.scanner.ja_publicado(b["nome"])]
                     if ineditos:
@@ -104,7 +113,7 @@ class GenesisEngine:
                         obs_tecnica = "Bairro Compatível (IA - Já publicado)"
                     modo = "BAIRRO"
             
-            # Fallback se a IA falhar
+            # Fallback
             if modo == "BAIRRO" and bairro_selecionado is None:
                 modo = "CIDADE"
                 obs_tecnica = "Fallback: Nenhum bairro compatível encontrado."
@@ -160,6 +169,5 @@ class GenesisEngine:
             "historico_titulos": historico_recente
         }
 
-        # Salva log local
         self._salvar_log(pacote)
         return pacote
