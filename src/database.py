@@ -69,3 +69,28 @@ class GenesisData:
             bairros_enriquecidos.append(b2)
 
         return bairros_enriquecidos
+
+
+class GenesisRules:
+    """
+    Gerenciador de Regras de Compliance (Constituição do Blog).
+    Lê o arquivo REGRAS.txt e injeta no prompt.
+    """
+    def __init__(self, path: str = "assets/REGRAS.txt"):
+        if not os.path.exists(path):
+            if os.path.exists(f"../{path}"):
+                path = f"../{path}"
+            else:
+                raise RuntimeError(f"ERRO: Arquivo '{path}' de regras não encontrado.")
+            
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                self.raw_text = f.read()
+        except Exception as e:
+            raise RuntimeError(f"Erro ao ler REGRAS.txt: {e}")
+
+    def get_for_prompt(self, contexto_local: str) -> str:
+        # Substitui variáveis dinâmicas dentro do texto de regras, se houver
+        txt = self.raw_text
+        txt = txt.replace("{b['nome']}", contexto_local)
+        return txt
