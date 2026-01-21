@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.55.2 (GATILHOS EXPANDIDOS)"
+    VERSION = "GERADOR V.55.3 (CATÁLOGO EXPANDIDO SEO)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -61,7 +61,7 @@ class GenesisConfig:
         "NUNCA crie depoimentos falsos.",
         "OBRIGATÓRIO: Pesquise locais reais no Google Maps antes de citar.",
         
-        # --- NOVAS REGRAS ANTI-ANÚNCIO (FIX V.55.1) ---
+        # --- REGRAS ANTI-ANÚNCIO ---
         "PROIBIDO descrever um imóvel específico (unidade única).",
         "NÃO use: 'Esta casa possui', 'Venha visitar este imóvel', 'Acabou de entrar'.",
         "USE: 'Casas nesta região costumam ter', 'O padrão construtivo aqui oferece', 'Ao buscar imóveis neste bairro'.",
@@ -199,56 +199,54 @@ class GenesisConfig:
     EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
 
     # =====================================================
-    # 6. CATÁLOGO DE IMÓVEIS (SEO INDAIATUBA)
+    # 6. CATÁLOGO DE IMÓVEIS (SEO INDAIATUBA) - EXPANDIDO
     # =====================================================
-    # Chave = Cluster Técnico (Para a Engine filtrar)
-    # Lista = Opções Visíveis
     ASSETS_CATALOG = {
         "HIGH_END": [
-            "MANSÃO EM CONDOMÍNIO FECHADO (Luxo)",
-            "CASA TÉRREA DE ALTO PADRÃO (Piscina)",
-            "SOBRADO NEO CLÁSSICO (Condomínio)",
-            "TERRENO DE ESQUINA (Condomínio)",
+            "MANSÃO EM CONDOMÍNIO (4+ Suítes)",
+            "CASA TÉRREA ALTO PADRÃO (3 Suítes)",
+            "SOBRADO NEO CLÁSSICO (Piscina Privativa)",
+            "CASA DE ESQUINA (Terreno Ampliado)",
             "Lote em Condomínio de Luxo (>500m²)",
-            "Casa com Vista para Mata Preservada"
+            "Casa com Vista para Mata (Privacidade Total)"
         ],
         "FAMILY": [
-            "CASA EM CONDOMÍNIO (3 Dormitórios)",
-            "SOBRADO COM ÁREA GOURMET",
+            "CASA EM CONDOMÍNIO (3 Dormitórios / 1 Suíte)",
+            "CASA EM CONDOMÍNIO (2 Dormitórios / Entrada Facilitada)", # Adicionado
+            "SOBRADO COM ÁREA GOURMET (3 Dormitórios)",
             "CASA TÉRREA (Acessibilidade Total)",
-            "Casa de Rua em Bairro Planejado",
-            "Sobrado Misto (Residencial/Comercial)",
-            "Villagio / Casas Geminadas (Condomínio)"
+            "Casa de Rua em Bairro Planejado (3 Dorms)",
+            "Villagio / Casas Geminadas (2 Dormitórios)"
         ],
         "URBAN": [
-            "APARTAMENTO VARANDA GOURMET (Centro)",
+            "APARTAMENTO 3 DORMITÓRIOS (Família)", # Adicionado
+            "APARTAMENTO 2 DORMITÓRIOS (Varanda Gourmet)",
             "COBERTURA DUPLEX (Vista Panorâmica)",
             "APARTAMENTO GARDEN (Quintal Suspenso)",
             "Studio / Loft Moderno (Investimento)",
-            "Apartamento Compacto (1 Dormitório)",
-            "Apartamento Padrão (2 Dormitórios)"
+            "Apartamento Compacto (1 Dormitório Central)"
         ],
         "INVESTOR": [
-            "TERRENO EM CONDOMÍNIO (Oportunidade)",
-            "LOTE PARA CONSTRUÇÃO (Flip)",
-            "Imóvel para Reforma (Retrofit)",
-            "Kitnet / Studio para Locação",
-            "Terreno Comercial em Avenida",
-            "Área para Incorporação Vertical"
+            "TERRENO EM CONDOMÍNIO (Lote Padrão 300m²)",
+            "TERRENO DE ESQUINA (Potencial Construtivo)",
+            "Imóvel para Reforma (Flip/Retrofit)",
+            "Kitnet / Studio para Locação (Renda)",
+            "Terreno Comercial em Avenida (Visibilidade)",
+            "Área para Incorporação Vertical (>1.000m²)"
         ],
         "LOGISTICS": [
-            "GALPÃO INDUSTRIAL AAA (Logística)",
+            "GALPÃO INDUSTRIAL AAA (Pé Direito 12m)",
             "TERRENO INDUSTRIAL (Z1/Z2)",
-            "Condomínio Logístico (Módulo)",
+            "Condomínio Logístico (Módulo Flexível)",
             "Galpão Comercial (Frente Rodovia)",
-            "Área para Centro de Distribuição",
-            "Barracão Comercial Padrão"
+            "Área para Centro de Distribuição (Last Mile)",
+            "Barracão Comercial Padrão (Pequeno Porte)"
         ],
         "RURAL_LIFESTYLE": [
-            "CHÁCARA EM ITAICI (Lazer)",
-            "SÍTIO OU HARAS (Helvetia)",
-            "Chácara em Condomínio Fechado",
-            "Terreno de Chácara (>1.000m²)",
-            "Casa de Campo com Pomar"
+            "CHÁCARA EM ITAICI (Lazer Completo)",
+            "SÍTIO OU HARAS (Helvetia - Alto Padrão)",
+            "Chácara em Condomínio Fechado (Segurança)",
+            "Terreno de Chácara (1.000m² a 5.000m²)",
+            "Casa de Campo com Pomar Formado"
         ]
     }
