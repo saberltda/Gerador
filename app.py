@@ -129,20 +129,6 @@ def smart_select(label, options, key, icon="", use_label=True):
 # =========================================================
 # 📦 FUNÇÕES AUXILIARES
 # =========================================================
-def reset_state_callback():
-    keys_to_reset = [
-        "k_persona", "k_bairro", "k_topico", 
-        "k_ativo", "k_formato", "k_gatilho", 
-        "k_modo_geo", "k_data", "k_tipo_pauta"
-    ]
-    for k in keys_to_reset:
-        if k in st.session_state:
-            del st.session_state[k]
-    
-    st.session_state["k_modo_geo"] = "🎲 Aleatório"
-    st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
-    st.session_state["k_data"] = datetime.date.today()
-
 def load_history():
     log_file = "historico_geracao.csv"
     if os.path.exists(log_file):
@@ -203,11 +189,17 @@ def main():
             if "k_tipo_pauta" not in st.session_state: st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
             
             try:
-                tipo_pauta = st.pills("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], key="k_tipo_pauta")
+                tipo_pauta_ui = st.pills("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], key="k_tipo_pauta")
             except:
-                tipo_pauta = st.radio("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], horizontal=True, key="k_tipo_pauta")
+                tipo_pauta_ui = st.radio("Tipo de Pauta", ["🏢 Imobiliária", "📢 Portal da Cidade"], horizontal=True, key="k_tipo_pauta")
             
-            eh_portal = tipo_pauta == "📢 Portal da Cidade"
+            # --- TRADUÇÃO SEGURA PARA CÓDIGO ---
+            if "Portal" in tipo_pauta_ui:
+                eh_portal = True
+                tipo_pauta_code = "PORTAL"
+            else:
+                eh_portal = False
+                tipo_pauta_code = "IMOBILIARIA"
 
             # Define ativos
             if not eh_portal:
@@ -315,7 +307,7 @@ def main():
                     "formato": f_key, 
                     "gatilho": g_key,
                     "data_pub_obj": data_pub,
-                    "tipo_pauta": st.session_state["k_tipo_pauta"]
+                    "tipo_pauta": tipo_pauta_code # Envia o CÓDIGO limpo (IMOBILIARIA ou PORTAL)
                 }
                 
                 res = engine.run(user_sel)
@@ -351,13 +343,20 @@ def main():
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
                 b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
                 
+                # PROTEÇÃO CONTRA CRASH NO SPLIT DE STRING
+                parts = f_bonito.split()
+                if len(parts) >= 2:
+                    estrategia_display = f"{parts[0]} {parts[1]}"
+                else:
+                    estrategia_display = f_bonito
+
                 k1, k2, k3 = st.columns(3)
                 with k1: 
                     # Exibe "Cidadão" se for Portal, ou a Persona se for Imob
                     nome_display = "Cidadão (Portal)" if eh_portal else res['persona']['nome'].split('(')[0]
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">Público</div><div class="metric-value">{nome_display}</div></div>""", unsafe_allow_html=True)
                 with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Localização</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
-                with k3: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{f_bonito.split(' ')[0]} {f_bonito.split(' ')[1]}</div></div>""", unsafe_allow_html=True)
+                with k3: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{estrategia_display}</div></div>""", unsafe_allow_html=True)
 
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown("### 📋 Copie seu Prompt:")
@@ -371,16 +370,20 @@ def main():
     with tab_hist:
         df = load_history()
         if df is not None and not df.empty:
-            st.dataframe(df, use_container_width=True, hide_index=True, column_config={
+            # Configuração das colunas, agora suportando TIPO_PAUTA se existir
+            cols_cfg = {
                 "DATA_PUB": st.column_config.DateColumn("Data Post", format="DD/MM/YYYY"),
                 "CRIADO_EM": st.column_config.DatetimeColumn("Criado Em", format="DD/MM HH:mm"),
                 "BAIRRO": "Local",
                 "PERSONA": "Persona"
-            })
+            }
+            if "TIPO_PAUTA" in df.columns:
+                cols_cfg["TIPO_PAUTA"] = "Tipo"
+
+            st.dataframe(df, use_container_width=True, hide_index=True, column_config=cols_cfg)
             csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
             
             # --- ATUALIZAÇÃO DO NOME DO ARQUIVO ---
-            # Gera nome com data e hora para ordenação: AAAA-MM-DD_HH-MM_historico.csv
             now_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
             file_name_hist = f"{now_str}_historico_genesis.csv"
             
