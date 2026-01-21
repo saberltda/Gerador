@@ -17,7 +17,6 @@ def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
     # CSS focado apenas em alinhamento e estrutura.
-    # Evitamos forçar cores de fundo para não quebrar o Modo Escuro/Claro nativo.
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
@@ -25,20 +24,27 @@ def setup_ui():
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
 
-        /* --- BOTÕES COM CARA DE INPUT --- */
-        /* Alinha o texto dos botões à esquerda para parecer um dropdown */
+        /* --- BOTÕES COM CARA DE INPUT (DROPDOWN VISUAL) --- */
         div[data-testid="stButton"] button {{
             width: 100%;
             height: 50px;
             border-radius: 8px;
             display: flex;
-            justify-content: flex-start !important; /* Texto à esquerda */
+            justify-content: flex-start !important;
             padding-left: 15px !important;
             text-align: left !important;
             border: 1px solid #ddd;
+            background-color: white;
+            color: #333;
+            transition: border 0.2s;
         }}
         
-        /* Ajuste específico para os botões de ação (Limpar/Gerar) para centralizar */
+        div[data-testid="stButton"] button:hover {{
+            border-color: {GenesisConfig.COLOR_PRIMARY};
+            color: {GenesisConfig.COLOR_PRIMARY};
+        }}
+        
+        /* Ajuste específico para os botões de ação (Limpar/Gerar) ficarem centralizados */
         div[data-testid="column"] button[kind="primary"], 
         div[data-testid="column"] button[kind="secondary"] {{
             justify-content: center !important;
@@ -46,13 +52,17 @@ def setup_ui():
             border: none !important;
         }}
         
-        /* Botão Gerar (Destaque) */
+        /* --- BOTÃO GERAR (DESIGN MAIS LEVE) --- */
+        /* Gradiente ajustado para Azul Royal mais vibrante e menos "preto" */
         button[kind="secondary"] {{
-            background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e) !important;
+            background: linear-gradient(135deg, #4facfe, #00f2fe) !important; /* Fallback */
+            background: linear-gradient(135deg, #2b5876, #4e4376) !important; /* Fallback 2 */
+            background: linear-gradient(135deg, #1e69de, #00509e) !important; /* DEINITIVO: Azul Royal Tech */
             color: white !important;
             height: 60px !important;
             font-size: 18px !important;
             font-weight: bold !important;
+            box-shadow: 0 4px 15px rgba(30, 105, 222, 0.3) !important;
         }}
 
         /* Cards de Resultado */
@@ -65,19 +75,17 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         
-        /* Cor do texto do botão em modo claro (garantia de contraste) */
-        @media (prefers-color-scheme: light) {{
-            div[data-testid="stButton"] button {{
-                color: #333;
-                background-color: white;
-            }}
-        }}
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE: DIALOG COM SCROLL (AUTO-CLOSE)
+# 🛠️ COMPONENTE MESTRE (STATE OF THE ART - DO NOT CHANGE)
 # =========================================================
+# ESTE CÓDIGO RESOLVE 4 PROBLEMAS DE UX SIMULTANEAMENTE:
+# 1. VISUAL: Parece um dropdown nativo (botão branco alinhado).
+# 2. SCROLL: Usa st.container() para criar barra de rolagem em listas longas.
+# 3. AUTO-CLOSE: Usa st.rerun() para fechar o modal assim que clica.
+# 4. MOBILE: Usa st.dialog() e st.radio() que não abrem teclado no celular.
 
 @st.dialog("Faça sua seleção")
 def open_selection_dialog(label, options, key):
@@ -89,8 +97,8 @@ def open_selection_dialog(label, options, key):
     except:
         idx = 0
     
-    # Define altura do scroll: Automático se for curto, 300px se for longo
-    # Isso resolve o problema da lista "infinita"
+    # Lógica de Scroll Inteligente:
+    # Só fixa a altura (criando scroll) se a lista tiver mais de 10 itens.
     h_scroll = 300 if len(options) > 10 else None
     
     with st.container(height=h_scroll, border=False):
@@ -102,25 +110,26 @@ def open_selection_dialog(label, options, key):
             label_visibility="collapsed"
         )
     
-    # Lógica de Auto-Close:
-    # Se o valor mudou, atualiza o estado e recarrega a página (fechando o modal)
+    # O SEGREDO DO AUTO-CLOSE:
+    # Detecta mudança de estado e força o recarregamento da página.
+    # Isso destrói o Modal imediatamente, simulando um "fechar ao clicar".
     if new_val != current:
         st.session_state[key] = new_val
         st.rerun()
 
 def smart_select(label, options, key, icon=""):
     """
-    Botão que abre um Modal com Scroll.
+    Componente Dropdown Híbrido (Botão -> Modal -> Radio -> Scroll).
     """
     if key not in st.session_state:
         st.session_state[key] = options[0]
     
     current_val = str(st.session_state[key])
     
-    # Texto encurtado para caber no botão visual
+    # Encurta texto longo para não quebrar o botão
     display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
     
-    # Botão Gatilho (Estilizado pelo CSS para alinhar à esquerda)
+    # Renderiza o Botão Gatilho
     if st.button(f"{icon} {label}:  {display_text}", key=f"btn_trig_{key}"):
         open_selection_dialog(label, options, key)
         
@@ -147,9 +156,18 @@ def load_history():
     if os.path.exists(log_file):
         try:
             df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
-            if 'DATA' in df.columns:
+            
+            # Converte as colunas de data se existirem
+            if 'DATA_PUB' in df.columns:
+                df['DATA_PUB'] = pd.to_datetime(df['DATA_PUB'])
+            if 'CRIADO_EM' in df.columns:
+                df['CRIADO_EM'] = pd.to_datetime(df['CRIADO_EM'])
+                # Ordena pelo log mais recente
+                df = df.sort_values(by='CRIADO_EM', ascending=False)
+            elif 'DATA' in df.columns: # Compatibilidade com logs antigos
                 df['DATA'] = pd.to_datetime(df['DATA'])
                 df = df.sort_values(by='DATA', ascending=False)
+                
             return df
         except:
             return None
@@ -185,7 +203,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 6.0 (Dialog + Scroll) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 6.0 (State of the Art UI) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -213,7 +231,6 @@ def main():
             
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
-                # Bairro: Lista LONGA -> O Dialog vai aplicar st.container(height=300)
                 sel_bairro_manual = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
                 final_bairro_input = sel_bairro_manual
             elif modo_geo == "🏙️ Foco Cidade":
@@ -242,6 +259,7 @@ def main():
             with c_reset:
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
+                # Botão agora com gradiente Azul Royal (definido no CSS)
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
@@ -275,7 +293,8 @@ def main():
                 user_sel = {
                     "persona_key": p_key, "bairro_nome": final_bairro_input, 
                     "topico": sel_topico, "ativo": sel_ativo,
-                    "formato": f_key, "gatilho": g_key
+                    "formato": f_key, "gatilho": g_key,
+                    "data_pub_obj": data_pub # Passando a data escolhida
                 }
                 
                 # Execução
@@ -321,11 +340,22 @@ def main():
                 status_text.empty(); progress_bar.empty()
                 st.error(f"Erro na Geração: {e}")
 
-    # --- ABA HISTÓRICO ---
+    # --- ABA HISTÓRICO ATUALIZADA ---
     with tab_hist:
         df = load_history()
         if df is not None and not df.empty:
-            st.dataframe(df, use_container_width=True, hide_index=True, column_config={"DATA": st.column_config.DatetimeColumn("Data", format="DD/MM HH:mm")})
+            # Configuração das colunas para exibir as duas datas corretamente
+            st.dataframe(
+                df, 
+                use_container_width=True, 
+                hide_index=True, 
+                column_config={
+                    "DATA_PUB": st.column_config.DateColumn("Data Post", format="DD/MM/YYYY"),
+                    "CRIADO_EM": st.column_config.DatetimeColumn("Criado Em", format="DD/MM HH:mm"),
+                    "BAIRRO": "Local",
+                    "PERSONA": "Persona"
+                }
+            )
             csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
             st.download_button("📥 Baixar Excel Completo", data=csv, file_name="historico_genesis.csv", mime="text/csv", use_container_width=True)
         else:
