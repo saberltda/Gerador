@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.8.1 (FINAL - CIDADÃO #1)"
+    VERSION = "GERADOR V.8.2 (ANTI-ALUCINAÇÃO)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -53,13 +53,17 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 2. REGRAS DE SEGURANÇA
+    # 2. REGRAS DE SEGURANÇA (ATUALIZADO)
     # =====================================================
     STRICT_GUIDELINES = [
         "NUNCA invente nomes de clientes (ex: Ricardo, Ana, João).",
         "NUNCA invente profissões específicas para o personagem.",
         "NUNCA crie depoimentos falsos.",
-        "OBRIGATÓRIO: Pesquise locais reais no Google Maps antes de citar.",
+        
+        # --- CORREÇÃO DE ALUCINAÇÃO GEOGRÁFICA ---
+        "ALERTA GEOGRÁFICO CRÍTICO: Bairros com nomes parecidos podem ser distantes.",
+        "EXEMPLO DE ERRO A EVITAR: 'Jardim do Sol' e 'Jardim Morada do Sol' ficam em extremos opostos da cidade. NUNCA diga que são vizinhos.",
+        "OBRIGATÓRIO: Verifique a distância real no Google Maps Mental antes de citar proximidade.",
         
         # --- REGRAS ANTI-ANÚNCIO ---
         "PROIBIDO descrever um imóvel específico (unidade única).",
@@ -74,12 +78,14 @@ class GenesisConfig:
             "ótimo investimento", "preço imperdível", "lindo", "maravilhoso",
             "tranquilo", "localização privilegiada", "região privilegiada",
             "venha conferir", "agende sua visita", "paraíso", "espetacular",
-            "imóvel dos sonhos", "toque de requinte"
+            "imóvel dos sonhos", "toque de requinte",
+            # --- PROIBIÇÕES DE LOCAÇÃO (SOMENTE VENDAS) ---
+            "locação", "aluguel", "alugar", "inquilino", "fiador", "locatário"
         ]
     }
 
     # =====================================================
-    # 3. MATRIZ DE PERSONAS (MEGA EXPANSÃO SEO)
+    # 3. MATRIZ DE PERSONAS
     # =====================================================
     PERSONAS = {
         # ---------------------------------------------------------------------
@@ -281,6 +287,7 @@ class GenesisConfig:
     # =====================================================
     # 6. CATÁLOGO DE IMÓVEIS (MODO IMOBILIÁRIA)
     # =====================================================
+    # REMOVIDO TODO TERMO DE "LOCAÇÃO" PARA EVITAR ALUCINAÇÃO
     ASSETS_CATALOG = {
         "HIGH_END": [
             "MANSÃO EM CONDOMÍNIO (4+ Suítes)",
@@ -310,7 +317,7 @@ class GenesisConfig:
             "TERRENO EM CONDOMÍNIO (Lote Padrão 300m²)",
             "TERRENO DE ESQUINA (Potencial Construtivo)",
             "Imóvel para Reforma (Flip/Retrofit)",
-            "Kitnet / Studio para Locação (Renda)",
+            "Kitnet / Studio para Renda Passiva (Investimento)", # Corrigido de Locação
             "Terreno Comercial em Avenida (Visibilidade)",
             "Área para Incorporação Vertical (>1.000m²)"
         ],
