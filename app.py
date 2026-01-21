@@ -127,7 +127,7 @@ def smart_select(label, options, key, icon="", use_label=True):
     return st.session_state[key]
 
 # =========================================================
-# 📦 FUNÇÕES AUXILIARES (REINSERIDAS AQUI)
+# 📦 FUNÇÕES AUXILIARES
 # =========================================================
 def reset_state_callback():
     keys_to_reset = [
@@ -192,7 +192,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.4 (Function Fixed) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.5 (Historico Datado) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -270,6 +270,13 @@ def main():
             # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
+                def reset_state_callback():
+                    for k in ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_formato", "k_gatilho", "k_modo_geo", "k_data", "k_tipo_pauta"]:
+                        if k in st.session_state: del st.session_state[k]
+                    st.session_state["k_modo_geo"] = "🎲 Aleatório"
+                    st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
+                    st.session_state["k_data"] = datetime.date.today()
+
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
@@ -371,7 +378,13 @@ def main():
                 "PERSONA": "Persona"
             })
             csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
-            st.download_button("📥 Baixar Excel Completo", data=csv, file_name="historico_genesis.csv", mime="text/csv", use_container_width=True)
+            
+            # --- ATUALIZAÇÃO DO NOME DO ARQUIVO ---
+            # Gera nome com data e hora para ordenação: AAAA-MM-DD_HH-MM_historico.csv
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+            file_name_hist = f"{now_str}_historico_genesis.csv"
+            
+            st.download_button("📥 Baixar Excel Completo", data=csv, file_name=file_name_hist, mime="text/csv", use_container_width=True)
         else:
             st.info("Nenhuma pauta gerada recentemente.")
 
