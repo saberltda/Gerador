@@ -145,7 +145,7 @@ Use este CSS inline (Tabelas blindadas contra quebra):
 {self._get_editorial_skeleton(cluster_key, ativo, bairro_nome)}
 
 ## 6. CTA OBRIGATÓRIO (CAPTURA)
-Ao final do artigo, insira **EXATAMENTE** este código para inscrição na lista VIP.
+Ao final do artigo, insira **EXATAMENTE** este código para inscrição na lista de e-mail da "Imobiliária Saber".
 NÃO convide para visitas, NÃO peça para chamar no WhatsApp. O único objetivo é o cadastro:
 {self.CTA_CAPTURE_CODE}
 
@@ -205,3 +205,4 @@ Finalize com o convite para a newsletter:
 3. DATA: {data_fmt}
 4. IMAGEM PROMPT
 """.strip()
+
