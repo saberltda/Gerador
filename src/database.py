@@ -2,25 +2,33 @@
 import json
 import os
 from .utils import slugify
-from .config import GenesisConfig # <--- Importando a nova config
+from .config import GenesisConfig 
 
 class GenesisData:
     def __init__(self, bairros_path: str = "assets/bairros.json"):
         """
-        Carrega a lista de bairros e define os ativos imobiliários disponíveis.
+        Carrega a lista de bairros e define os ativos imobiliários E do portal.
         """
         self.bairros = self._carregar_bairros(bairros_path)
 
-        # AGORA LÊ DIRETAMENTE DO CONFIG.PY
-        # Isso centraliza a lista de imóveis num lugar só.
-        self.ativos_por_cluster = GenesisConfig.ASSETS_CATALOG
-        
-        # Gera uma lista única de todos os ativos para o SelectBox da interface
-        self.todos_ativos = []
-        for lista in self.ativos_por_cluster.values():
-            self.todos_ativos.extend(lista)
-        self.todos_ativos = list(set(self.todos_ativos)) # Remove duplicatas
-        self.todos_ativos.sort()
+        # 1. ATIVOS DA IMOBILIÁRIA
+        self.ativos_imobiliaria = GenesisConfig.ASSETS_CATALOG
+        self.todos_ativos_imoveis = []
+        for lista in self.ativos_imobiliaria.values():
+            self.todos_ativos_imoveis.extend(lista)
+        self.todos_ativos_imoveis = list(set(self.todos_ativos_imoveis))
+        self.todos_ativos_imoveis.sort()
+
+        # 2. ATIVOS DO PORTAL (NOVO)
+        self.ativos_portal = GenesisConfig.PORTAL_CATALOG
+        self.todos_ativos_portal = []
+        for lista in self.ativos_portal.values():
+            self.todos_ativos_portal.extend(lista)
+        self.todos_ativos_portal = list(set(self.todos_ativos_portal))
+        self.todos_ativos_portal.sort()
+
+        # Para compatibilidade, 'todos_ativos' padrão continua sendo imóveis
+        self.todos_ativos = self.todos_ativos_imoveis
 
     def _carregar_bairros(self, path: str):
         if not os.path.exists(path):
@@ -38,7 +46,6 @@ class GenesisData:
         except Exception as e:
             raise RuntimeError(f"Erro ao ler JSON de bairros: {e}")
 
-        # Processa e enriquece os dados dos bairros
         bairros_enriquecidos = []
         
         def _map_zona(zona_texto: str):
