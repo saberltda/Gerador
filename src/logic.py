@@ -1,11 +1,22 @@
 # src/logic.py
 import random
+import unicodedata
 
 class PlanoDiretor:
     """
     Responsável pela Lógica de Negócio e Compatibilidade Urbana.
     Garante que o ativo sorteado faz sentido físico no bairro escolhido.
     """
+
+    def _normalize(self, texto: str) -> str:
+        """
+        Remove acentos e coloca em minúsculas para comparação segura.
+        Ex: "CONDOMÍNIO" -> "condominio"
+        """
+        if not isinstance(texto, str):
+            return ""
+        t = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+        return t.lower()
 
     def refinar_ativo(self, cluster_tecnico, bairro_obj, ativos_base_list):
         """
@@ -20,6 +31,7 @@ class PlanoDiretor:
 
         # Sorteia um ativo inicial da lista de candidatos
         ativo_final = random.choice(ativos_base_list)
+        ativo_norm = self._normalize(ativo_final)
         
         # Recupera a zona normalizada pelo database.py (ex: 'residencial_aberto')
         # Se não tiver zona definida, assume 'indefinido'
@@ -32,12 +44,13 @@ class PlanoDiretor:
         # =========================================================
 
         # REGRA 1: Bairro Aberto não pode ter "Condomínio Fechado"
-        if zona == "residencial_aberto" and "Condomínio" in ativo_final and "Fechado" in ativo_final:
+        # Agora compara com texto normalizado (minúsculo e sem acento)
+        if zona == "residencial_aberto" and "condominio" in ativo_norm and "fechado" in ativo_norm:
             ativo_final = "Casa de Rua / Sobrado Padrão"
             obs = "Ajuste Automático: Bairro aberto não comporta condomínio fechado."
 
         # REGRA 2: Condomínio Fechado exige imóvel interno
-        elif zona == "residencial_fechado" and "Rua" in ativo_final:
+        elif zona == "residencial_fechado" and "rua" in ativo_norm:
             ativo_final = "Casa em Condomínio Fechado"
             obs = "Ajuste Automático: Zona fechada exige tipologia de condomínio."
 
@@ -47,7 +60,7 @@ class PlanoDiretor:
             obs = "Ajuste Automático: Zona Industrial detectada."
 
         # REGRA 4: Chácaras (Ajuste de terminologia)
-        elif zona == "chacaras_aberto" and "Apartamento" in ativo_final:
+        elif zona == "chacaras_aberto" and "apartamento" in ativo_norm:
             ativo_final = "Chácara de Lazer"
             obs = "Ajuste Automático: Zona rural/chácaras não tem verticalização."
 
