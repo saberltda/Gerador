@@ -41,15 +41,12 @@ def setup_ui():
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         .metric-sub {{ font-size: 12px; color: #666; font-style: italic; }}
         
-        /* Estilização dos Botões de Seleção (Parecem inputs mas são botões) */
+        /* Botões de Seleção */
         div.stButton > button {{
-            width: 100%;
-            border-radius: 8px;
-            height: 50px;
-            font-weight: 500;
+            width: 100%; border-radius: 8px; height: 50px; font-weight: 500;
         }}
         
-        /* Botão "Gerar" diferenciado */
+        /* Botão Gerar */
         [data-testid="baseButton-secondary"] {{
             background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e);
             color: white; border: none; height: 60px; font-size: 18px; font-weight: bold;
@@ -58,45 +55,53 @@ def setup_ui():
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE "DIALOG" (Fecha ao Clicar)
+# 🛠️ COMPONENTE "DIALOG" (Correção de Estado)
 # =========================================================
 @st.dialog("Selecione uma opção")
 def show_radio_dialog(label, options, real_key):
     """
-    Abre um Modal. Ao clicar no Radio, atualiza a chave real e fecha.
+    Abre um Modal. Se o usuário mudar a opção, salva e fecha.
     """
-    # Função de callback interna: Salva e Fecha
-    def _on_change():
-        st.session_state[real_key] = st.session_state[f"tmp_{real_key}"]
-        st.rerun() # Isso força o fechamento do modal
-
-    # Descobre o índice atual para manter a seleção
+    # 1. Recupera o valor que JÁ está salvo na memória
     current_val = st.session_state.get(real_key, options[0])
+    
+    # Descobre a posição (index) desse valor na lista
     try:
-        idx = options.index(current_val)
+        start_idx = options.index(current_val)
     except ValueError:
-        idx = 0
+        start_idx = 0
 
     st.write(f"Escolha para **{label}**:")
-    st.radio(
+    
+    # 2. Mostra o Radio. A chave é temporária para não conflitar.
+    # CORREÇÃO: Removemos o on_change para evitar bug de sincronia.
+    new_selection = st.radio(
         label, 
         options, 
-        index=idx, 
+        index=start_idx, 
         key=f"tmp_{real_key}", 
-        on_change=_on_change,
         label_visibility="collapsed"
     )
 
+    # 3. Lógica Direta: Se o que está no Radio for diferente do que estava salvo...
+    if new_selection != current_val:
+        # Salva o novo valor na chave REAL
+        st.session_state[real_key] = new_selection
+        # Força o recarregamento da página (o que fecha o modal)
+        st.rerun()
+
 def mobile_dropdown(label, options, key, icon=""):
-    """Cria um botão que abre o Dialog acima"""
-    # Garante que a chave existe
+    """Cria o botão que abre o Dialog"""
+    # Garante inicialização
     if key not in st.session_state:
         st.session_state[key] = options[0]
         
     current_val = st.session_state[key]
+    
+    # Encurta texto para caber no botão
     display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
     
-    # O botão em si
+    # O botão abre o dialog
     if st.button(f"{icon} {label}: {display_text}", key=f"btn_{key}"):
         show_radio_dialog(label, options, key)
     
@@ -115,7 +120,6 @@ def reset_state_callback():
         if k in st.session_state:
             del st.session_state[k]
     
-    # Reseta valores padrão
     st.session_state["k_modo_geo"] = "🎲 Aleatório"
     st.session_state["k_data"] = datetime.date.today()
 
@@ -161,16 +165,13 @@ def main():
     l_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     l_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
-    # --- CABEÇALHO OFICIAL 1.0 ---
+    # --- CABEÇALHO ---
     st.title("Gerador de Pautas para Inteligência Artificial")
     st.caption("Versão 1.0 - JANEIRO/2026 | Indaiatuba/SP")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
     with tab_painel:
-        # =====================================================
-        # ÁREA DE CONTROLE (BOTÕES TIPO POPUP)
-        # =====================================================
         with st.container(border=True):
             st.markdown("### 🛠️ Configuração da Pauta")
             
@@ -192,7 +193,6 @@ def main():
             final_bairro_input = "ALEATÓRIO"
             with c_geo_select:
                 if modo_geo == "📍 Bairro Específico":
-                    # Dropdown Mobile para Bairros
                     sel_bairro_manual = mobile_dropdown("Bairro", l_bairros, "k_bairro", "🏘️")
                     final_bairro_input = sel_bairro_manual
                 elif modo_geo == "🏙️ Foco Cidade":
@@ -261,7 +261,6 @@ def main():
                 }
                 
                 res = engine.run(user_sel)
-                
                 builder = PromptBuilder()
                 h_iso = datetime.datetime.now().strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
                 d_pub_iso = data_pub.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
@@ -281,18 +280,13 @@ def main():
                 g_bonito = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(res['gatilho'], res['gatilho'])
                 b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba"
                 
-                # Cards Mobile Friendly (2 por linha)
                 k1, k2 = st.columns(2)
-                with k1:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Persona</div><div class="metric-value">{res['persona']['nome'].split('(')[0]}</div></div>""", unsafe_allow_html=True)
-                with k2:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Local</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
+                with k1: st.markdown(f"""<div class="metric-card"><div class="metric-label">Persona</div><div class="metric-value">{res['persona']['nome'].split('(')[0]}</div></div>""", unsafe_allow_html=True)
+                with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Local</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
                 
                 k3, k4 = st.columns(2)
-                with k3:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{f_bonito.split(' ')[0]} {f_bonito.split(' ')[1]}</div></div>""", unsafe_allow_html=True)
-                with k4:
-                    st.markdown(f"""<div class="metric-card"><div class="metric-label">SEO</div><div class="metric-value">{res['topico'].split(' ')[1]}</div></div>""", unsafe_allow_html=True)
+                with k3: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{f_bonito.split(' ')[0]} {f_bonito.split(' ')[1]}</div></div>""", unsafe_allow_html=True)
+                with k4: st.markdown(f"""<div class="metric-card"><div class="metric-label">SEO</div><div class="metric-value">{res['topico'].split(' ')[1]}</div></div>""", unsafe_allow_html=True)
 
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.text_area("Copiar Prompt:", value=prompt, height=400)
