@@ -82,6 +82,7 @@ class PromptBuilder:
                 }
             }
         }
+        # CORREÇÃO AQUI: ensure_ascii=False para exibir acentos corretamente
         return f'<script type="application/ld+json">{json.dumps(json_ld, ensure_ascii=False)}</script>'
 
     def get_format_instructions(self, formato_key):
@@ -292,8 +293,3 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 7. IMAGEM PROMPT:
 (conforme as instruções do bloco de REGRAS)
 """.strip()
-
-
-
-
-
