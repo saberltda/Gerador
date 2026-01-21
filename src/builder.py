@@ -7,15 +7,16 @@ class PromptBuilder:
     """
     O 'Redator'.
     Responsável por montar a string final do Prompt que será enviada para a IA.
-    Ele injeta o JSON-LD, o CSS inline e garante que as regras do arquivo TXT
-    estejam visíveis para o modelo.
+    Agora com CTA de Captura (Kit.com) obrigatório em todos os modos.
     """
+
+    # O HTML EXATO QUE VOCÊ QUER NO FINAL DOS POSTS
+    CTA_CAPTURE_CODE = """<div style="text-align:center; margin: 40px 0;"><script async data-uid="d188d73e78" src="https://sabernovidades.kit.com/d188d73e78/index.js"></script></div>"""
 
     def __init__(self):
         pass
 
     def _format_date_blogger(self, iso_date_str):
-        """Converte AAAA-MM-DD para 'DD de mmm. de AAAA' (Estilo Blogger)"""
         try:
             dt_part = iso_date_str.split("T")[0]
             dt = datetime.datetime.strptime(dt_part, "%Y-%m-%d")
@@ -28,10 +29,8 @@ class PromptBuilder:
             return iso_date_str
 
     def _generate_seo_tags(self, d):
-        """Gera as tags (marcadores) do post com base na inteligência de cluster e texto."""
         tags = ["Indaiatuba", "Indaiatuba SP"]
         
-        # Tags dinâmicas baseadas no modo
         if d.get('tipo_pauta') == "PORTAL" or (d.get('cluster_tecnico') == "PORTAL"):
             tags.append("Notícias Indaiatuba")
             tags.append("Utilidade Pública")
@@ -41,7 +40,6 @@ class PromptBuilder:
             tags.append("Imóveis Indaiatuba")
             tags.append("Mercado Imobiliário")
             
-            # Mapa de tags por cluster (Hardcoded para performance)
             cluster_map = {
                 "HIGH_END": ["Altíssimo Padrão", "Casas de Luxo", "Condomínios Fechados", "Mansões Indaiatuba"],
                 "FAMILY": ["Qualidade de Vida", "Casas em Condomínio", "Morar com Família", "Segurança"],
@@ -52,17 +50,14 @@ class PromptBuilder:
             }
             tags.extend(cluster_map.get(d.get('cluster_tecnico', 'FAMILY'), []))
 
-        # Adiciona tags específicas do bairro (se houver)
         if d['modo'] == "BAIRRO" and d['bairro']:
             tags.append(d['bairro']['nome'])
             tags.append(f"Viver no {d['bairro']['nome']}")
 
-        # Adiciona o tipo de ativo limpo
         if d['ativo_definido']:
             ativo_clean = d['ativo_definido'].split("(")[0].strip()
             tags.append(ativo_clean)
 
-        # Remove duplicatas mantendo a ordem
         seen = set()
         final_tags = []
         for t in tags:
@@ -74,7 +69,6 @@ class PromptBuilder:
         return ", ".join(final_tags[:12])
 
     def get_format_instructions(self, formato):
-        """Instruções de redação específicas para cada formato de conteúdo."""
         structures = {
             "GUIA_DEFINITIVO": "Guia organizado em seções técnicas, com passos lógicos.",
             "LISTA_POLEMICA": "Lista numerada que confronte mitos comuns do mercado.",
@@ -90,10 +84,6 @@ class PromptBuilder:
         return structures.get(formato, "Estrutura livre, técnica, focada em decisão do leitor.")
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada: str):
-        """
-        O GRANDE MONTADOR.
-        Decide qual 'Cérebro' usar: Corretor ou Jornalista.
-        """
         if d.get('tipo_pauta') == "PORTAL" or (d.get('cluster_tecnico') == "PORTAL"):
             return self._build_portal_prompt(d, data_pub, data_mod, regras_texto_ajustada)
         else:
@@ -108,10 +98,8 @@ class PromptBuilder:
         ativo = d['ativo_definido']
         tags_otimizadas = self._generate_seo_tags(d)
 
-        # Bloco JSON-LD (Schema.org)
         script_json_ld = self._get_json_ld(data_pub, data_mod, "Imobiliária Saber", d['ativo_definido'])
 
-        # Contexto geográfico
         if d['modo'] == "BAIRRO" and d['bairro']:
             contexto_geo = f"Bairro Específico: {d['bairro']['nome']}"
             zoning_info = f"Zoneamento oficial: {d['bairro']['zona']} ({d['obs_tecnica']})"
@@ -119,23 +107,19 @@ class PromptBuilder:
             contexto_geo = "Cidade: Indaiatuba (Panorama Geral, sem bairro específico)"
             zoning_info = "Macro-zoneamento urbano (foco na cidade como um todo)."
 
-        # Regras Anti-Alucinação
         anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
 
-        # CSS inline
         estilo_html = f"""<style>
 .post-body h2 {{ color: {GenesisConfig.COLOR_PRIMARY}; font-family: 'Segoe UI', Arial, sans-serif; }}
 .post-body h3 {{ color: {GenesisConfig.COLOR_PRIMARY}; font-family: 'Segoe UI', Arial, sans-serif; }}
 .post-body p {{ font-size: 19px; line-height: 1.6; }}
 </style>"""
 
-        # Âncora
         ancora_instruction = f"""
 **ÂNCORAS LOCAIS (MODO SEARCH):**
 - EXECUTE busca mental como se estivesse usando Google Maps para o contexto: {contexto_geo}.
-- Identifique de 3 a 5 estabelecimentos REAIS (escolas, mercados, serviços de saúde).
+- Identifique de 3 a 5 estabelecimentos REAIS.
 - Use tempos de deslocamento REALISTAS.
-- PROIBIDO usar nomes genéricos.
 """
 
         bloco_regras = f"""
@@ -146,7 +130,7 @@ class PromptBuilder:
 """
 
         return f"""
-## GENESIS MAGNETO V.7.0 — IMOBILIÁRIA MODE
+## GENESIS MAGNETO V.7.4 — IMOBILIÁRIA MODE
 **Objetivo:** Texto de Conversão Imobiliária (HTML Fragment).
 
 ### 🛡️ PROTOCOLO DE VERACIDADE
@@ -155,11 +139,10 @@ class PromptBuilder:
 ---
 
 ## ⛔ TRAVA ANTI-ANÚNCIO (CRÍTICO)
-1. **VOCÊ NÃO ESTÁ VENDENDO UMA UNIDADE ESPECÍFICA.** Não descreva uma casa como se ela existisse.
-2. **VOCÊ ESTÁ VENDENDO O CONCEITO.** Fale sobre o **Padrão Construtivo** da região.
-   - ERRADO: "Esta casa tem..."
-   - CERTO: "Nesta região, as casas costumam oferecer..."
-3. **Foco na Curadoria:** Aja como um consultor explicando por que aquele *tipo* de imóvel naquele *bairro* resolve a dor do cliente.
+1. **NÃO VENDA UMA UNIDADE ESPECÍFICA.** Não descreva uma casa como se ela existisse (ex: "esta sala").
+2. **VENDA O CONCEITO.** Fale sobre o **Padrão Construtivo** da região.
+   - ERRADO: "Esta casa tem piscina."
+   - CERTO: "Imóveis neste condomínio costumam oferecer lazer completo..."
 
 ---
 
@@ -170,7 +153,7 @@ class PromptBuilder:
 - **Gatilho:** {d['gatilho']}
 
 ## 2. O PRODUTO E CONTEXTO
-- **ATIVO (TIPOLOGIA):** {ativo} (Trate como categoria/padrão da região, não unidade única)
+- **ATIVO (TIPOLOGIA):** {ativo}
 - **LOCAL:** {contexto_geo}
 - **ZONEAMENTO:** {zoning_info}
 - **TEMA:** {d['topico']}
@@ -179,36 +162,33 @@ class PromptBuilder:
 
 ---
 
-## 3. REGRAS TÉCNICAS E JSON-LD
-Você está escrevendo um **FRAGMENTO DE HTML** com JSON-LD embutido.
-
-Use este estilo mínimo:
+## 3. ESTRUTURA DO TEXTO
+Use este estilo HTML:
 {estilo_html}
 
-APLIQUE AS REGRAS DA CONSTITUIÇÃO:
+APLIQUE AS REGRAS:
 {bloco_regras}
 
-## 4. ESTRUTURA MÍNIMA DO TEXTO
-1. **Introdução Conectiva:** (Conecte a dor do cliente ao cenário atual do mercado e do bairro).
-2. **Diagnóstico do Local:** (Por que {d['bairro']['nome'] if d['bairro'] else 'Indaiatuba'} é a solução? Cite as âncoras locais).
-3. **Análise da Tipologia:** (Fale sobre as vantagens de morar em "{ativo}" de forma genérica/técnica).
-4. **Conclusão Estratégica:** (Convite para receber uma curadoria personalizada de imóveis desse perfil).
+**Estrutura:**
+1. **Introdução:** Conecte a dor do cliente ao bairro.
+2. **Diagnóstico:** Por que {d['bairro']['nome'] if d['bairro'] else 'Indaiatuba'} é a solução?
+3. **Tipologia:** Vantagens de "{ativo}" (categoria).
+4. **Conclusão:** Convite para consultoria.
 
 ---
 
-## 6. CHECKLIST FINAL DE ENTREGA
-
+## 4. CHECKLIST DE ENTREGA (OBRIGATÓRIO)
 1. LOG DE BASTIDORES
-2. BLOCKCODE (HTML PURO + JSON-LD)
-   - Inclua o Script JSON-LD:
+2. BLOCKCODE HTML (Código Puro) contendo:
+   - O Script JSON-LD abaixo:
      {script_json_ld}
-   - Inclua o CTA Kit.com no final.
-3. TÍTULO (H1) - (Deve ser atrativo e focar no benefício/bairro)
+   - **OBRIGATÓRIO: Ao final do texto, insira EXATAMENTE este código de captura:**
+     {self.CTA_CAPTURE_CODE}
+3. TÍTULO (H1)
 4. MARCADORES: {tags_otimizadas}
 5. DATA: {data_fmt}
-6. LOCAL: Indaiatuba
-7. DESCRIÇÃO (Meta)
-8. IMAGEM (Prompt)
+6. DESCRIÇÃO
+7. IMAGEM PROMPT
 """.strip()
 
     # =========================================================================
@@ -216,7 +196,7 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
     # =========================================================================
     def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
-        ativo = d['ativo_definido'] # Ex: "Notícia de Trânsito", "Inauguração"
+        ativo = d['ativo_definido']
         tags_otimizadas = self._generate_seo_tags(d)
         
         estilo_html = f"""<style>
@@ -227,52 +207,46 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 </style>"""
 
         script_json_ld = self._get_json_ld(data_pub, data_mod, "Portal Saber Indaiatuba", d['ativo_definido'])
-
         local_foco = d['bairro']['nome'] if (d['modo'] == "BAIRRO" and d['bairro']) else "Indaiatuba (Cidade toda)"
-
-        # Regras Anti-Alucinação Simplificadas para Portal
         anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
 
         return f"""
-## GENESIS MAGNETO V.7.0 — JOURNALIST TO SALES MODE
-**Objetivo:** Texto Jornalístico/Utilidade que converte em LEAD Imobiliário.
+## GENESIS MAGNETO V.7.4 — JOURNALIST TO SALES MODE
+**Objetivo:** Texto Jornalístico que converte em LEAD Imobiliário.
 
-### 🚨 PROTOCOLO DE JORNALISMO & VERACIDADE
-1. **FATOS REAIS:** Busque fatos reais recentes em Indaiatuba (2025-2026) sobre "{ativo}".
-   - Se não houver notícia "quente", transforme em **GUIA DE UTILIDADE PÚBLICA** (ex: "Como funciona X em Indaiatuba").
-   - JAMAIS invente acidentes, crimes ou obras fictícias.
-2. **TOM DE VOZ:** Comece informativo/jornalístico, termine consultivo.
-3. **BIFURCAÇÃO DE CONVERSÃO:** Use a notícia para validar a qualidade de vida da cidade e atrair moradores.
+### 🚨 PROTOCOLO DE JORNALISMO
+1. **FATOS REAIS:** Busque fatos reais recentes (2025-2026) sobre "{ativo}". Se não houver, faça um GUIA DE UTILIDADE PÚBLICA.
+2. **TOM:** Comece informativo, termine consultivo.
+3. **A PONTE:** Use a notícia para provar que a cidade é boa para MORAR.
 
 ---
 
 ## 1. A PAUTA
-- **TEMA PRINCIPAL:** {ativo}
+- **TEMA:** {ativo}
 - **LOCAL:** {local_foco}
-- **GATILHO:** {d['gatilho']} (Use para atrair a leitura).
+- **GATILHO:** {d['gatilho']}
 
 ## 2. ESTRUTURA DO TEXTO (HTML)
 Use este estilo HTML:
 {estilo_html}
 
 **ROTEIRO OBRIGATÓRIO:**
-1. **Manchete (H1):** Direta e informativa (Sem "clickbait" barato).
-2. **Lide e Desenvolvimento:** Entregue a informação de valor (notícia ou guia). O que, onde, como.
-3. **A PONTE (CRÍTICO):** Crie um parágrafo de transição que conecte o tema (infraestrutura, segurança, lazer, economia) com a vantagem de **MORAR** em Indaiatuba.
-   - *Exemplo:* "Com investimentos contínuos em [tema da notícia], Indaiatuba se consolida como uma das melhores cidades para se viver..."
-4. **CONCLUSÃO DE VENDA (CTA):**
-   - **NÃO ENCERRE PEDINDO PARA COMPARTILHAR.**
-   - Encerre oferecendo ajuda para encontrar imóveis na cidade.
-   - Use o CTA Padrão: "Está pensando em se mudar para cá ou investir na cidade? A Imobiliária Saber tem as melhores opções..."
+1. **Manchete (H1):** Informativa.
+2. **Desenvolvimento:** O que, onde, quando (Notícia ou Guia).
+3. **A PONTE (CRÍTICO):** Conecte o tema (ex: nova obra) com a valorização imobiliária ou qualidade de vida.
+4. **CONCLUSÃO DE VENDA:**
+   - Encerre oferecendo ajuda para morar na cidade.
 
 ---
 
-## 3. CHECKLIST DE ENTREGA
+## 3. CHECKLIST DE ENTREGA (OBRIGATÓRIO)
 1. LOG BASTIDORES
-2. BLOCKCODE HTML (Com JSON-LD)
-   {script_json_ld}
-   - **INCLUA O CTA FINAL DA IMOBILIÁRIA (Kit.com/Lead Capture)**
-3. TÍTULO (H1 Jornalístico)
+2. BLOCKCODE HTML (Código Puro) contendo:
+   - O Script JSON-LD abaixo:
+     {script_json_ld}
+   - **OBRIGATÓRIO: Ao final do texto, insira EXATAMENTE este código de captura:**
+     {self.CTA_CAPTURE_CODE}
+3. TÍTULO (H1)
 4. MARCADORES: {tags_otimizadas}
 5. DATA: {data_fmt}
 6. DESCRIÇÃO
