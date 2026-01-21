@@ -11,61 +11,18 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM & CSS (VISUAL REFINADO)
+# 🎨 DESIGN SYSTEM (LIMPO E NATIVO)
 # =========================================================
 def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
+    # CSS Mínimo apenas para Cards e Títulos (Sem mexer em botões)
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
         section[data-testid="stSidebar"] {{ display: none; }}
         
         h1, h2, h3 {{ font-family: 'Segoe UI', sans-serif; color: {GenesisConfig.COLOR_PRIMARY}; }}
-        
-        /* --- ESTILO DOS BOTÕES DE SELEÇÃO (MÁGICA VISUAL) --- */
-        /* Transforma botões comuns em "Inputs Falsos" bonitos */
-        div[data-testid="stButton"] button {{
-            background-color: white !important;
-            border: 1px solid #ddd !important;
-            color: #444 !important;
-            width: 100%;
-            height: 52px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            display: flex;
-            justify-content: flex-start !important; /* Alinha texto à esquerda */
-            padding-left: 15px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-        }}
-        
-        div[data-testid="stButton"] button:hover {{
-            border-color: {GenesisConfig.COLOR_PRIMARY} !important;
-            color: {GenesisConfig.COLOR_PRIMARY} !important;
-            background-color: #f0f7ff !important;
-        }}
-        
-        /* Botão "Limpar" diferente */
-        div[data-testid="column"] button[kind="primary"] {{
-            background-color: #ff4b4b !important;
-            color: white !important;
-            justify-content: center !important;
-            border: none !important;
-        }}
-
-        /* Botão "Gerar" (Destaque) */
-        button[kind="secondary"] {{
-            background: linear-gradient(135deg, {GenesisConfig.COLOR_PRIMARY}, #00509e) !important;
-            color: white !important;
-            height: 60px !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-            justify-content: center !important; /* Centraliza texto do botão Gerar */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
-            border: none !important;
-        }}
 
         /* Cards de Resultado */
         .metric-card {{
@@ -76,43 +33,23 @@ def setup_ui():
         }}
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
+        
+        /* Ajuste sutil para o Container de Rolagem parecer um menu */
+        [data-testid="stVerticalBlockBorderWrapper"] {{
+            border-radius: 8px;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE: INPUT HÍBRIDO (DIALOG + AUTO CLOSE)
+# 🛠️ COMPONENTE INTELIGENTE: SCROLLABLE DROPDOWN
 # =========================================================
-# Esta é a lógica do código antigo que funciona bem, 
-# mas agora acionada por botões estilizados pelo CSS acima.
-
-@st.dialog("Faça sua seleção")
-def open_selection_dialog(label, options, key):
-    st.write(f"Escolha uma opção para **{label}**:")
-    
-    current = st.session_state.get(key, options[0])
-    try:
-        idx = options.index(current)
-    except:
-        idx = 0
-        
-    # O Radio Button dentro do Modal
-    new_val = st.radio(
-        label, 
-        options, 
-        index=idx, 
-        key=f"radio_{key}",
-        label_visibility="collapsed"
-    )
-    
-    # Lógica de Auto-Close: Se mudou, salva e recarrega (fechando o modal)
-    if new_val != current:
-        st.session_state[key] = new_val
-        st.rerun()
-
-def hybrid_select(label, options, key, icon=""):
+def scrollable_select(label, options, key, icon="", height=None):
     """
-    Cria um botão que parece um Dropdown.
-    Ao clicar, abre o Dialog. Ao selecionar, fecha sozinho.
+    Combina o melhor dos dois mundos:
+    1. Popover (Menu que fecha/abre)
+    2. Container com altura fixa (Cria barra de rolagem para listas longas)
+    3. Radio Button (Não abre teclado no celular)
     """
     # Inicializa estado
     if key not in st.session_state:
@@ -120,13 +57,40 @@ def hybrid_select(label, options, key, icon=""):
     
     current_val = st.session_state[key]
     
-    # Texto encurtado para caber no botão visual
-    display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
+    # Texto do botão principal (Encurtado)
+    display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
     
-    # Este botão aciona o Dialog
-    if st.button(f"{icon} {label}:  {display_text}", key=f"btn_trigger_{key}"):
-        open_selection_dialog(label, options, key)
+    # Define altura do scroll baseada no tamanho da lista
+    # Se for lista pequena, não fixa altura (fica automático). Se for grande, fixa 300px.
+    if height is None:
+        scroll_height = 300 if len(options) > 8 else None
+    else:
+        scroll_height = height
+
+    # O Popover cria o efeito de "Dropdown"
+    with st.popover(f"{icon} {label}: {display_text}", use_container_width=True):
+        st.caption(f"Selecione **{label}**:")
         
+        # O Container cria a BARRA DE ROLAGEM se a lista for grande
+        with st.container(height=scroll_height, border=False):
+            try:
+                idx = options.index(current_val)
+            except:
+                idx = 0
+            
+            new_val = st.radio(
+                label,
+                options,
+                index=idx,
+                key=f"radio_{key}",
+                label_visibility="collapsed"
+            )
+            
+            # Auto-Close: Se mudar, salva e recarrega para fechar o menu
+            if new_val != current_val:
+                st.session_state[key] = new_val
+                st.rerun()
+
     return st.session_state[key]
 
 # =========================================================
@@ -188,7 +152,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 3.0 (Robust Logic + Modern UI) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 4.0 (Scroll Fixed) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -198,18 +162,16 @@ def main():
             # 1. CONTEXTO E PERSONA
             c1, c2 = st.columns([1, 2])
             with c1:
-                # Data input nativo é bom em mobile e PC
                 data_pub = st.date_input("📅 Data", datetime.date.today(), key="k_data")
             with c2:
-                # Dropdown Híbrido
-                sel_persona = hybrid_select("Persona", l_personas, "k_persona", "👤")
+                # Persona (Lista curta, scroll automático)
+                sel_persona = scrollable_select("Persona", l_personas, "k_persona", "👤")
 
             st.markdown("---")
 
             # 2. GEOGRAFIA
             if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
             
-            # Tenta st.pills (Streamlit novo) ou fallback para radio horizontal
             try:
                 modo_geo = st.pills("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], default="🎲 Aleatório", key="k_modo_geo")
             except:
@@ -219,7 +181,8 @@ def main():
             
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
-                sel_bairro_manual = hybrid_select("Bairro", l_bairros, "k_bairro", "🏘️")
+                # Bairro (Lista LONGA -> Scroll height ativado automaticamente)
+                sel_bairro_manual = scrollable_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
                 final_bairro_input = sel_bairro_manual
             elif modo_geo == "🏙️ Foco Cidade":
                 final_bairro_input = "FORCE_CITY_MODE"
@@ -230,25 +193,23 @@ def main():
             # 3. ESTRATÉGIA (Grid 2x2)
             c3, c4 = st.columns(2)
             with c3:
-                sel_ativo = hybrid_select("Imóvel", l_ativos, "k_ativo", "🏠")
+                sel_ativo = scrollable_select("Imóvel", l_ativos, "k_ativo", "🏠")
             with c4:
-                sel_topico = hybrid_select("Tópico", l_topicos, "k_topico", "🚀")
+                sel_topico = scrollable_select("Tópico", l_topicos, "k_topico", "🚀")
 
             c5, c6 = st.columns(2)
             with c5:
-                sel_formato = hybrid_select("Formato", l_formatos, "k_formato", "📝")
+                sel_formato = scrollable_select("Formato", l_formatos, "k_formato", "📝")
             with c6:
-                sel_gatilho = hybrid_select("Gatilho", l_gatilhos, "k_gatilho", "🧠")
+                sel_gatilho = scrollable_select("Gatilho", l_gatilhos, "k_gatilho", "🧠")
 
             st.markdown("<br>", unsafe_allow_html=True)
 
             # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
-                # Botão Limpar (Vermelho no CSS)
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
-                # Botão Gerar (Azul Degradê no CSS)
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         # =====================================================
