@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.7.5 (FINAL STABLE)"
+    VERSION = "GERADOR V.8.0 (MEGA PERSONAS SEO)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -79,79 +79,153 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 3. MATRIZ DE PERSONAS
+    # 3. MATRIZ DE PERSONAS (MEGA EXPANSÃO SEO)
     # =====================================================
     PERSONAS = {
-        # --- OS GIGANTES DO MERCADO ---
-        "INVESTOR_DATA_DRIVEN": {
+        # ---------------------------------------------------------------------
+        # 🚨 TIER 1: SEO CRÍTICO & ALTO VOLUME (TOPO DA CADEIA ALIMENTAR)
+        # ---------------------------------------------------------------------
+        "INVESTOR_SHARK_ROI": {
             "cluster_ref": "INVESTOR",
-            "nome": "📊 INVESTIDOR 3.0 (Data-Driven)",
-            "dor": "Medo de ativos ilíquidos e taxas de juros reais negativas.",
-            "desejo": "Yield comprovado, dados de vacância e valorização acima do CDI."
+            "nome": "🦈 INVESTIDOR SHARK (Foco em Yield)",
+            "dor": "Dinheiro parado no CDI perdendo para inflação real e medo de vacância.",
+            "desejo": "Ativos com liquidez comprovada, dados matemáticos de valorização e Cap Rate acima de 0.6%."
         },
-        "GEN_Z_FIRST_HOME": {
-            "cluster_ref": "URBAN",
-            "nome": "📱 GERAÇÃO Z (1º Imóvel Funcional)",
-            "dor": "Orçamento apertado e aversão a processos burocráticos/lentos.",
-            "desejo": "Estúdio/Compacto ultra-conectado, sem reformas e com serviços digitais."
-        },
-        "WEALTHY_BOOMER": {
+        "EXODUS_SP_ELITE_FAMILY": {
             "cluster_ref": "HIGH_END",
-            "nome": "🍷 SILVER PREMIUM (Downsizing de Luxo)",
-            "dor": "Manutenção de casarões vazios e distância de serviços médicos.",
-            "desejo": "Casa térrea ou apto de luxo menor, perto de tudo e com segurança total."
+            "nome": "✈️ EXODUS ELITE SP (A Fuga da Capital)",
+            "dor": "Insegurança extrema em SP (blindados), filhos presos em apartamento e poluição.",
+            "desejo": "Condomínio fechado com segurança armada, escolas internacionais (bilingues) e qualidade de vida imediata."
         },
-        "EXODUS_FAMILY_PRO": {
-            "cluster_ref": "FAMILY",
-            "nome": "👨‍👩‍👧‍👦 FAMÍLIA EXODUS (Qualidade SP->Interior)",
-            "dor": "Insegurança urbana e criação dos filhos em apartamentos fechados.",
-            "desejo": "Condomínio clube, quintal privativo e escolas bilíngues num raio de 10 min."
-        },
-        "SOLO_FEMALE_BUYER": {
+        "FIRST_HOME_DREAMER": {
             "cluster_ref": "URBAN",
-            "nome": "👩 MULHER INDEPENDENTE (Solo Owner)",
-            "dor": "Medo de descapitalização e segurança física no imóvel.",
-            "desejo": "Patrimônio seguro, portaria 24h e autonomia financeira imediata."
+            "nome": "🔑 1º IMÓVEL (Casal Jovem)",
+            "dor": "Medo de comprometer a renda por 30 anos e comprar um imóvel que desvalorize.",
+            "desejo": "Entrada facilitada, bairro com potencial de crescimento e baixo custo de condomínio."
+        },
+        "LUXURY_PRIVACY_SEEKER": {
+            "cluster_ref": "HIGH_END",
+            "nome": "💎 OLD MONEY (Busca Privacidade)",
+            "dor": "Exposição excessiva, vizinhos barulhentos e falta de exclusividade.",
+            "desejo": "Terrenos duplos ou de esquina, vista para mata preservada, arquitetura autoral e silêncio absoluto."
+        },
+        "COMMERCIAL_LOGISTICS_BOSS": {
+            "cluster_ref": "LOGISTICS",
+            "nome": "🚚 GIGANTE DA LOGÍSTICA (CEO/Diretor)",
+            "dor": "Custo do 'Last Mile', falta de mão de obra local e trânsito para escoar carga.",
+            "desejo": "Proximidade da SP-75/Viracopos, pé direito de 12m e incentivos fiscais."
         },
 
-        # --- NICHOS ESTRATÉGICOS ---
-        "LUXURY_EXPERIENTIAL": {
+        # ---------------------------------------------------------------------
+        # 🧬 TIER 2: NICHOS DE ESTILO DE VIDA (LONG TAIL)
+        # ---------------------------------------------------------------------
+        "digital_nomad_tech": {
+            "cluster_ref": "URBAN",
+            "nome": "💻 Nômade Digital / Tech Lead",
+            "dor": "Internet instável em bairros afastados e falta de delivery/serviços 24h.",
+            "desejo": "Fibra ótica dedicada, cômodo isolado (Zoom-ready) e iFood/Rappi funcionando perfeitamente."
+        },
+        "pet_parent_heavy_user": {
+            "cluster_ref": "FAMILY",
+            "nome": "🐾 Pet Parent (Muitos Cães)",
+            "dor": "Condomínios com regras restritivas e apartamentos sem área externa.",
+            "desejo": "Garden ou casa com quintal gramado seguro (muro alto) e parques pet-friendly próximos."
+        },
+        "eco_conscious_buyer": {
             "cluster_ref": "HIGH_END",
-            "nome": "✨ Buscador de Experiência (Novo Luxo)",
-            "dor": "Imóveis padronizados sem 'alma' ou exclusividade.",
-            "desejo": "Arquitetura autoral, vista perene e design biofílico (natureza integrada)."
+            "nome": "🌿 O Comprador Eco-Consciente (ESG)",
+            "dor": "Desperdício energético (conta de luz alta) e construções que destroem a natureza.",
+            "desejo": "Energia fotovoltaica já instalada, cisterna, ventilação cruzada e entorno verde."
         },
-        "REMOTE_TECH_NOMAD": {
+        "minimalist_urban": {
+            "cluster_ref": "URBAN",
+            "nome": "🚶 O Minimalista Urbano (Sem Carro)",
+            "dor": "Dependência de carro para comprar pão ou ir à academia.",
+            "desejo": "Faça tudo a pé (Walkability score alto), perto do Parque Ecológico e serviços essenciais."
+        },
+        "weekend_hobby_farmer": {
+            "cluster_ref": "RURAL_LIFESTYLE",
+            "nome": "👨‍🌾 Fazendeiro de Fim de Semana",
+            "dor": "Estresse corporativo e falta de conexão com a terra durante a semana.",
+            "desejo": "Chácara em Itaici com pomar, internet boa (para emergências) e fácil acesso (sem estrada de terra ruim)."
+        },
+
+        # ---------------------------------------------------------------------
+        # 🔄 TIER 3: MOMENTOS DE VIDA (SITUACIONAL)
+        # ---------------------------------------------------------------------
+        "newly_divorced_restart": {
+            "cluster_ref": "URBAN",
+            "nome": "💔 Recomeço (Recém Separado)",
+            "dor": "Necessidade urgente de mudar, orçamento ajustado pós-partilha e solidão.",
+            "desejo": "Apartamento pronto (sem reforma), prático, em área movimentada e socialmente ativa."
+        },
+        "empty_nesters_downsizing": {
+            "cluster_ref": "HIGH_END",
+            "nome": "🍷 Ninho Vazio (Downsizing)",
+            "dor": "Manutenção cara de um casarão vazio e escadas que começam a cansar.",
+            "desejo": "Casa térrea de alto padrão ou apartamento de luxo, menor, mas sofisticado e seguro."
+        },
+        "university_parents_investor": {
+            "cluster_ref": "INVESTOR",
+            "nome": "🎓 Pais de Universitário (Unimax)",
+            "dor": "Pagar aluguel caro por 5 anos de curso de Medicina/Direito.",
+            "desejo": "Comprar imóvel para o filho morar e depois virar renda passiva (investimento híbrido)."
+        },
+        "growing_family_upgrade": {
             "cluster_ref": "FAMILY",
-            "nome": "💻 Tech Nomad / Home Office Definitivo",
-            "dor": "Internet instável e mistura de ambiente de trabalho com lazer.",
-            "desejo": "Cômodo 'Zoom-Ready' isolado acusticamente e fibra ótica dedicada."
+            "nome": "🤰 Família em Expansão (Bebê a caminho)",
+            "dor": "Apartamento ficou pequeno, falta de quarto para o bebê e bagunça visível.",
+            "desejo": "Upgrade para 3 dormitórios, varanda gourmet e brinquedoteca no condomínio."
         },
-        "PET_PARENT_PREMIUM": {
+        "accessibility_priority": {
             "cluster_ref": "FAMILY",
-            "nome": "🐾 Pet Parent Premium",
-            "dor": "Regras de condomínio hostis e falta de área gramada.",
-            "desejo": "Garden ou quintal privativo 'Pet-Friendly' e parques próximos."
+            "nome": "♿ Acessibilidade Total (PNE/Idoso)",
+            "dor": "Degraus, portas estreitas e banheiros inadaptados.",
+            "desejo": "Casa 100% plana, portas largas, banheiros adaptáveis e rampas de acesso."
         },
-        "FLIP_PLAYER": {
+
+        # ---------------------------------------------------------------------
+        # 💼 TIER 4: PROFISSIONAIS ESPECÍFICOS
+        # ---------------------------------------------------------------------
+        "doctor_on_call": {
+            "cluster_ref": "HIGH_END",
+            "nome": "⚕️ Médico Plantonista (HAOC/Santa Ignês)",
+            "dor": "Tempo de deslocamento em emergências e barulho durante descanso diurno.",
+            "desejo": "Proximidade extrema dos hospitais (max 5 min), silêncio absoluto (janelas anti-ruído) e blackout."
+        },
+        "commercial_business_owner": {
+            "cluster_ref": "CORPORATE",
+            "nome": "👔 Dono de Pequena Empresa/Comércio",
+            "dor": "Aluguel comercial instável e falta de visibilidade para o negócio.",
+            "desejo": "Imóvel comercial próprio em avenida de fluxo ou sala comercial em prédio de prestígio."
+        },
+        "airbnb_host_pro": {
+            "cluster_ref": "INVESTOR",
+            "nome": "🧳 Anfitrião Profissional (Short Stay)",
+            "dor": "Condomínios que proíbem Airbnb e vacância em baixa temporada.",
+            "desejo": "Studios perto do Distrito Industrial ou Centro, prédios permissivos e decoração 'instagramável'."
+        },
+        "land_banker_speculator": {
+            "cluster_ref": "INVESTOR",
+            "nome": "🗺️ Land Banker (Especulador de Terra)",
+            "dor": "Comprar no topo do preço e liquidez travada.",
+            "desejo": "Loteamentos em pré-lançamento, áreas de expansão urbana futura e valorização de longo prazo."
+        },
+        "flipper_renovator": {
             "cluster_ref": "INVESTOR",
             "nome": "🛠️ O Flipper (Reformar para Vender)",
-            "dor": "Pagar preço de mercado em imóvel depreciado.",
-            "desejo": "Oportunidade 'feia' em bairro nobre para reforma cosmética rápida."
-        },
-        "ECO_CONSCIOUS": {
-            "cluster_ref": "HIGH_END",
-            "nome": "🌿 O Comprador Eco-Consciente",
-            "dor": "Desperdício energético e construções predatórias.",
-            "desejo": "Painéis solares, reuso de água e certificação verde (ESG)."
+            "dor": "Encontrar a 'oportunidade' certa e estourar orçamento de obra.",
+            "desejo": "Imóvel 'feio' (desatualizado) em localização nobre com desconto agressivo para reforma cosmética."
         },
 
-        # --- NOVA PERSONA NEUTRA (PARA MODO PORTAL) ---
+        # ---------------------------------------------------------------------
+        # 📢 TIER 5: MODO PORTAL (NEUTRO)
+        # ---------------------------------------------------------------------
         "CITIZEN_GENERAL": {
             "cluster_ref": "PORTAL", 
-            "nome": "🏙️ Cidadão de Indaiatuba (Leitor do Portal)",
-            "dor": "Falta de informação confiável sobre a cidade.",
-            "desejo": "Manter-se informado sobre obras, trânsito e economia local."
+            "nome": "🏙️ Cidadão de Indaiatuba (Leitor Geral)",
+            "dor": "Desinformação sobre o que acontece na cidade.",
+            "desejo": "Saber sobre obras, trânsito, eventos e utilidade pública."
         }
     }
 
@@ -254,6 +328,12 @@ class GenesisConfig:
             "Chácara em Condomínio Fechado (Segurança)",
             "Terreno de Chácara (1.000m² a 5.000m²)",
             "Casa de Campo com Pomar Formado"
+        ],
+        "CORPORATE": [ # Adicionado para garantir compatibilidade com personas CORPORATE
+            "Sala Comercial em Prédio Corporativo",
+            "Laje Corporativa Open Space",
+            "Casa Comercial em Avenida",
+            "Prédio Monousuário"
         ]
     }
 
@@ -283,4 +363,3 @@ class GenesisConfig:
             "🚌 Mobilidade Urbana e Transporte Público"
         ]
     }
-
