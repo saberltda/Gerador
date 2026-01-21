@@ -64,13 +64,13 @@ class PromptBuilder:
             "@type": "BlogPosting", 
             "headline": headline,
             "image": [
-                "https://blog.saber.imb.br/assets/images/default_cover.jpg" 
+                ""https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png"" 
             ],
             "datePublished": iso_pub,
             "dateModified": iso_mod,
             "author": [{
                 "@type": "Organization",
-                "name": author_name,
+                "name": "Imobiliária Saber",
                 "url": GenesisConfig.BLOG_URL
             }],
             "publisher": {
@@ -181,18 +181,24 @@ APLIQUE ESTRITAMENTE AS REGRAS DA CONSTITUIÇÃO:
 ---
 
 ## 3. CHECKLIST DE ENTREGA (OBRIGATÓRIO)
-1. LOG BASTIDORES (Breve análise do que foi feito).
+1. LOG BASTIDORES:
+(Breve análise do que foi feito).
 2. BLOCKCODE HTML (Código Puro) contendo:
    - O Script JSON-LD **EXATAMENTE** como gerado abaixo:
      {script_json_ld}
    - O Conteúdo do Post (h2, h3, p, ul...).
    - **OBRIGATÓRIO: Ao final, insira EXATAMENTE este código de captura:**
      {self.CTA_CAPTURE_CODE}
-3. TÍTULO (H1)
-4. MARCADORES (Tags): {tags_otimizadas}
-5. DATA: {data_fmt}
-6. DESCRIÇÃO (Meta Description)
-7. IMAGEM PROMPT (Sugestão para gerar imagem)
+3. TÍTULO:
+(H1)
+4. MARCADORES (Tags): 
+{tags_otimizadas}
+5. DATA:
+{data_fmt}
+6. DESCRIÇÃO:
+(Meta Description)
+7. IMAGEM PROMPT:
+(Sugestão para gerar imagem)
 """.strip()
 
     # =========================================================================
@@ -286,5 +292,6 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 7. IMAGEM PROMPT:
 (conforme as instruções do bloco de REGRAS)
 """.strip()
+
 
 
