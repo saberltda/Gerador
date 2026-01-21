@@ -62,10 +62,8 @@ def show_radio_dialog(label, options, real_key):
     """
     Abre um Modal. Se o usuário mudar a opção, salva e fecha.
     """
-    # 1. Recupera o valor que JÁ está salvo na memória
     current_val = st.session_state.get(real_key, options[0])
     
-    # Descobre a posição (index) desse valor na lista
     try:
         start_idx = options.index(current_val)
     except ValueError:
@@ -73,8 +71,6 @@ def show_radio_dialog(label, options, real_key):
 
     st.write(f"Escolha para **{label}**:")
     
-    # 2. Mostra o Radio. A chave é temporária para não conflitar.
-    # CORREÇÃO: Removemos o on_change para evitar bug de sincronia.
     new_selection = st.radio(
         label, 
         options, 
@@ -83,25 +79,18 @@ def show_radio_dialog(label, options, real_key):
         label_visibility="collapsed"
     )
 
-    # 3. Lógica Direta: Se o que está no Radio for diferente do que estava salvo...
     if new_selection != current_val:
-        # Salva o novo valor na chave REAL
         st.session_state[real_key] = new_selection
-        # Força o recarregamento da página (o que fecha o modal)
         st.rerun()
 
 def mobile_dropdown(label, options, key, icon=""):
     """Cria o botão que abre o Dialog"""
-    # Garante inicialização
     if key not in st.session_state:
         st.session_state[key] = options[0]
         
     current_val = st.session_state[key]
-    
-    # Encurta texto para caber no botão
     display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
     
-    # O botão abre o dialog
     if st.button(f"{icon} {label}: {display_text}", key=f"btn_{key}"):
         show_radio_dialog(label, options, key)
     
@@ -262,8 +251,16 @@ def main():
                 
                 res = engine.run(user_sel)
                 builder = PromptBuilder()
-                h_iso = datetime.datetime.now().strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
+                
+                # --- CORREÇÃO DE FUSO HORÁRIO NO JSON-LD (PROMPT) ---
+                fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
+                
+                # Data de Modificação (Agora)
+                h_iso = datetime.datetime.now(fuso_br).strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
+                
+                # Data de Publicação (Meia noite do dia escolhido)
                 d_pub_iso = data_pub.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
+                
                 local = res['bairro']['nome'] if res['bairro'] else "Indaiatuba"
                 regras = regras_mestre.get_for_prompt(local)
                 prompt = builder.build(res, d_pub_iso, h_iso, regras)
