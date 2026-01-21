@@ -7,16 +7,13 @@ class PromptBuilder:
     """
     O 'Redator'.
     Responsável por montar a string final do Prompt que será enviada para a IA.
-    Ele injeta o JSON-LD, o CSS inline e garante que as regras do arquivo TXT
-    estejam visíveis para o modelo.
+    Agora 100% alinhado com o novo REGRAS.txt (BlogPosting + Kit.com).
     """
 
-    # Código HTML fixo para captura de leads (Newsletter)
+    # ATUALIZADO: Agora usa o Script do Kit.com conforme seu novo REGRAS.txt
     CTA_CAPTURE_CODE = """
-<div style="background: #f0f7ff; border: 2px solid #003366; padding: 25px; border-radius: 10px; margin-top: 40px; text-align: center;">
-    <h3 style="color: #003366; margin-top: 0;">📩 Não perca oportunidades como esta!</h3>
-    <p style="font-size: 18px;">Receba nossa curadoria exclusiva de imóveis e notícias de Indaiatuba diretamente no seu e-mail.</p>
-    <a href="https://conteudo.saber.imb.br/newsletter" target="_blank" style="background-color: #003366; color: white; padding: 15px 30px; text-decoration: none; font-weight: bold; border-radius: 5px; font-size: 18px; display: inline-block; margin-top: 10px;">👉 QUERO ME INSCREVER AGORA</a>
+<div style="text-align:center; margin: 40px 0;">
+<script async data-uid="d188d73e78" src="https://sabernovidades.kit.com/d188d73e78/index.js"></script>
 </div>
 """
 
@@ -44,17 +41,13 @@ class PromptBuilder:
         """Gera as tags (marcadores) do post com base na inteligência de cluster."""
         tags = ["Indaiatuba", "Imóveis Indaiatuba"]
         
-        # Adiciona o Bairro
         if d.get('bairro') and isinstance(d['bairro'], dict):
             tags.append(d['bairro']['nome'])
             
-        # Adiciona o Cluster Técnico (ex: Alto Padrão, Investimento)
         if d.get('cluster_tecnico'):
             tags.append(d['cluster_tecnico'])
             
-        # Adiciona tags específicas do tópico
         if d.get('topico'):
-             # Simplificação: pega palavras chaves do tópico
              clean_topic = d['topico'].split(' ')[1] if len(d['topico'].split(' ')) > 1 else d['topico']
              tags.append(clean_topic.replace("&", "e"))
 
@@ -62,13 +55,14 @@ class PromptBuilder:
 
     def _get_json_ld(self, data_pub, data_mod, author_name, headline):
         """Gera o bloco JSON-LD para SEO técnico."""
-        # Garante formato ISO para o JSON
         iso_pub = data_pub if isinstance(data_pub, str) else data_pub.isoformat()
         iso_mod = data_mod if isinstance(data_mod, str) else data_mod.isoformat()
 
+        # ATUALIZADO: Mudado para BlogPosting para alinhar com REGRAS.txt
+        # Isso evita conflito semântico e penalização no Google.
         json_ld = {
             "@context": "https://schema.org",
-            "@type": "NewsArticle",
+            "@type": "BlogPosting", 
             "headline": headline,
             "image": [
                 "https://blog.saber.imb.br/assets/images/default_cover.jpg" 
@@ -79,7 +73,15 @@ class PromptBuilder:
                 "@type": "Organization",
                 "name": author_name,
                 "url": GenesisConfig.BLOG_URL
-            }]
+            }],
+            "publisher": {
+                "@type": "Organization",
+                "name": "Imobiliária Saber",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png"
+                }
+            }
         }
         return f'<script type="application/ld+json">{json.dumps(json_ld)}</script>'
 
@@ -99,15 +101,9 @@ class PromptBuilder:
     # 🏭 MÉTODO PRINCIPAL (ROUTER)
     # =========================================================================
     def build(self, d, data_pub, data_mod, regras_texto_ajustada):
-        """
-        Direciona para o construtor correto baseando-se no modo de operação.
-        """
-        # Se o gatilho for muito "jornalístico", usamos o modo Portal
-        # Ou se explicitamente definido no futuro. Por enquanto, baseamos no formato.
         if d.get('formato') == "NOTÍCIA" or "Portal" in str(d.get('gatilho', '')):
             return self._build_portal_prompt(d, data_pub, data_mod, regras_texto_ajustada)
         else:
-            # Padrão: Modo Imobiliária (Foco em Venda/Lead)
             return self._build_real_estate_prompt(d, data_pub, data_mod, regras_texto_ajustada)
 
     # =========================================================================
@@ -120,6 +116,8 @@ class PromptBuilder:
         zoning_info = d['bairro']['zona_normalizada'] if d['bairro'] else "Geral"
         
         tags_otimizadas = self._generate_seo_tags(d)
+        
+        # Gera o JSON-LD como BlogPosting
         script_json_ld = self._get_json_ld(data_pub, data_mod, "Saber Imobiliária", f"{ativo} em {contexto_geo}")
         
         anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
@@ -133,7 +131,6 @@ class PromptBuilder:
 .post-body li {{ margin-bottom: 10px; }}
 </style>"""
 
-        # Prepara o bloco de regras lido do arquivo
         bloco_regras = f"""
 # ==========================================
 # 🔐 ZONA DE SEGURANÇA MÁXIMA (REGRAS.txt)
@@ -142,7 +139,7 @@ class PromptBuilder:
 """
 
         return f"""
-## GENESIS MAGNETO V.9.2 — REAL ESTATE SALES MODE
+## GENESIS MAGNETO V.9.3 — REAL ESTATE SALES MODE
 **Objetivo:** Gerar texto final pronto para Blogger (HTML Fragment) focado em SEO e Conversão.
 
 ### 🛡️ PROTOCOLO DE VERACIDADE
@@ -195,7 +192,6 @@ APLIQUE ESTRITAMENTE AS REGRAS DA CONSTITUIÇÃO:
         ativo = d['ativo_definido']
         tags_otimizadas = self._generate_seo_tags(d)
         
-        # Cálculo dinâmico do ano
         ano_atual = datetime.datetime.now().year
         range_anos = f"({ano_atual-1}-{ano_atual})"
 
@@ -206,11 +202,11 @@ APLIQUE ESTRITAMENTE AS REGRAS DA CONSTITUIÇÃO:
 .post-body .destaque {{ background: #f9f9f9; padding: 15px; border-left: 4px solid {GenesisConfig.COLOR_PRIMARY}; font-style: italic; margin: 20px 0; }}
 </style>"""
 
+        # Gera JSON-LD como BlogPosting também aqui
         script_json_ld = self._get_json_ld(data_pub, data_mod, "Imobiliária Saber", d['ativo_definido'])
         
         local_foco = d['bairro']['nome'] if (d['modo'] == "BAIRRO" and d['bairro']) else "Indaiatuba (Cidade toda)"
         
-        # Prepara o bloco de regras lido do arquivo (CORREÇÃO APLICADA AQUI)
         bloco_regras = f"""
 # ==========================================
 # 🔐 ZONA DE SEGURANÇA MÁXIMA (REGRAS.txt)
@@ -219,7 +215,7 @@ APLIQUE ESTRITAMENTE AS REGRAS DA CONSTITUIÇÃO:
 """
 
         return f"""
-## GENESIS MAGNETO V.9.2 — JOURNALIST TO SALES MODE
+## GENESIS MAGNETO V.9.3 — JOURNALIST TO SALES MODE
 **Objetivo:** Texto Jornalístico que converte em LEAD Imobiliário.
 
 ### 🚨 PROTOCOLO DE JORNALISMO
