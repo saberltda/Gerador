@@ -64,7 +64,7 @@ class PromptBuilder:
             "@type": "BlogPosting", 
             "headline": headline,
             "image": [
-                ""https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png"" 
+                "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRYbYvSxR-IRaFMCb95rCMmr1pKSkJKSVGD2SfW1h7e7M-NbCly3qk9xKK5lYpfOPYfq-xkzJ51p14cGftPHLF7MrbM0Szz62qQ-Ff5H79-dMiUcNzhrEL7LXKf089Ka2yzGaIX-UJBgTtdalNaWYPS0JSSfIMYNIE4yxhisKcU8j-gtOqXq6lSmgiSA/s600/1000324271.png" 
             ],
             "datePublished": iso_pub,
             "dateModified": iso_mod,
@@ -292,6 +292,7 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 7. IMAGEM PROMPT:
 (conforme as instruções do bloco de REGRAS)
 """.strip()
+
 
 
 
