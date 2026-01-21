@@ -82,7 +82,7 @@ class PromptBuilder:
                 }
             }
         }
-        return f'<script type="application/ld+json">{json.dumps(json_ld)}</script>'
+        return f'<script type="application/ld+json">{json.dumps(json_ld, ensure_ascii=False)}</script>'
 
     def get_format_instructions(self, formato_key):
         """Retorna instruções específicas para cada formato de texto."""
@@ -292,6 +292,7 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 7. IMAGEM PROMPT:
 (conforme as instruções do bloco de REGRAS)
 """.strip()
+
 
 
 
