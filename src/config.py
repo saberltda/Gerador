@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.8.0 (MEGA PERSONAS SEO)"
+    VERSION = "GERADOR V.8.1 (FINAL - CIDADÃO #1)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -83,6 +83,16 @@ class GenesisConfig:
     # =====================================================
     PERSONAS = {
         # ---------------------------------------------------------------------
+        # 🏆 TIER 0: PERSONA UNIVERSAL (DEFAULT)
+        # ---------------------------------------------------------------------
+        "CITIZEN_GENERAL": {
+            "cluster_ref": "PORTAL", 
+            "nome": "🏙️ CIDADÃO DE INDAIATUBA (Informação Geral)",
+            "dor": "Desinformação sobre o que acontece na cidade e oportunidades perdidas.",
+            "desejo": "Saber sobre obras, trânsito, eventos, utilidade pública e valorização do seu bairro."
+        },
+
+        # ---------------------------------------------------------------------
         # 🚨 TIER 1: SEO CRÍTICO & ALTO VOLUME (TOPO DA CADEIA ALIMENTAR)
         # ---------------------------------------------------------------------
         "INVESTOR_SHARK_ROI": {
@@ -162,7 +172,7 @@ class GenesisConfig:
         "empty_nesters_downsizing": {
             "cluster_ref": "HIGH_END",
             "nome": "🍷 Ninho Vazio (Downsizing)",
-            "dor": "Manutenção cara de um casarão vazio e escadas que começam a cansar.",
+            "dor": "Manutenção de casarão vazio e escadas que começam a cansar.",
             "desejo": "Casa térrea de alto padrão ou apartamento de luxo, menor, mas sofisticado e seguro."
         },
         "university_parents_investor": {
@@ -216,16 +226,6 @@ class GenesisConfig:
             "nome": "🛠️ O Flipper (Reformar para Vender)",
             "dor": "Encontrar a 'oportunidade' certa e estourar orçamento de obra.",
             "desejo": "Imóvel 'feio' (desatualizado) em localização nobre com desconto agressivo para reforma cosmética."
-        },
-
-        # ---------------------------------------------------------------------
-        # 📢 TIER 5: MODO PORTAL (NEUTRO)
-        # ---------------------------------------------------------------------
-        "CITIZEN_GENERAL": {
-            "cluster_ref": "PORTAL", 
-            "nome": "🏙️ Cidadão de Indaiatuba (Leitor Geral)",
-            "dor": "Desinformação sobre o que acontece na cidade.",
-            "desejo": "Saber sobre obras, trânsito, eventos e utilidade pública."
         }
     }
 
@@ -329,7 +329,7 @@ class GenesisConfig:
             "Terreno de Chácara (1.000m² a 5.000m²)",
             "Casa de Campo com Pomar Formado"
         ],
-        "CORPORATE": [ # Adicionado para garantir compatibilidade com personas CORPORATE
+        "CORPORATE": [
             "Sala Comercial em Prédio Corporativo",
             "Laje Corporativa Open Space",
             "Casa Comercial em Avenida",
