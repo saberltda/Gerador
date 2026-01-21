@@ -86,14 +86,14 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         
-        /* Classe utilitária para Labels "Falsos" de alinhamento */
-        .fake-label {
+        /* CORREÇÃO AQUI: Chaves Duplas para escapar o f-string */
+        .fake-label {{
             font-size: 14px;
-            margin-bottom: 7px; /* Igual ao label nativo do Streamlit */
+            margin-bottom: 7px;
             color: #31333F;
             font-family: "Source Sans Pro", sans-serif;
             visibility: visible;
-        }
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -213,7 +213,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.0 (Portal System) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.1 (Correção CSS) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
