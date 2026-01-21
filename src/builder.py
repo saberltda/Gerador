@@ -176,7 +176,7 @@ APLIQUE ESTRITAMENTE AS REGRAS DA CONSTITUIÇÃO:
 1. **Título (H1):** Persuasivo com SEO.
 2. **Introdução:** Gancho emocional ({d['gatilho']}).
 3. **Desenvolvimento:** Detalhes do imóvel/bairro e benefícios.
-4. **CTA (Chamada para Ação):** Convide para visitar.
+4. **CTA (Chamada para Ação):** Convide para inscrever no formulário para receber por e-mail oportunidades em Indaiatuba.
 
 ---
 
@@ -286,4 +286,5 @@ APLIQUE AS REGRAS DA CONSTITUIÇÃO:
 7. IMAGEM PROMPT:
 (conforme as instruções do bloco de REGRAS)
 """.strip()
+
 
