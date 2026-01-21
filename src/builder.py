@@ -7,7 +7,7 @@ class PromptBuilder:
     """
     O 'Redator'.
     Responsável por montar a string final do Prompt que será enviada para a IA.
-    Agora com CTA de Captura (Kit.com) obrigatório em todos os modos.
+    Agora com CTA de Captura (Kit.com) obrigatório em todos os modos e JSON-LD seguro.
     """
 
     # O HTML EXATO QUE VOCÊ QUER NO FINAL DOS POSTS
@@ -31,6 +31,7 @@ class PromptBuilder:
     def _generate_seo_tags(self, d):
         tags = ["Indaiatuba", "Indaiatuba SP"]
         
+        # Usa o código robusto (IMOBILIARIA ou PORTAL)
         if d.get('tipo_pauta') == "PORTAL" or (d.get('cluster_tecnico') == "PORTAL"):
             tags.append("Notícias Indaiatuba")
             tags.append("Utilidade Pública")
@@ -84,6 +85,15 @@ class PromptBuilder:
         return structures.get(formato, "Estrutura livre, técnica, focada em decisão do leitor.")
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada: str):
+        # Proteção extra: aplica placeholders de forma redundante se o app.py ou database não tiverem aplicado
+        if d['modo'] == "BAIRRO" and d['bairro']:
+            local_nome = d['bairro']['nome']
+        else:
+            local_nome = "Indaiatuba"
+            
+        regras_texto_ajustada = regras_texto_ajustada.replace("{{BAIRRO}}", local_nome)
+        regras_texto_ajustada = regras_texto_ajustada.replace("{{LOCAL}}", local_nome)
+
         if d.get('tipo_pauta') == "PORTAL" or (d.get('cluster_tecnico') == "PORTAL"):
             return self._build_portal_prompt(d, data_pub, data_mod, regras_texto_ajustada)
         else:
@@ -130,7 +140,7 @@ class PromptBuilder:
 """
 
         return f"""
-## GENESIS MAGNETO V.7.4 — IMOBILIÁRIA MODE
+## GENESIS MAGNETO V.7.5 — IMOBILIÁRIA MODE
 **Objetivo:** Texto de Conversão Imobiliária (HTML Fragment).
 
 ### 🛡️ PROTOCOLO DE VERACIDADE
@@ -211,7 +221,7 @@ APLIQUE AS REGRAS:
         anti_hallucination_txt = "\n".join([f"- {rule}" for rule in GenesisConfig.STRICT_GUIDELINES])
 
         return f"""
-## GENESIS MAGNETO V.7.4 — JOURNALIST TO SALES MODE
+## GENESIS MAGNETO V.7.5 — JOURNALIST TO SALES MODE
 **Objetivo:** Texto Jornalístico que converte em LEAD Imobiliário.
 
 ### 🚨 PROTOCOLO DE JORNALISMO
@@ -254,6 +264,10 @@ Use este estilo HTML:
 """.strip()
 
     def _get_json_ld(self, d_pub, d_mod, author_name, headline):
+        # PROTEÇÃO: Escapar aspas para não quebrar o JSON
+        safe_headline = headline.replace('"', '\\"')
+        safe_author = author_name.replace('"', '\\"')
+        
         return """
 <script type="application/ld+json">
 {
@@ -270,4 +284,4 @@ Use este estilo HTML:
     }
 }
 </script>
-""" % (headline, d_pub, d_mod, author_name)
+""" % (safe_headline, d_pub, d_mod, safe_author)
