@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.8.2 (ANTI-ALUCINAÇÃO)"
+    VERSION = "GERADOR V.9.1 (PORTAL NEWS)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -53,19 +53,15 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 2. REGRAS DE SEGURANÇA (ATUALIZADO)
+    # 2. REGRAS DE SEGURANÇA
     # =====================================================
     STRICT_GUIDELINES = [
         "NUNCA invente nomes de clientes (ex: Ricardo, Ana, João).",
         "NUNCA invente profissões específicas para o personagem.",
         "NUNCA crie depoimentos falsos.",
-        
-        # --- CORREÇÃO DE ALUCINAÇÃO GEOGRÁFICA ---
         "ALERTA GEOGRÁFICO CRÍTICO: Bairros com nomes parecidos podem ser distantes.",
         "EXEMPLO DE ERRO A EVITAR: 'Jardim do Sol' e 'Jardim Morada do Sol' ficam em extremos opostos da cidade. NUNCA diga que são vizinhos.",
         "OBRIGATÓRIO: Verifique a distância real no Google Maps Mental antes de citar proximidade.",
-        
-        # --- REGRAS ANTI-ANÚNCIO ---
         "PROIBIDO descrever um imóvel específico (unidade única).",
         "NÃO use: 'Esta casa possui', 'Venha visitar este imóvel', 'Acabou de entrar'.",
         "USE: 'Casas nesta região costumam ter', 'O padrão construtivo aqui oferece', 'Ao buscar imóveis neste bairro'.",
@@ -79,7 +75,6 @@ class GenesisConfig:
             "tranquilo", "localização privilegiada", "região privilegiada",
             "venha conferir", "agende sua visita", "paraíso", "espetacular",
             "imóvel dos sonhos", "toque de requinte",
-            # --- PROIBIÇÕES DE LOCAÇÃO (SOMENTE VENDAS) ---
             "locação", "aluguel", "alugar", "inquilino", "fiador", "locatário"
         ]
     }
@@ -88,19 +83,12 @@ class GenesisConfig:
     # 3. MATRIZ DE PERSONAS
     # =====================================================
     PERSONAS = {
-        # ---------------------------------------------------------------------
-        # 🏆 TIER 0: PERSONA UNIVERSAL (DEFAULT)
-        # ---------------------------------------------------------------------
         "CITIZEN_GENERAL": {
             "cluster_ref": "PORTAL", 
             "nome": "🏙️ CIDADÃO DE INDAIATUBA (Informação Geral)",
             "dor": "Desinformação sobre o que acontece na cidade e oportunidades perdidas.",
             "desejo": "Saber sobre obras, trânsito, eventos, utilidade pública e valorização do seu bairro."
         },
-
-        # ---------------------------------------------------------------------
-        # 🚨 TIER 1: SEO CRÍTICO & ALTO VOLUME (TOPO DA CADEIA ALIMENTAR)
-        # ---------------------------------------------------------------------
         "INVESTOR_SHARK_ROI": {
             "cluster_ref": "INVESTOR",
             "nome": "🦈 INVESTIDOR SHARK (Foco em Yield)",
@@ -131,10 +119,6 @@ class GenesisConfig:
             "dor": "Custo do 'Last Mile', falta de mão de obra local e trânsito para escoar carga.",
             "desejo": "Proximidade da SP-75/Viracopos, pé direito de 12m e incentivos fiscais."
         },
-
-        # ---------------------------------------------------------------------
-        # 🧬 TIER 2: NICHOS DE ESTILO DE VIDA (LONG TAIL)
-        # ---------------------------------------------------------------------
         "digital_nomad_tech": {
             "cluster_ref": "URBAN",
             "nome": "💻 Nômade Digital / Tech Lead",
@@ -165,10 +149,6 @@ class GenesisConfig:
             "dor": "Estresse corporativo e falta de conexão com a terra durante a semana.",
             "desejo": "Chácara em Itaici com pomar, internet boa (para emergências) e fácil acesso (sem estrada de terra ruim)."
         },
-
-        # ---------------------------------------------------------------------
-        # 🔄 TIER 3: MOMENTOS DE VIDA (SITUACIONAL)
-        # ---------------------------------------------------------------------
         "newly_divorced_restart": {
             "cluster_ref": "URBAN",
             "nome": "💔 Recomeço (Recém Separado)",
@@ -199,10 +179,6 @@ class GenesisConfig:
             "dor": "Degraus, portas estreitas e banheiros inadaptados.",
             "desejo": "Casa 100% plana, portas largas, banheiros adaptáveis e rampas de acesso."
         },
-
-        # ---------------------------------------------------------------------
-        # 💼 TIER 4: PROFISSIONAIS ESPECÍFICOS
-        # ---------------------------------------------------------------------
         "doctor_on_call": {
             "cluster_ref": "HIGH_END",
             "nome": "⚕️ Médico Plantonista (HAOC/Santa Ignês)",
@@ -262,7 +238,6 @@ class GenesisConfig:
         "RECIPROCIDADE": "🤝 RECIPROCIDADE (Dar para Receber)",
         "PROVA_SOCIAL": "👥 PROVA SOCIAL (O Que Todos Dizem)",
         "PORQUE": "🧠 O PORQUÊ (A Razão Lógica)",
-        
         "ANTECIPACAO": "👀 Antecipação (O Futuro Chegando)",
         "NOVIDADE": "✨ Novidade (Dopamina/O Novo)",
         "CURIOSIDADE": "❓ Curiosidade (O Gap de Informação)",
@@ -287,7 +262,6 @@ class GenesisConfig:
     # =====================================================
     # 6. CATÁLOGO DE IMÓVEIS (MODO IMOBILIÁRIA)
     # =====================================================
-    # REMOVIDO TODO TERMO DE "LOCAÇÃO" PARA EVITAR ALUCINAÇÃO
     ASSETS_CATALOG = {
         "HIGH_END": [
             "MANSÃO EM CONDOMÍNIO (4+ Suítes)",
@@ -317,7 +291,7 @@ class GenesisConfig:
             "TERRENO EM CONDOMÍNIO (Lote Padrão 300m²)",
             "TERRENO DE ESQUINA (Potencial Construtivo)",
             "Imóvel para Reforma (Flip/Retrofit)",
-            "Kitnet / Studio para Renda Passiva (Investimento)", # Corrigido de Locação
+            "Kitnet / Studio para Renda Passiva (Investimento)", 
             "Terreno Comercial em Avenida (Visibilidade)",
             "Área para Incorporação Vertical (>1.000m²)"
         ],
@@ -345,28 +319,37 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 7. CATÁLOGO DO PORTAL (NOVO - MODO PORTAL)
+    # 7. CATÁLOGO DO PORTAL (EXPANDIDO PARA SEO)
     # =====================================================
     PORTAL_CATALOG = {
         "NOTICIAS": [
-            "📰 Notícia de Trânsito / Obras Viárias",
-            "📰 Notícia sobre Segurança Pública",
-            "📰 Nova Lei Municipal (Aprovada ou em Pauta)",
-            "📰 Evento Cultural / Agenda da Cidade",
-            "📰 Inauguração de Novo Comércio/Serviço",
-            "📰 Clima e Tempo (Alerta Defesa Civil)"
+            "NOTÍCIAS DO DIA", # ITEM ESPECIAL NOVO
+            "📰 Trânsito e Obras Agora (Indaiatuba)",
+            "📰 Segurança Pública em Tempo Real",
+            "📰 Nova Lei Municipal (Impacto no IPTU)",
+            "📰 Evento Cultural (Fim de Semana)",
+            "📰 Inauguração de Novo Comércio/Shopping",
+            "📰 Clima e Alerta Defesa Civil"
         ],
         "UTILIDADE": [
-            "💡 Utilidade Pública (Água/Luz/Impostos)",
-            "💉 Campanha de Saúde / Vacinação",
-            "🏫 Matrículas Escolares e Educação",
-            "🐕 Causa Animal / Adoção de Pets",
-            "♻️ Coleta de Lixo e Reciclagem"
+            "💡 Farmácias de Plantão (Hoje)",
+            "🚌 Horário de Ônibus (Sou Indaiatuba)",
+            "💼 Vagas de Emprego (PAT Indaiatuba)",
+            "💧 Falta de Água / Comunicado SAAE",
+            "💉 Campanha de Vacinação (Locais)",
+            "🏫 Matrículas Escolares (Creches/Escolas)",
+            "🐕 Adoção de Pets (Zoonoses)"
+        ],
+        "LAZER_CULTURA": [
+            "🍽️ Onde Comer em Indaiatuba (Guia Gastronômico)",
+            "🌳 Parque Ecológico (O que fazer)",
+            "🚴 Ciclovias e Rotas de Lazer",
+            "🎭 Agenda Cultural (Teatro CIAEI)",
+            "⚽ Esporte Amador e Primavera FC"
         ],
         "CURIOSIDADES": [
-            "🏛️ História de Indaiatuba (Bairros Antigos)",
-            "🌳 Parques e Áreas de Lazer (Guia)",
-            "🍽️ Dicas de Gastronomia Local",
-            "🚌 Mobilidade Urbana e Transporte Público"
+            "🏛️ História dos Bairros de Indaiatuba",
+            "📈 Valorização dos Imóveis por Região",
+            "🚌 Mobilidade Urbana (Futuro da Cidade)"
         ]
     }
