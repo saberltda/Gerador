@@ -11,8 +11,14 @@ class GenesisData:
         """
         self.bairros = self._carregar_bairros(bairros_path)
 
-        # 1. ATIVOS DA IMOBILIÁRIA
+        # 1. ATIVOS DA IMOBILIÁRIA (Define o dicionário principal)
         self.ativos_imobiliaria = GenesisConfig.ASSETS_CATALOG
+        
+        # --- CORREÇÃO DO ERRO (ALIAS DE COMPATIBILIDADE) ---
+        # Isso garante que o engine.py encontre a variável que procura
+        self.ativos_por_cluster = self.ativos_imobiliaria 
+        # ---------------------------------------------------
+
         self.todos_ativos_imoveis = []
         for lista in self.ativos_imobiliaria.values():
             self.todos_ativos_imoveis.extend(lista)
@@ -63,23 +69,3 @@ class GenesisData:
             bairros_enriquecidos.append(b2)
 
         return bairros_enriquecidos
-
-
-class GenesisRules:
-    def __init__(self, path: str = "assets/REGRAS.txt"):
-        if not os.path.exists(path):
-            if os.path.exists(f"../{path}"):
-                path = f"../{path}"
-            else:
-                raise RuntimeError(f"ERRO: Arquivo '{path}' de regras não encontrado.")
-            
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                self.raw_text = f.read()
-        except Exception as e:
-            raise RuntimeError(f"Erro ao ler REGRAS.txt: {e}")
-
-    def get_for_prompt(self, contexto_local: str) -> str:
-        txt = self.raw_text
-        txt = txt.replace("{b['nome']}", contexto_local)
-        return txt
