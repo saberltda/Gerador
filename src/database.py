@@ -15,7 +15,6 @@ class GenesisData:
         self.ativos_imobiliaria = GenesisConfig.ASSETS_CATALOG
         
         # --- CORREÇÃO DO ERRO (ALIAS DE COMPATIBILIDADE) ---
-        # Isso garante que o engine.py encontre a variável que procura
         self.ativos_por_cluster = self.ativos_imobiliaria 
         # ---------------------------------------------------
 
@@ -25,7 +24,7 @@ class GenesisData:
         self.todos_ativos_imoveis = list(set(self.todos_ativos_imoveis))
         self.todos_ativos_imoveis.sort()
 
-        # 2. ATIVOS DO PORTAL (NOVO)
+        # 2. ATIVOS DO PORTAL
         self.ativos_portal = GenesisConfig.PORTAL_CATALOG
         self.todos_ativos_portal = []
         for lista in self.ativos_portal.values():
@@ -90,7 +89,10 @@ class GenesisRules:
             raise RuntimeError(f"Erro ao ler REGRAS.txt: {e}")
 
     def get_for_prompt(self, contexto_local: str) -> str:
-        # Substitui variáveis dinâmicas dentro do texto de regras, se houver
+        # Substitui variáveis dinâmicas dentro do texto de regras
+        # Agora suporta mais formatos para não quebrar se o txt mudar
         txt = self.raw_text
         txt = txt.replace("{b['nome']}", contexto_local)
+        txt = txt.replace("{{BAIRRO}}", contexto_local)
+        txt = txt.replace("{{LOCAL}}", contexto_local)
         return txt
