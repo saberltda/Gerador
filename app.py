@@ -16,6 +16,7 @@ from src.utils import slugify
 def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
+    # CSS Ajustado com CHAVES DUPLAS {{ }} nas classes para evitar erro de f-string
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
@@ -86,7 +87,7 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         
-        /* CORREÇÃO AQUI: Chaves Duplas para escapar o f-string */
+        /* CORREÇÃO CRÍTICA: Chaves Duplas {{ }} para escapar o f-string */
         .fake-label {{
             font-size: 14px;
             margin-bottom: 7px;
@@ -213,7 +214,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.1 (Correção CSS) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.2 (Fixed & Full) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -324,11 +325,16 @@ def main():
                     for k,v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
                         if v == sel_gatilho: g_key = k; break
 
+                # MONTAGEM DA SELEÇÃO DO USUÁRIO (AGORA COM O TIPO DE PAUTA)
                 user_sel = {
-                    "persona_key": p_key, "bairro_nome": final_bairro_input, 
-                    "topico": sel_topico, "ativo": sel_ativo,
-                    "formato": f_key, "gatilho": g_key,
-                    "data_pub_obj": data_pub
+                    "persona_key": p_key, 
+                    "bairro_nome": final_bairro_input, 
+                    "topico": sel_topico, 
+                    "ativo": sel_ativo,
+                    "formato": f_key, 
+                    "gatilho": g_key,
+                    "data_pub_obj": data_pub,
+                    "tipo_pauta": st.session_state["k_tipo_pauta"] # <--- AQUI ESTÁ A CORREÇÃO
                 }
                 
                 # Execução
