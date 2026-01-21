@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.55.0 (ASSET CATALOG UPDATE)"
+    VERSION = "GERADOR V.55.1 (ANTI-LISTING FIX)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -59,7 +59,13 @@ class GenesisConfig:
         "NUNCA invente nomes de clientes (ex: Ricardo, Ana, João).",
         "NUNCA invente profissões específicas para o personagem.",
         "NUNCA crie depoimentos falsos.",
-        "OBRIGATÓRIO: Pesquise locais reais no Google Maps antes de citar."
+        "OBRIGATÓRIO: Pesquise locais reais no Google Maps antes de citar.",
+        
+        # --- NOVAS REGRAS ANTI-ANÚNCIO (FIX V.55.1) ---
+        "PROIBIDO descrever um imóvel específico (unidade única).",
+        "NÃO use: 'Esta casa possui', 'Venha visitar este imóvel', 'Acabou de entrar'.",
+        "USE: 'Casas nesta região costumam ter', 'O padrão construtivo aqui oferece', 'Ao buscar imóveis neste bairro'.",
+        "OBJETIVO: Vender o BAIRRO e a TIPOLOGIA (CATEGORIA), não uma unidade específica."
     ]
 
     RULES = {
@@ -224,7 +230,7 @@ class GenesisConfig:
             "Área para Centro de Distribuição",
             "Barracão Comercial Padrão"
         ],
-        "RURAL_LIFESTYLE": [ # Categoria Nova!
+        "RURAL_LIFESTYLE": [
             "CHÁCARA EM ITAICI (Lazer)",
             "SÍTIO OU HARAS (Helvetia)",
             "Chácara em Condomínio Fechado",
