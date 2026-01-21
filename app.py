@@ -127,6 +127,49 @@ def smart_select(label, options, key, icon="", use_label=True):
     return st.session_state[key]
 
 # =========================================================
+# 📦 FUNÇÕES AUXILIARES (REINSERIDAS AQUI)
+# =========================================================
+def reset_state_callback():
+    keys_to_reset = [
+        "k_persona", "k_bairro", "k_topico", 
+        "k_ativo", "k_formato", "k_gatilho", 
+        "k_modo_geo", "k_data", "k_tipo_pauta"
+    ]
+    for k in keys_to_reset:
+        if k in st.session_state:
+            del st.session_state[k]
+    
+    st.session_state["k_modo_geo"] = "🎲 Aleatório"
+    st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
+    st.session_state["k_data"] = datetime.date.today()
+
+def load_history():
+    log_file = "historico_geracao.csv"
+    if os.path.exists(log_file):
+        try:
+            df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
+            
+            if 'DATA_PUB' in df.columns:
+                df['DATA_PUB'] = pd.to_datetime(df['DATA_PUB'])
+            if 'CRIADO_EM' in df.columns:
+                df['CRIADO_EM'] = pd.to_datetime(df['CRIADO_EM'])
+                df = df.sort_values(by='CRIADO_EM', ascending=False)
+            elif 'DATA' in df.columns:
+                df['DATA'] = pd.to_datetime(df['DATA'])
+                df = df.sort_values(by='DATA', ascending=False)
+                
+            return df
+        except:
+            return None
+    return None
+
+def show_manual():
+    with st.expander("ℹ️ NOTAS RÁPIDAS"):
+        c1, c2 = st.columns(2)
+        with c1: st.caption("Use **Escassez** para vendas rápidas.")
+        with c2: st.caption("Use **Autoridade** para branding.")
+
+# =========================================================
 # APP PRINCIPAL
 # =========================================================
 def main():
@@ -149,7 +192,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.3 (Auto-Context Fix) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.4 (Function Fixed) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -227,13 +270,6 @@ def main():
             # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
-                def reset_state_callback():
-                    for k in ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_formato", "k_gatilho", "k_modo_geo", "k_data", "k_tipo_pauta"]:
-                        if k in st.session_state: del st.session_state[k]
-                    st.session_state["k_modo_geo"] = "🎲 Aleatório"
-                    st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
-                    st.session_state["k_data"] = datetime.date.today()
-
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
             with c_run:
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
