@@ -30,7 +30,15 @@ class GenesisData:
         for lista in self.ativos_portal.values():
             self.todos_ativos_portal.extend(lista)
         self.todos_ativos_portal = list(set(self.todos_ativos_portal))
+        
+        # --- ORDENAÇÃO INTELIGENTE (PINNED POST) ---
         self.todos_ativos_portal.sort()
+        
+        # Força "NOTÍCIAS DO DIA" para o topo da lista (Índice 0)
+        ITEM_DESTAQUE = "NOTÍCIAS DO DIA"
+        if ITEM_DESTAQUE in self.todos_ativos_portal:
+            self.todos_ativos_portal.remove(ITEM_DESTAQUE)
+            self.todos_ativos_portal.insert(0, ITEM_DESTAQUE)
 
         # Para compatibilidade, 'todos_ativos' padrão continua sendo imóveis
         self.todos_ativos = self.todos_ativos_imoveis
@@ -40,6 +48,8 @@ class GenesisData:
             if os.path.exists(f"../{path}"):
                 path = f"../{path}"
             else:
+                # Fallback silencioso ou erro controlado se necessário
+                # Mas aqui mantemos o erro crítico para alertar falta de arquivo
                 raise RuntimeError(
                     f"ERRO CRÍTICO: Arquivo '{path}' não encontrado. "
                     "Verifique se a pasta 'assets' está na raiz do projeto."
