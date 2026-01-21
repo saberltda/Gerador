@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.7.0 (MODO PORTAL + IMOBILIÁRIA)"
+    VERSION = "GERADOR V.7.3 (PORTAL FIX)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -82,6 +82,7 @@ class GenesisConfig:
     # 3. MATRIZ DE PERSONAS
     # =====================================================
     PERSONAS = {
+        # --- OS GIGANTES DO MERCADO ---
         "INVESTOR_DATA_DRIVEN": {
             "cluster_ref": "INVESTOR",
             "nome": "📊 INVESTIDOR 3.0 (Data-Driven)",
@@ -112,6 +113,8 @@ class GenesisConfig:
             "dor": "Medo de descapitalização e segurança física no imóvel.",
             "desejo": "Patrimônio seguro, portaria 24h e autonomia financeira imediata."
         },
+
+        # --- NICHOS ESTRATÉGICOS ---
         "LUXURY_EXPERIENTIAL": {
             "cluster_ref": "HIGH_END",
             "nome": "✨ Buscador de Experiência (Novo Luxo)",
@@ -141,6 +144,14 @@ class GenesisConfig:
             "nome": "🌿 O Comprador Eco-Consciente",
             "dor": "Desperdício energético e construções predatórias.",
             "desejo": "Painéis solares, reuso de água e certificação verde (ESG)."
+        },
+
+        # --- NOVA PERSONA NEUTRA (PARA MODO PORTAL) ---
+        "CITIZEN_GENERAL": {
+            "cluster_ref": "PORTAL", 
+            "nome": "🏙️ Cidadão de Indaiatuba (Leitor do Portal)",
+            "dor": "Falta de informação confiável sobre a cidade.",
+            "desejo": "Manter-se informado sobre obras, trânsito e economia local."
         }
     }
 
@@ -249,7 +260,6 @@ class GenesisConfig:
     # =====================================================
     # 7. CATÁLOGO DO PORTAL (NOVO - MODO PORTAL)
     # =====================================================
-    # Categorias expandidas para Notícias e Utilidade Pública
     PORTAL_CATALOG = {
         "NOTICIAS": [
             "📰 Notícia de Trânsito / Obras Viárias",
