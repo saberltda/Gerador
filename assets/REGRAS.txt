@@ -7,8 +7,6 @@ Este arquivo contém as "Leis da Física" do gerador.
 
 - REGRAS TÉCNICAS
 - REGRAS DE TABELA
-
-A remoção ou alteração quebrará o layout do Blogger instantaneamente.
 ==============================================================================
 
 
@@ -28,12 +26,18 @@ Sua resposta final deve seguir EXATAMENTE esta ordem (1 a 8):
 2. BLOCKCODE (HTML Puro + JSON-LD embutido):
    - SEM tags de estrutura (html/body)
    - O JSON-LD deve estar dentro deste bloco HTML
-3. TÍTULO (Apenas o título final, sem aspas)
-4. MARCADORES (Tags SEO separadas por vírgula)
-5. DATA (Formato: DD de mmm. de AAAA)
-6. LOCAL: Indaiatuba
-7. DESCRIÇÃO (Meta description focada na dor)
-8. IMAGEM (Prompt para IA generativa)
+3. TÍTULO:
+(Apenas o título final, sem aspas)
+4. MARCADORES:
+(Tags SEO separadas por vírgula)
+5. DATA:
+(Formato: DD de mmm. de AAAA)
+6. LOCAL:
+Indaiatuba
+7. DESCRIÇÃO:
+(Meta description focada na dor)
+8. IMAGEM:
+(Prompt para fotógrafo profissional ou IA generativa, sempre em português pt-br)
 
 
 
@@ -57,7 +61,7 @@ O JSON-LD embutido deve conter:
 context: https://schema.org
 ATENÇÃO, MUITO CUIDADO AQUI:
 - SE A PAUTA for IMOBILIARIA: type: BlogPosting
-- SE A PAUTA for PORTAL: type: BlogPosting
+- SE A PAUTA for PORTAL: type: NewsArticle
 headline: título H1 gerado
 datePublished: data fornecida pelo usuário com fuso -03:00.
                 Se o usuário não fornecer, usar a data/hora da geração pela IA
@@ -92,4 +96,5 @@ O CTA abaixo DEVE aparecer no final do conteúdo:
 ==============================================================================
 FIM DA ZONA DE SEGURANÇA
 ==============================================================================
+
 
