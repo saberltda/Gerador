@@ -11,13 +11,11 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
-# 🎨 DESIGN SYSTEM (CLEAN & RESPONSIVE)
+# 🎨 DESIGN SYSTEM (CLEAN & COMPATIBLE)
 # =========================================================
 def setup_ui():
     st.set_page_config(page_title="Gerador de Pautas IA", page_icon="🤖", layout="wide")
     
-    # CSS focado apenas nos Cards de Resultado e ajustes finos
-    # Removemos qualquer cor forçada de botão para garantir contraste perfeito
     st.markdown(f"""
     <style>
         .stApp {{ background-color: #f8f9fa; }}
@@ -35,7 +33,7 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         
-        /* Ajuste sutil para o Container de Rolagem dentro do Popover */
+        /* Ajuste para o Container de Rolagem */
         div[data-testid="stVerticalBlockBorderWrapper"] {{
             border-radius: 8px;
             border: 1px solid #eee;
@@ -44,14 +42,13 @@ def setup_ui():
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTE MESTRE: SCROLL + AUTO-CLOSE
+# 🛠️ COMPONENTE MESTRE: SCROLL + AUTO-CLOSE (FIXED)
 # =========================================================
 def smart_select(label, options, key, icon=""):
     """
-    O componente definitivo.
-    1. Usa Popover (Visual Limpo).
-    2. Usa Container (Scroll em listas grandes).
-    3. Usa Key Rotation (Fecha sozinho ao clicar).
+    Componente Dropdown Inteligente.
+    Correção v5.1: Removido 'use_container_width' do popover para evitar TypeError
+    em versões antigas do Streamlit.
     """
     
     # 1. Inicializa o valor selecionado
@@ -59,12 +56,11 @@ def smart_select(label, options, key, icon=""):
         st.session_state[key] = options[0]
         
     # 2. Inicializa o contador de rotação (O Segredo do Auto-Close)
-    # Se esse número mudar, o Popover é recriado do zero (fechado)
     reset_key_name = f"reset_counter_{key}"
     if reset_key_name not in st.session_state:
         st.session_state[reset_key_name] = 0
 
-    current_val = st.session_state[key]
+    current_val = str(st.session_state[key])
     display_text = (current_val[:25] + '..') if len(current_val) > 25 else current_val
     
     # Define se precisa de scroll (listas grandes)
@@ -73,7 +69,8 @@ def smart_select(label, options, key, icon=""):
     # 3. Cria o Popover com ID Dinâmica
     popover_id = f"pop_{key}_{st.session_state[reset_key_name]}"
     
-    with st.popover(f"{icon} {label}: {display_text}", use_container_width=True, key=popover_id):
+    # FIX: Removemos use_container_width=True para compatibilidade máxima
+    with st.popover(f"{icon} {label}: {display_text}", key=popover_id):
         st.caption(f"Selecione **{label}**:")
         
         # Container com scroll (se necessário)
@@ -81,12 +78,11 @@ def smart_select(label, options, key, icon=""):
             
             # Encontra o índice seguro
             try:
-                idx = options.index(current_val)
+                idx = options.index(st.session_state[key])
             except:
                 idx = 0
             
             # Radio Button (não abre teclado no celular)
-            # A Key do rádio também precisa ser única para não dar conflito
             new_val = st.radio(
                 label,
                 options,
@@ -96,7 +92,7 @@ def smart_select(label, options, key, icon=""):
             )
             
             # 4. Lógica de Fechamento
-            if new_val != current_val:
+            if new_val != st.session_state[key]:
                 st.session_state[key] = new_val
                 # Incrementa o contador -> Muda a ID do Popover -> Força recriação (Fechado)
                 st.session_state[reset_key_name] += 1
@@ -114,10 +110,8 @@ def reset_state_callback():
         "k_modo_geo", "k_data"
     ]
     for k in keys_to_reset:
-        # Apaga o valor
         if k in st.session_state:
             del st.session_state[k]
-        # Apaga também o contador do popover para evitar lixo de memória
         if f"reset_counter_{k}" in st.session_state:
             del st.session_state[f"reset_counter_{k}"]
     
@@ -167,7 +161,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 5.0 (Auto-Close & Scroll) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 5.1 (Fixed Compatibility) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -195,7 +189,6 @@ def main():
             
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
-                # Bairro: Lista grande -> Vai ativar o scroll e o auto-close
                 sel_bairro_manual = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
                 final_bairro_input = sel_bairro_manual
             elif modo_geo == "🏙️ Foco Cidade":
@@ -204,7 +197,7 @@ def main():
 
             st.markdown("---")
 
-            # 3. ESTRATÉGIA (Grid 2x2)
+            # 3. ESTRATÉGIA
             c3, c4 = st.columns(2)
             with c3:
                 sel_ativo = smart_select("Imóvel", l_ativos, "k_ativo", "🏠")
