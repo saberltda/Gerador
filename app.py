@@ -55,29 +55,35 @@ def setup_ui():
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 🛠️ COMPONENTES DE UI INTELIGENTES (PC & MOBILE)
+# 🛠️ COMPONENTES DE UI INTELIGENTES (AUTO-CLOSE FIX)
 # =========================================================
 
 def smart_dropdown(label, options, key, icon=""):
     """
-    Substitui o Dialog por um Popover.
-    - PC: Parece um dropdown normal (não ocupa a tela toda).
-    - Mobile: Fácil de clicar.
-    - Teclado: NÃO ABRE (usa st.radio interno).
+    Versão 2.1: Com AUTO-CLOSE.
+    Ao selecionar uma opção, o menu fecha automaticamente.
     """
+    # Inicializa o valor se não existir
     if key not in st.session_state:
         st.session_state[key] = options[0]
+
+    # Inicializa o contador de reset (O segredo do Auto-Close)
+    # Mudando a key do popover, ele é destruído e recriado (fechado)
+    reset_key = f"pop_reset_{key}"
+    if reset_key not in st.session_state:
+        st.session_state[reset_key] = 0
         
     current_val = st.session_state[key]
     
     # Texto encurtado para caber no botão
     display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
     
-    # O Popover cria um container flutuante (Melhor que Dialog para PC)
+    # A Key dinâmica força o fechamento após atualização
+    popover_dynamic_key = f"popover_{key}_{st.session_state[reset_key]}"
+
     with st.popover(f"{icon} {label}: {display_text}", use_container_width=True):
         st.markdown(f"**Selecione {label}:**")
         
-        # O index deve ser calculado com segurança
         try:
             idx = options.index(current_val)
         except ValueError:
@@ -87,13 +93,15 @@ def smart_dropdown(label, options, key, icon=""):
             label,
             options,
             index=idx,
-            key=f"radio_{key}",
+            key=f"radio_{key}_{st.session_state[reset_key]}", # Key também dinâmica
             label_visibility="collapsed"
         )
 
         if new_selection != current_val:
             st.session_state[key] = new_selection
-            st.rerun() # Fecha o popover e atualiza a tela
+            # Incrementa o contador para mudar a ID do popover na próxima renderização
+            st.session_state[reset_key] += 1 
+            st.rerun() # Recarrega a página -> Popover antigo morre -> Novo nasce fechado
             
     return st.session_state[key]
 
@@ -109,6 +117,9 @@ def reset_state_callback():
     for k in keys_to_reset:
         if k in st.session_state:
             del st.session_state[k]
+        # Reseta também os contadores de popover
+        if f"pop_reset_{k}" in st.session_state:
+            del st.session_state[f"pop_reset_{k}"]
     
     st.session_state["k_modo_geo"] = "🎲 Aleatório"
     st.session_state["k_data"] = datetime.date.today()
@@ -156,27 +167,25 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 2.0 (Hybrid UI) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 2.1 (Auto-Close UI) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
     with tab_painel:
         with st.container(border=True):
             
-            # 1. CONTEXTO E PERSONA (Lado a Lado)
+            # 1. CONTEXTO E PERSONA
             c1, c2 = st.columns([1, 2])
             with c1:
                 data_pub = st.date_input("📅 Data", datetime.date.today(), key="k_data")
             with c2:
-                # Persona é lista curta, smart_dropdown funciona bem
                 sel_persona = smart_dropdown("Persona", l_personas, "k_persona", "👤")
 
             st.markdown("---")
 
-            # 2. GEOGRAFIA (Usando Pills/Segmented Control se possível para UX moderna)
+            # 2. GEOGRAFIA
             if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
             
-            # Tenta usar st.pills (Streamlit novo) ou fallback para radio horizontal
             try:
                 modo_geo = st.pills("📍 Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], default="🎲 Aleatório", key="k_modo_geo")
             except:
@@ -184,7 +193,6 @@ def main():
             
             final_bairro_input = "ALEATÓRIO"
             
-            # Se escolheu bairro, mostra o dropdown de bairros
             if modo_geo == "📍 Bairro Específico":
                 st.markdown("<br>", unsafe_allow_html=True)
                 sel_bairro_manual = smart_dropdown("Selecionar Bairro", l_bairros, "k_bairro", "🏘️")
@@ -195,7 +203,7 @@ def main():
 
             st.markdown("---")
 
-            # 3. ESTRATÉGIA (Grid 2x2)
+            # 3. ESTRATÉGIA
             c3, c4 = st.columns(2)
             with c3:
                 sel_ativo = smart_dropdown("Imóvel", l_ativos, "k_ativo", "🏠")
