@@ -14,7 +14,7 @@ class BlogScanner:
     
     def __init__(self):
         base_url = GenesisConfig.BLOG_URL
-        self.feed_url = f"{base_url}/feeds/posts/default?alt=json&max-results=500"
+        self.feed_url = f"{base_url}/feeds/posts/default?alt=json&max-results=9999"
         self.bairros_publicados = set()
         self.todos_titulos = []
 
@@ -59,3 +59,4 @@ class BlogScanner:
 
     def get_ultimos_titulos(self, limite=10):
         return self.todos_titulos[:limite]
+
