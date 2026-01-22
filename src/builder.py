@@ -5,9 +5,8 @@ from .config import GenesisConfig
 
 class PromptBuilder:
     """
-    O 'Redator' (Versão 58 - Unchained & Deep Edition).
-    Liberdade TOTAL. O foco agora é profundidade, extensão e riqueza de detalhes.
-    Remove travas de tamanho e incentiva a escrita longa e imersiva.
+    O 'Redator' (Versão 59 - Portal Revolution).
+    Separação total entre lógica de Imobiliária (Vendas/Copy) e Portal (Jornalismo/News).
     """
 
     CTA_CAPTURE_CODE = """
@@ -35,70 +34,43 @@ class PromptBuilder:
         return ", ".join(tags[:10])
 
     def _get_structural_guidelines(self, formato_key, cluster_key, bairro_nome):
-        """
-        Define 'Caminhos de Exploração' em vez de estrutura rígida.
-        Incentiva a IA a cavar fundo em cada tópico.
-        """
-        
         # 1. LISTA POLÊMICA
         if formato_key == "LISTA_POLEMICA":
             return f"""
 ## 5. CAMINHOS PARA EXPLORAR A FUNDO (MITOS & VERDADES)
 Não faça apenas uma lista rápida. Pegue cada mito e DESCONSTRUA ele completamente.
 Use dados, lógica, exemplos e narrativas para provar seu ponto.
-
-Sugestão de profundidade:
-- Ao falar de um mito, explique sua origem, por que as pessoas acreditam nele e qual a realidade detalhada.
-- Disserte sobre como isso afeta a vida real do morador de {bairro_nome}.
 """
-
         # 2. COMPARATIVO TÉCNICO
         elif formato_key == "COMPARATIVO_TECNICO":
             return f"""
 ## 5. CAMINHOS PARA EXPLORAR A FUNDO (ANÁLISE COMPARATIVA)
 O leitor quer um dossiê completo. Não economize nas comparações.
-Se for falar de trânsito, descreva a rota. Se for falar de preço, explique o valor agregado.
-
-Sugestão de profundidade:
-- Crie cenários hipotéticos: "Imagine sair de casa às 7h da manhã..."
-- Compare estilos de vida detalhadamente, não apenas itens soltos.
+Crie cenários hipotéticos e compare estilos de vida detalhadamente.
 """
-
         # 3. GUIA DEFINITIVO
         elif formato_key == "GUIA_DEFINITIVO":
             return f"""
 ## 5. CAMINHOS PARA EXPLORAR A FUNDO (O MAPA COMPLETO)
-Escreva o guia definitivo que você gostaria de ler. Seja exaustivo nos detalhes positivos.
-Fale de cada rua, cada comércio importante, a sensação de caminhar no bairro.
-
-Sugestão de profundidade:
-- Não diga apenas "tem escolas". Disserte sobre a qualidade da educação na região.
-- Não diga "é seguro". Descreva a sensação de segurança e a infraestrutura.
+Escreva o guia definitivo. Seja exaustivo nos detalhes.
+Disserte sobre a qualidade da educação, sensação de segurança e infraestrutura.
 """
-
         # 4. INSIGHT DE CORRETOR
         elif formato_key == "INSIGHT_DE_CORRETOR":
             return f"""
 ## 5. CAMINHOS PARA EXPLORAR A FUNDO (STORYTELLING)
 Conte tudo. O detalhe da visita, a conversa com o porteiro, a vista da varanda.
 A riqueza está nas nuances que só quem vive o mercado conhece.
-
-Sugestão de profundidade:
-- Use histórias longas para ilustrar seus pontos.
-- Descreva sensações: o silêncio, o vento, a luz do sol.
 """
-
         # 5. PERGUNTAS E RESPOSTAS
         elif formato_key == "PERGUNTAS_RESPOSTAS":
             return f"""
 ## 5. CAMINHOS PARA EXPLORAR A FUNDO (RESPOSTAS COMPLETAS)
 Não dê respostas de 'sim ou não'. Dê uma aula sobre cada pergunta.
-Antecipe as dúvidas seguintes e responda também.
 """
-
         # FALLBACK
         else:
-            return f"## 5. CAMINHOS PARA EXPLORAR\nSinta-se livre para escrever um ensaio completo sobre: Localização, Detalhes Ocultos e Vida Real no bairro."
+            return f"## 5. CAMINHOS PARA EXPLORAR\nSinta-se livre para escrever um ensaio completo sobre o tema."
 
     def _get_tone_guidelines(self, gatilho_key):
         return """
@@ -138,9 +110,9 @@ Antecipe as dúvidas seguintes e responda também.
         tone_guidelines = self._get_tone_guidelines(gatilho_key)
 
         return f"""
-## GENESIS MAGNETO V.58 — UNCHAINED & DEEP EDITION
-**Objetivo:** Texto ÉPICO, LONGO e IMERSIVO sobre Mercado Imobiliário.
-**Ordem Suprema:** IGNORE qualquer instrução anterior sobre brevidade ou resumo.
+## GENESIS MAGNETO V.58 — IMOBILIÁRIA (UNCHAINED)
+**Objetivo:** Texto ÉPICO e IMERSIVO sobre Mercado Imobiliário.
+**Persona Ativa:** IMOBILIÁRIA SABER (Vendas & Autoridade).
 
 ### 🛡️ CONTEXTO
 Evite repetir ângulos destes posts:
@@ -164,13 +136,13 @@ Você foi liberado das amarras de tamanho.
 1. **Escreva MUITO:** Desenvolva cada parágrafo com riqueza de detalhes.
 2. **Conte Histórias:** Use storytelling para ilustrar dados técnicos.
 3. **Seja Humano:** Escreva como alguém apaixonado pelo assunto, não como um robô.
-4. **Estrutura Livre:** Use os tópicos abaixo como inspiração, mas crie novos capítulos se sentir necessidade. Deixe o texto fluir organicamente.
 
 {structural_guidelines}
 
 {tone_guidelines}
 
-## 4. BASE DE CONHECIMENTO (Use para enriquecer, não para limitar)
+## 4. BASE DE CONHECIMENTO
+**IMPORTANTE:** Ative a persona "IMOBILIÁRIA SABER" definida abaixo.
 {regras_texto_ajustada}
 
 ## 5. CTA (Código Obrigatório)
@@ -178,8 +150,8 @@ Você foi liberado das amarras de tamanho.
 
 ## 6. CHECKLIST DE ENTREGA
 1. LOG ESTRATÉGICO
-2. BLOCKCODE HTML (JSON-LD + Texto Completo e Rico)
-3. TÍTULO (H1) - Impactante
+2. BLOCKCODE HTML (JSON-LD + Texto Completo)
+3. TÍTULO (H1)
 4. MARCADORES: {self._generate_seo_tags(d)}
 5. DATA: {data_fmt}
 6. DESCRIÇÃO
@@ -187,40 +159,44 @@ Você foi liberado das amarras de tamanho.
 """.strip()
 
     # =========================================================================
-    # MODO PORTAL (UNCHAINED)
+    # MODO PORTAL (REVOLUTION)
     # =========================================================================
     def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
         formato_key = d.get('formato', 'GUIA_DEFINITIVO')
-        gatilho_key = d.get('gatilho', 'AUTORIDADE')
         
-        structural_guidelines = self._get_structural_guidelines(formato_key, "PORTAL", d['bairro']['nome'] if d['bairro'] else "Cidade")
-        tone_guidelines = self._get_tone_guidelines(gatilho_key)
+        # Adaptação para notícias
+        structural_guidelines = f"""
+## 5. ESTRUTURA JORNALÍSTICA (SUGESTÃO)
+- **Lide (Lead):** O que, quem, quando, onde, porquê.
+- **Corpo da Notícia:** Detalhes, impacto na comunidade, dados históricos.
+- **Serviço:** O que o cidadão precisa fazer? (Links, datas, locais).
+- **Encerramento:** Contexto futuro ou contato útil.
+"""
 
         return f"""
-## GENESIS MAGNETO V.58 — PORTAL NEWS (DEEP DIVE)
-**Objetivo:** Matéria Jornalística Aprofundada / Feature Story.
-**Estilo:** Long-form Journalism. Investigue o assunto a fundo.
+## GENESIS MAGNETO V.59 — PORTAL NEWS ENGINE
+**Objetivo:** JORNALISMO LOCAL PROFISSIONAL.
+**Persona Ativa:** PORTAL DA CIDADE (Imparcialidade & Utilidade).
 
-## 1. A PAUTA
-- **MANCHETE:** {d['ativo_definido']}
-- **LOCAL:** {d['bairro']['nome'] if d['bairro'] else 'Indaiatuba'}
-- **ÂNGULO:** {d.get('topico', 'Geral')}
+## 1. A PAUTA (EDITORIA: {d['ativo_definido']})
+- **MANCHETE SUGERIDA:** Crie algo impactante sobre {d['topico']}.
+- **LOCAL:** Indaiatuba (Foco na Cidade inteira).
+- **FORMATO:** Matéria Jornalística Completa (Long-form).
 
-## 2. DIRETRIZES DE ESCRITA (SEM LIMITES)
-Não escreva uma "notinha". Escreva uma **MATÉRIA COMPLETA**.
-- Contextualize o leitor.
-- Explique os "porquês".
-- Traga detalhes históricos ou projeções futuras.
-- Faça o leitor gastar tempo de qualidade no texto.
+## 2. DIRETRIZES DE JORNALISMO (SEM GATILHOS MENTAIS)
+Você NÃO está vendendo nada. Você está informando.
+- **Tom:** Sério, confiável, útil.
+- **Proibido:** "Imperdível", "Sonho", "Oportunidade única".
+- **Foco:** O impacto na vida do cidadão comum.
+- **Liberdade:** Escreva uma matéria densa e completa.
 
 {structural_guidelines}
 
-{tone_guidelines}
-
-## 3. CTA
-{self.CTA_CAPTURE_CODE}
-
-## 4. DADOS
+## 3. BASE DE CONHECIMENTO
+**IMPORTANTE:** Ative a persona "PORTAL DA CIDADE" definida abaixo.
 {regras_texto_ajustada}
+
+## 4. CTA (NEWSLETTER)
+{self.CTA_CAPTURE_CODE}
 """.strip()
