@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.57.0 (ASSETS SYNC UPDATE)"
+    VERSION = "GERADOR V.58.0 (PORTAL SYNC UPDATE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -51,6 +51,8 @@ class GenesisConfig:
     # =====================================================
     # 2. INTELIGÊNCIA DE SEO (ÂNGULOS EDITORIAIS)
     # =====================================================
+    
+    # --- IMOBILIÁRIA ---
     TOPICS_MAP = {
         "MERCADO_DADOS": "📈 Dados de Mercado e Rentabilidade",
         "INVESTIMENTO_ROI": "💰 Lucro e Valorização de Patrimônio",
@@ -79,6 +81,25 @@ class GenesisConfig:
         "BEM_ESTAR_BIOFILIA": 50, "SENIOR_LIVING": 45, "SEGURANCA_TECH": 40,
         "SHORT_STAY": 35, "PETS_GARDEN": 30, "SMART_HOME": 20,
         "JURIDICO_SEGURANCA": 80, "ARQUITETURA_FACHADA": 60, "COMUNIDADE_VIZINHANCA": 70
+    }
+
+    # --- PORTAL DA CIDADE (NOVO) ---
+    PORTAL_TOPICS_MAP = {
+        "UTILIDADE_PUBLICA": "💡 Utilidade Pública (Serviço)",
+        "IMPACTO_COMUNIDADE": "🤝 Impacto na Comunidade",
+        "ALERTA_URGENTE": "🚨 Alerta / Atenção (Urgência)",
+        "CURIOSIDADE_HISTORICA": "🏛️ Curiosidade Histórica ou Cultural",
+        "OBRAS_INFRAESTRUTURA": "🚧 Obras e Infraestrutura",
+        "LAZER_FAMILIA": "🌳 Lazer e Dicas para Família",
+        "ECONOMIA_LOCAL": "💰 Economia Local e Empregos",
+        "TRANSPARENCIA": "📢 Transparência e Cidadania"
+    }
+
+    PORTAL_TOPICS_WEIGHTS = {
+        "UTILIDADE_PUBLICA": 100, "ALERTA_URGENTE": 95, 
+        "OBRAS_INFRAESTRUTURA": 90, "LAZER_FAMILIA": 80,
+        "ECONOMIA_LOCAL": 75, "IMPACTO_COMUNIDADE": 70,
+        "TRANSPARENCIA": 60, "CURIOSIDADE_HISTORICA": 50
     }
 
     # =====================================================
@@ -174,6 +195,7 @@ class GenesisConfig:
         }
     }
 
+    # ... (Restante dos catálogos permanece igual) ...
     CONTENT_FORMATS_MAP = {
         "GUIA_DEFINITIVO": "📘 Guia Definitivo (Manual Completo)",
         "LISTA_POLEMICA": "🔥 Lista Polêmica (Quebra de Mitos)",
@@ -203,9 +225,6 @@ class GenesisConfig:
     }
     EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
 
-    # =====================================================
-    # CATÁLOGOS DE ATIVOS (AGORA OTIMIZADOS EM MAIÚSCULO)
-    # =====================================================
     ASSETS_CATALOG = {
         "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO", "SOBRADO NEO CLÁSSICO", "LOTE EM CONDOMÍNIO DE LUXO"],
         "FAMILY": ["CASA EM CONDOMÍNIO", "SOBRADO COM ÁREA GOURMET", "CASA TÉRREA ACESSÍVEL", "CASA DE RUA EM BAIRRO PLANEJADO"],
