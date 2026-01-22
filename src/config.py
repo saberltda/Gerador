@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.58.0 (PORTAL SYNC UPDATE)"
+    VERSION = "GERADOR V.60 (MODERN JOURNALISM SUITE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -11,48 +11,30 @@ class GenesisConfig:
     FUSO_PADRAO = "-03:00"
 
     # =====================================================
-    # 1. REGRAS DE SEGURANÇA E BLOQUEIOS
+    # 1. REGRAS GERAIS E BLOQUEIOS
     # =====================================================
     RULES = {
-        # Ativos que NÃO podem aparecer em zonas industriais/logísticas
-        "INDUSTRIAL_RESTRICTION": [
-            "Casa de Rua", "Casa em Condomínio", "Apartamento",
-            "Apartamento 2 ou 3 dormitórios", "Casa térrea de rua",
-            "Sobrado em bairro residencial aberto", "Cobertura", "Studio residencial"
-        ],
-        # Recursos que NÃO podem aparecer em bairro aberto
-        "OPEN_NEIGHBORHOOD_RESTRICTION": [
-            "Condomínio Fechado", "Portaria 24h", "Portaria 24 horas",
-            "Acesso controlado", "Controle de acesso", "Lazer Completo",
-            "Área de lazer completa"
-        ],
-        # Clichês imobiliários banidos
         "FORBIDDEN_WORDS": [
-            "sonho", "sonhos", "oportunidade única", "excelente localização",
-            "ótimo investimento", "preço imperdível", "lindo", "maravilhoso",
-            "tranquilo", "localização privilegiada", "região privilegiada",
-            "venha conferir", "agende sua visita", "paraíso", "espetacular",
-            "imóvel dos sonhos", "toque de requinte",
-            "locação", "aluguel", "alugar", "inquilino", "fiador", "locatário"
+            "oportunidade única", "venha conferir", "show de ofertas", 
+            "top", "sensacional", "imperdível", "preço baixo",
+            # No modo jornalismo, proibimos adjetivos vazios
+            "maravilhoso", "espetacular", "lindo"
         ],
-        # Features sensíveis
-        "FORBIDDEN_FEATURES": ["varanda gourmet"]
+        "JOURNALISM_STOPWORDS": [
+            "eu acho", "na minha opinião", "com certeza", "sem dúvida"
+        ]
     }
 
     STRICT_GUIDELINES = [
-        "NUNCA invente nomes de clientes (ex: Ricardo, Ana, João).",
-        "NUNCA invente profissões específicas para o personagem.",
-        "NUNCA crie depoimentos falsos.",
-        "ALERTA GEOGRÁFICO CRÍTICO: Bairros com nomes parecidos podem ser distantes.",
-        "OBRIGATÓRIO: Verifique a distância real no Google Maps Mental antes de citar proximidade.",
-        "PROIBIDO descrever um imóvel específico (unidade única). Venda o BAIRRO e a TIPOLOGIA."
+        "JORNALISMO VERDADE: Nunca invente fatos, datas ou nomes de autoridades.",
+        "IMPARCIALIDADE: Ouça (ou simule com dados) os dois lados da história.",
+        "LOCALISMO RADICAL: Tudo deve ter conexão direta com Indaiatuba.",
+        "SEM OPINIÃO: O jornalista relata, não julga (exceto em editoriais explícitos)."
     ]
 
     # =====================================================
-    # 2. INTELIGÊNCIA DE SEO (ÂNGULOS EDITORIAIS)
+    # 2. INTEGRAÇÃO IMOBILIÁRIA (MANTIDA)
     # =====================================================
-    
-    # --- IMOBILIÁRIA ---
     TOPICS_MAP = {
         "MERCADO_DADOS": "📈 Dados de Mercado e Rentabilidade",
         "INVESTIMENTO_ROI": "💰 Lucro e Valorização de Patrimônio",
@@ -74,170 +56,89 @@ class GenesisConfig:
         "COMUNIDADE_VIZINHANCA": "🤝 Vizinhança e Vida em Comunidade"
     }
 
-    TOPICS_WEIGHTS = {
-        "MERCADO_DADOS": 100, "INVESTIMENTO_ROI": 95, "FINANCAS_TOKEN": 90,
-        "SUSTENTABILIDADE_ESG": 85, "LOCALIZACAO_PREMIUM": 85, "LUXO_COMPACTO": 80,
-        "CIDADES_INTELIGENTES": 70, "HOME_OFFICE_FLEX": 65, "LOGISTICA_HUB": 60,
-        "BEM_ESTAR_BIOFILIA": 50, "SENIOR_LIVING": 45, "SEGURANCA_TECH": 40,
-        "SHORT_STAY": 35, "PETS_GARDEN": 30, "SMART_HOME": 20,
-        "JURIDICO_SEGURANCA": 80, "ARQUITETURA_FACHADA": 60, "COMUNIDADE_VIZINHANCA": 70
-    }
+    TOPICS_WEIGHTS = {k: 80 for k in TOPICS_MAP.keys()} # Pesos equalizados
 
-    # --- PORTAL DA CIDADE (NOVO) ---
+    # =====================================================
+    # 3. O NOVO PORTAL: JORNALISMO MODERNO
+    # =====================================================
+    
+    # --- ÂNGULOS EDITORIAIS (THEMES) ---
     PORTAL_TOPICS_MAP = {
-        "UTILIDADE_PUBLICA": "💡 Utilidade Pública (Serviço)",
-        "IMPACTO_COMUNIDADE": "🤝 Impacto na Comunidade",
-        "ALERTA_URGENTE": "🚨 Alerta / Atenção (Urgência)",
-        "CURIOSIDADE_HISTORICA": "🏛️ Curiosidade Histórica ou Cultural",
-        "OBRAS_INFRAESTRUTURA": "🚧 Obras e Infraestrutura",
-        "LAZER_FAMILIA": "🌳 Lazer e Dicas para Família",
-        "ECONOMIA_LOCAL": "💰 Economia Local e Empregos",
-        "TRANSPARENCIA": "📢 Transparência e Cidadania"
+        "JORNALISMO_SOLUCOES": "💡 Jornalismo de Soluções (Como resolver?)",
+        "FISCAL_DO_POVO": "🔍 Fiscal do Povo (Transparência/Denúncia)",
+        "DATA_JOURNALISM": "📊 Raio-X de Dados (O que os números dizem)",
+        "SERVICO_ESSENCIAL": "🛠️ Serviço e Utilidade (Guia Prático)",
+        "RESGATE_MEMORIA": "🏛️ Memória Viva (História e Identidade)",
+        "BASTIDORES_PODER": "⚖️ Bastidores do Poder (Política/Decisões)",
+        "ECONOMIA_REAL": "💰 Economia Real (Bolso do Cidadão)",
+        "VOZ_DA_RUA": "🗣️ Voz da Rua (Histórias Humanas/Comunidade)",
+        "FUTURO_INOVACAO": "🚀 Futuro e Inovação (Obras/Projetos)"
     }
 
     PORTAL_TOPICS_WEIGHTS = {
-        "UTILIDADE_PUBLICA": 100, "ALERTA_URGENTE": 95, 
-        "OBRAS_INFRAESTRUTURA": 90, "LAZER_FAMILIA": 80,
-        "ECONOMIA_LOCAL": 75, "IMPACTO_COMUNIDADE": 70,
-        "TRANSPARENCIA": 60, "CURIOSIDADE_HISTORICA": 50
+        "SERVICO_ESSENCIAL": 100, "FISCAL_DO_POVO": 95, 
+        "JORNALISMO_SOLUCOES": 90, "VOZ_DA_RUA": 85,
+        "ECONOMIA_REAL": 80, "BASTIDORES_PODER": 75,
+        "DATA_JOURNALISM": 70, "RESGATE_MEMORIA": 60
     }
 
-    # =====================================================
-    # 3. MATRIZ DE PERSONAS (COMPLETA)
-    # =====================================================
-    PERSONAS = {
-        # --- ELITE / TOPO DA LISTA (PRIORITÁRIOS) ---
-        "CITIZEN_GENERAL": {
-            "cluster_ref": "PORTAL", 
-            "nome": "🏙️ CIDADÃO DE INDAIATUBA (Informação Geral)",
-            "dor": "Desinformação sobre o que acontece na cidade e oportunidades perdidas.",
-            "desejo": "Saber sobre obras, trânsito, eventos, utilidade pública e valorização do seu bairro."
-        },
-        "INVESTOR_SHARK_ROI": {
-            "cluster_ref": "INVESTOR",
-            "nome": "🦈 INVESTIDOR TUBARÃO (Foco em Yield)",
-            "dor": "Dinheiro parado no CDI perdendo para inflação real e medo de vacância.",
-            "desejo": "Ativos com liquidez comprovada, dados matemáticos de valorização e Cap Rate acima da média."
-        },
-        "EXODUS_SP_ELITE_FAMILY": {
-            "cluster_ref": "HIGH_END",
-            "nome": "✈️ ÊXODO SÃO PAULO (Fuga da Capital)",
-            "dor": "Insegurança extrema em SP, filhos presos em apartamento e poluição.",
-            "desejo": "Condomínio fechado com segurança armada, escolas bilingues e qualidade de vida imediata."
-        },
-        "FIRST_HOME_DREAMER": {
-            "cluster_ref": "URBAN",
-            "nome": "🔑 1º IMÓVEL (Casal Jovem)",
-            "dor": "Medo de comprometer a renda por 30 anos e comprar um imóvel que desvalorize.",
-            "desejo": "Entrada facilitada, bairro com potencial de crescimento e baixo custo de condomínio."
-        },
-        "LUXURY_PRIVACY_SEEKER": {
-            "cluster_ref": "HIGH_END",
-            "nome": "💎 OLD MONEY (Busca Privacidade)",
-            "dor": "Exposição excessiva, vizinhos barulhentos e falta de exclusividade.",
-            "desejo": "Terrenos duplos ou de esquina, vista para mata preservada, arquitetura autoral e silêncio absoluto."
-        },
-        "COMMERCIAL_LOGISTICS_BOSS": {
-            "cluster_ref": "LOGISTICS",
-            "nome": "🚚 GIGANTE DA LOGÍSTICA (CEO/Diretor)",
-            "dor": "Custo do 'Last Mile', falta de mão de obra local e trânsito para escoar carga.",
-            "desejo": "Proximidade da SP-75/Viracopos, pé direito de 12m e incentivos fiscais."
-        },
-        "PET_PARENT_PREMIUM": {
-            "cluster_ref": "FAMILY",
-            "nome": "🐾 DONO DE ANIMAIS (Pet Lover)",
-            "dor": "Dificuldade em encontrar condomínios com quintais e regras flexíveis para animais grandes.",
-            "desejo": "Casa com amplo quintal gramado, próxima a 'Pet Places' e parques."
-        },
-
-        # --- CLÁSSICOS & RESTAURADOS (SEQUÊNCIA) ---
-        "HYBRID_COMMUTER": {
-            "cluster_ref": "URBAN",
-            "nome": "🚗 O PENDULAR (Trabalha em SP/Campinas)",
-            "dor": "Cansaço da estrada diária e tempo perdido no trânsito urbano até a rodovia.",
-            "desejo": "Acesso imediato à Rodovia Santos Dumont (SP-75) e serviços rápidos na saída da cidade."
-        },
-        "REMOTE_WORKER_TECH": {
-            "cluster_ref": "URBAN",
-            "nome": "💻 NÔMADE DIGITAL / HOME OFFICE",
-            "dor": "Apartamentos apertados sem isolamento acústico para reuniões e internet instável.",
-            "desejo": "Cômodo extra para escritório (3º dormitório), vista livre e fibra ótica de alta velocidade."
-        },
-        "MEDICAL_PRO_HEALTH": {
-            "cluster_ref": "HIGH_END",
-            "nome": "🩺 MÉDICO / PROFISSIONAL DE SAÚDE",
-            "dor": "Rotina exaustiva de plantões, necessidade de silêncio absoluto para descanso.",
-            "desejo": "Proximidade do Hospital HAOC/Santa Ignês e suíte master com isolamento acústico."
-        },
-        "ACTIVE_RETIREE": {
-            "cluster_ref": "FAMILY",
-            "nome": "🍷 MELHOR IDADE ATIVA",
-            "dor": "Casas com muitas escadas, manutenção difícil e solidão.",
-            "desejo": "Casa térrea prática, próxima a farmácias, mercados e convivência social."
-        },
-        "INVESTOR_CONSERVATIVE": {
-            "cluster_ref": "INVESTOR",
-            "nome": "🛡️ INVESTIDOR CONSERVADOR (Patrimônio)",
-            "dor": "Medo de arriscar em mercado financeiro e perder o principal.",
-            "desejo": "Imóvel físico ('tijolo'), segurança jurídica total e reserva de valor para os filhos."
-        },
-        "INVESTOR_FLIP": {
-            "cluster_ref": "INVESTOR",
-            "nome": "🛠️ INVESTIDOR DE REFORMA (Flipper)",
-            "dor": "Margem de lucro apertada em imóveis prontos.",
-            "desejo": "Imóvel depreciado em boa localização para reformar e vender com margem."
-        },
-        "COUNTRYSIDE_LIFESTYLE": {
-            "cluster_ref": "RURAL_LIFESTYLE",
-            "nome": "🌿 ESTILO DE VIDA CAMPESTRE (Chácaras)",
-            "dor": "Estresse da cidade grande e falta de contato com a natureza.",
-            "desejo": "Chácara em condomínio (segurança) com espaço para horta e lazer."
-        }
-    }
-
-    # ... (Restante dos catálogos permanece igual) ...
+    # --- FORMATOS DE TEXTO (MIXED) ---
     CONTENT_FORMATS_MAP = {
-        "GUIA_DEFINITIVO": "📘 Guia Definitivo (Manual Completo)",
-        "LISTA_POLEMICA": "🔥 Lista Polêmica (Quebra de Mitos)",
-        "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Batalha VS)",
-        "INSIGHT_DE_CORRETOR": "💡 Insight de Bastidores (Segredos)",
-        "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas (FAQ Direto)",
-        "CENARIO_ANALITICO": "📊 Cenário Analítico (Foco em Dados)",
-        "CHECKLIST_TECNICO": "✅ Checklist de Verificação",
-        "PREVISAO_MERCADO": "🔮 Previsão de Futuro (Tendências)",
-        "ROTINA_SUGERIDA": "📅 Rotina Sugerida (Storytelling)",
-        "DATA_DRIVEN": "📈 Relatório Numérico (Estatístico)"
+        # Formatos Jornalísticos (Portal)
+        "NOTICIA_IMPACTO": "📰 Hard News (Notícia de Impacto)",
+        "EXPLAINER": "🧠 Explainer (Entenda o Caso)",
+        "DOSSIE_INVESTIGATIVO": "🕵️ Dossiê Investigativo (Longform)",
+        "CHECAGEM_FATOS": "✅ Checagem de Fatos (Verdade ou Mentira)",
+        "LISTA_CURADORIA": "📋 Curadoria (Top 5 / Roteiros)",
+        "ENTREVISTA_PING_PONG": "🎙️ Entrevista Ping-Pong (Direto)",
+        "SERVICO_PASSO_A_PASSO": "👣 Serviço Passo-a-Passo (Tutorial)",
+        
+        # Formatos Imobiliários (Legado)
+        "GUIA_DEFINITIVO": "📘 Guia Definitivo (Imobiliário)",
+        "LISTA_POLEMICA": "🔥 Lista Polêmica (Imobiliário)",
+        "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Imobiliário)",
+        "INSIGHT_DE_CORRETOR": "💡 Insight de Corretor",
+        "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas"
     }
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
-    EMOTIONAL_TRIGGERS_MAP = {
-        "ESCASSEZ": "💎 ESCASSEZ (A Joia da Coroa)",
-        "URGENCIA": "🚨 URGÊNCIA (Agora ou Nunca)",
-        "AUTORIDADE": "👑 AUTORIDADE (Quem Sabe Faz)",
-        "RECIPROCIDADE": "🤝 RECIPROCIDADE (Dar para Receber)",
-        "PROVA_SOCIAL": "👥 PROVA SOCIAL (O Que Todos Dizem)",
-        "PORQUE": "🧠 O PORQUÊ (A Razão Lógica)",
-        "ANTECIPACAO": "👀 Antecipação (O Futuro Chegando)",
-        "NOVIDADE": "✨ Novidade (Dopamina/O Novo)",
-        "CURIOSIDADE": "❓ Curiosidade (O Gap de Informação)",
-        "HISTORIA": "📖 História (Conexão/Storytelling)",
-        "MEDO": "😨 Medo (De Perder/Ficar de Fora)"
+    # --- PERSONAS ---
+    PERSONAS = {
+        "CITIZEN_GENERAL": {
+            "cluster_ref": "PORTAL", 
+            "nome": "🗞️ REDAÇÃO (Jornalismo Profissional)",
+            "dor": "Desinformação e falta de profundidade nas notícias locais.",
+            "desejo": "Informação confiável, verificada e útil para o dia a dia."
+        },
+        # (Personas Imobiliárias mantidas para compatibilidade)
+        "INVESTOR_SHARK_ROI": {"cluster_ref": "INVESTOR", "nome": "🦈 INVESTIDOR TUBARÃO", "dor": "Risco", "desejo": "Retorno"},
+        "EXODUS_SP_ELITE_FAMILY": {"cluster_ref": "HIGH_END", "nome": "✈️ FAMÍLIA EXODUS", "dor": "Segurança", "desejo": "Qualidade"},
+        "FIRST_HOME_DREAMER": {"cluster_ref": "URBAN", "nome": "🔑 1º IMÓVEL", "dor": "Orçamento", "desejo": "Viabilidade"}
     }
-    EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
-
-    ASSETS_CATALOG = {
-        "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO", "SOBRADO NEO CLÁSSICO", "LOTE EM CONDOMÍNIO DE LUXO"],
-        "FAMILY": ["CASA EM CONDOMÍNIO", "SOBRADO COM ÁREA GOURMET", "CASA TÉRREA ACESSÍVEL", "CASA DE RUA EM BAIRRO PLANEJADO"],
-        "URBAN": ["APARTAMENTO 3 DORMITÓRIOS", "APARTAMENTO 2 DORMITÓRIOS", "COBERTURA DUPLEX", "STUDIO / LOFT MODERNO"],
-        "INVESTOR": ["TERRENO EM CONDOMÍNIO", "TERRENO DE ESQUINA", "IMÓVEL PARA REFORMA (FLIP)", "KITNET PARA RENDA"],
-        "LOGISTICS": ["GALPÃO INDUSTRIAL AAA", "TERRENO INDUSTRIAL", "CONDOMÍNIO LOGÍSTICO", "ÁREA PARA CD"],
-        "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO OU HARAS", "CHÁCARA EM CONDOMÍNIO FECHADO"],
-        "CORPORATE": ["SALA COMERCIAL CORPORATIVA", "LAJE CORPORATIVA", "PRÉDIO MONOUSUÁRIO"]
-    }
-
+    
+    # --- EDITORIAS (CATÁLOGO PORTAL) ---
+    # Substitui os antigos "Ativos" do Portal
     PORTAL_CATALOG = {
-        "NOTICIAS": ["NOTÍCIAS DO DIA", "📰 Trânsito e Obras", "📰 Segurança Pública", "📰 Nova Lei Municipal", "📰 Evento Cultural"],
-        "UTILIDADE": ["💡 Farmácias de Plantão", "🚌 Horário de Ônibus", "💼 Vagas de Emprego", "💧 Falta de Água"],
-        "LAZER_CULTURA": ["🍽️ Onde Comer", "🌳 Parque Ecológico", "🎭 Agenda Cultural"],
-        "CURIOSIDADES": ["🏛️ História dos Bairros", "📈 Valorização dos Imóveis"]
+        "CIDADE_ALERTA": ["Trânsito e Mobilidade", "Segurança Pública", "Clima e Defesa Civil", "Saúde Pública (SUS/Hospitais)"],
+        "PODER_POLITICA": ["Câmara Municipal", "Decisões da Prefeitura", "Diário Oficial", "Eleições e Votos"],
+        "VIVER_INDAIATUBA": ["Agenda Cultural", "Gastronomia e Bares", "Parque Ecológico", "Eventos e Shows"],
+        "SEU_DINHEIRO": ["Vagas de Emprego", "Comércio Local", "Preço da Cesta Básica", "Novas Empresas"],
+        "EDUCACAO_FUTURO": ["Escolas e Creches", "Cursos Gratuitos", "Tecnologia e Inovação", "Obras de Infraestrutura"],
+        "COMUNIDADE": ["Causas Animais (Pets)", "Solidariedade e ONGs", "Histórias de Moradores", "Esportes Locais"]
+    }
+    
+    # (Catálogo Imobiliário mantido em ASSETS_CATALOG...)
+    ASSETS_CATALOG = {
+        "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO"],
+        "FAMILY": ["CASA EM CONDOMÍNIO", "SOBRADO COM ÁREA GOURMET"],
+        "URBAN": ["APARTAMENTO 3 DORMITÓRIOS", "STUDIO / LOFT MODERNO"],
+        "INVESTOR": ["TERRENO EM CONDOMÍNIO", "IMÓVEL PARA REFORMA"],
+        "LOGISTICS": ["GALPÃO INDUSTRIAL AAA", "ÁREA PARA CD"],
+        "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO OU HARAS"],
+        "CORPORATE": ["SALA COMERCIAL", "LAJE CORPORATIVA"]
+    }
+
+    EMOTIONAL_TRIGGERS_MAP = {
+        "AUTORIDADE": "👑 Autoridade", "ESCASSEZ": "💎 Escassez",
+        "URGENCIA": "🚨 Urgência", "PROVA_SOCIAL": "👥 Prova Social"
     }
