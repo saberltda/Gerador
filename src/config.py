@@ -1,9 +1,8 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.55.0 (STRUCTURE ENGINE)"
+    VERSION = "GERADOR V.56.0 (TONE & STRUCTURE SYNC)"
 
-    # ... (Cores e Regras permanecem iguais) ...
     COLOR_PRIMARY = "#003366"
     COLOR_ACTION  = "#28a745"
     GRADIENT_CTA  = "linear-gradient(135deg, #003366 0%, #001a33 100%)"
@@ -118,3 +117,4 @@ class GenesisConfig:
         "LAZER_CULTURA": ["🍽️ Onde Comer", "🌳 Parque Ecológico", "🎭 Agenda Cultural"],
         "CURIOSIDADES": ["🏛️ História dos Bairros", "📈 Valorização dos Imóveis"]
     }
+
