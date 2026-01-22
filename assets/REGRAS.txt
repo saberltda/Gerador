@@ -67,10 +67,10 @@ Sua resposta deve seguir EXATAMENTE esta ordem (1 a 8):
 (Formato visual: DD de mmmm de AAAA)
 
 6. LOCAL:
-Indaiatuba, SP
+Indaiatuba
 
 7. DESCRIÇÃO (META DESCRIPTION):
-(Focada na notícia ou dor, máx 150 caracteres)
+(Focada na notícia ou dor, jamais ultrapassar 150 caracteres)
 
 8. PROMPT DE IMAGEM:
 (Descrição para IA generativa ou fotógrafo, em Português BR)
@@ -99,3 +99,4 @@ Insira este código exato ao final do conteúdo HTML, antes de fechar a div prin
 ==============================================================================
 FIM DA ZONA DE SEGURANÇA
 ==============================================================================
+
