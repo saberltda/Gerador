@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.60.1 (SYNCED EDITIONS)"
+    VERSION = "GERADOR V.61 (NEWS UPDATE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -64,6 +64,7 @@ class GenesisConfig:
     
     # --- ÂNGULOS EDITORIAIS (THEMES) ---
     PORTAL_TOPICS_MAP = {
+        "GIRO_NOTICIAS": "⚡ Giro de Notícias (Tempo Real)",
         "JORNALISMO_SOLUCOES": "💡 Jornalismo de Soluções (Como resolver?)",
         "FISCAL_DO_POVO": "🔍 Fiscal do Povo (Transparência/Denúncia)",
         "DATA_JOURNALISM": "📊 Raio-X de Dados (O que os números dizem)",
@@ -76,10 +77,11 @@ class GenesisConfig:
     }
 
     PORTAL_TOPICS_WEIGHTS = {
-        "SERVICO_ESSENCIAL": 100, "FISCAL_DO_POVO": 95, 
-        "JORNALISMO_SOLUCOES": 90, "VOZ_DA_RUA": 85,
-        "ECONOMIA_REAL": 80, "BASTIDORES_PODER": 75,
-        "DATA_JOURNALISM": 70, "RESGATE_MEMORIA": 60
+        "GIRO_NOTICIAS": 100, "SERVICO_ESSENCIAL": 95, 
+        "FISCAL_DO_POVO": 90, "JORNALISMO_SOLUCOES": 85, 
+        "VOZ_DA_RUA": 80, "ECONOMIA_REAL": 75, 
+        "BASTIDORES_PODER": 70, "DATA_JOURNALISM": 60, 
+        "RESGATE_MEMORIA": 50
     }
 
     # --- FORMATOS DE TEXTO (SEPARADOS POR MODO) ---
@@ -123,8 +125,8 @@ class GenesisConfig:
     }
     
     # --- EDITORIAS (CATÁLOGO PORTAL) ---
-    # Substitui os antigos "Ativos" do Portal
     PORTAL_CATALOG = {
+        "DESTAQUE_DIARIO": ["Resumo das Principais Notícias do Dia"], # NOVO ITEM
         "CIDADE_ALERTA": ["Trânsito e Mobilidade", "Segurança Pública", "Clima e Defesa Civil", "Saúde Pública (SUS/Hospitais)"],
         "PODER_POLITICA": ["Câmara Municipal", "Decisões da Prefeitura", "Diário Oficial", "Eleições e Votos"],
         "VIVER_INDAIATUBA": ["Agenda Cultural", "Gastronomia e Bares", "Parque Ecológico", "Eventos e Shows"],
