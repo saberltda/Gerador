@@ -5,9 +5,8 @@ from .config import GenesisConfig
 
 class PromptBuilder:
     """
-    O 'Redator' (Versão 60.1 - Synced Editions).
-    Separação total de lógica entre Portal e Imobiliária.
-    Inclui Filtros Cognitivos para evitar contaminação de persona.
+    O 'Redator' (Versão 61 - News Edition).
+    Inclui suporte nativo para 'Resumo do Dia' com ordens de busca em tempo real.
     """
 
     CTA_CAPTURE_CODE = """
@@ -28,9 +27,6 @@ class PromptBuilder:
         except: return iso_date_str
 
     def _generate_seo_tags(self, d):
-        """
-        Gera tags otimizadas e sensíveis ao contexto (Portal vs Imobiliária).
-        """
         # 1. Definição da Base de Tags
         if d.get('tipo_pauta') == "PORTAL":
             tags = ["Indaiatuba", "Notícias Indaiatuba", "Portal da Cidade", "Utilidade Pública"]
@@ -43,7 +39,6 @@ class PromptBuilder:
         
         # 3. Injeção de Ativo/Editoria (Limpo)
         raw_ativo = d.get('ativo_definido', '')
-        # Remove sufixos como (Loteamento Aberto) ou (Portal)
         ativo_limpo = raw_ativo.split('(')[0].strip()
         if ativo_limpo: 
             tags.append(ativo_limpo)
@@ -52,17 +47,29 @@ class PromptBuilder:
         if d.get('topico'): 
             tags.append(d['topico'])
         
-        # 5. Deduplicação mantendo ordem
+        # 5. Deduplicação
         seen = set()
         final_tags = [x for x in tags if not (x in seen or seen.add(x))]
         
         return ", ".join(final_tags[:10])
 
     def _get_portal_structure(self, formato_key, editoria, tema):
-        """
-        Define a arquitetura da informação para Jornalismo Moderno.
-        """
         
+        # --- NOVO BLOCO: RESUMO DO DIA (LÓGICA ESPECIAL) ---
+        if "Resumo" in editoria or "Notícias" in editoria:
+            return f"""
+## 5. ESTRUTURA: RESUMO DO DIA (TEMPO REAL)
+**ORDEM DE BUSCA:** Você deve agir como um agregador de notícias.
+1. **Busque na Web/Base de Dados:** O que aconteceu HOJE em Indaiatuba?
+2. **Filtre:** Selecione os 3 a 5 fatos mais relevantes (Trânsito, Polícia, Política, Eventos).
+3. **Escreva:**
+   - **Manchete do Dia:** O fato principal.
+   - **Giro Rápido:** Lista com bullet points das outras notícias.
+   - **Previsão do Tempo:** Para hoje à noite e amanhã.
+   - **Serviço:** Farmácias de plantão ou avisos da Prefeitura (se houver).
+*Estilo:* Objetivo, "Curto e Grosso".
+"""
+
         # 1. EXPLAINER (Jornalismo Didático)
         if formato_key == "EXPLAINER":
             return f"""
@@ -72,7 +79,6 @@ O leitor está confuso. Sua missão é explicar o tema "{tema}" de forma didáti
 - **Contexto:** Como chegamos até aqui? (Background).
 - **O que muda na prática:** 3 pontos fundamentais que afetam a vida do leitor.
 - **Próximos passos:** O que esperar do futuro?
-*Estilo:* Use analogias simples. Evite "juridiquês" ou "politiquês".
 """
 
         # 2. DOSSIÊ INVESTIGATIVO (Profundidade)
@@ -85,7 +91,6 @@ Uma análise profunda sobre {editoria}.
 - **As Causas:** Por que isso acontece em Indaiatuba?
 - **O Outro Lado:** O que dizem as autoridades ou envolvidos?
 - **Impacto Humano:** Histórias reais de quem é afetado.
-*Estilo:* Jornalismo sério, baseada em dados, mas com narrativa envolvente.
 """
 
         # 3. CHECAGEM DE FATOS (Fact-Checking)
@@ -93,11 +98,10 @@ Uma análise profunda sobre {editoria}.
             return f"""
 ## 5. ESTRUTURA: CHECAGEM DE FATOS (VERDADE OU MENTIRA?)
 Há boatos circulando sobre "{tema}". Vamos esclarecer.
-- **O Boato:** "Dizem por aí que..." (Cite o que circula no WhatsApp/Redes).
-- **A Checagem:** O que apuramos (Fomos até o local, ligamos para o órgão, checamos a lei).
+- **O Boato:** "Dizem por aí que..."
+- **A Checagem:** O que apuramos (Fatos reais).
 - **As Evidências:** Mostre provas (Dados, fotos, documentos).
 - **Veredito:** É VERDADE, É MENTIRA ou É IMPRECISO?
-*Estilo:* Direto, seco e baseado puramente em evidências.
 """
 
         # 4. LISTA DE CURADORIA (Serviço/Lazer)
@@ -106,9 +110,8 @@ Há boatos circulando sobre "{tema}". Vamos esclarecer.
 ## 5. ESTRUTURA: CURADORIA (LISTA TOP X)
 O leitor quer recomendações confiáveis sobre {editoria}.
 - **Intro:** Por que esse tema está em alta?
-- **Item 1 a 5:** Seleção criteriosa. Para cada item, explique ONDE fica, QUANTO custa e POR QUE vale a pena.
-- **Dica de Ouro:** Um segredo extra para quem leu até o fim.
-*Estilo:* Leve, convidativo e útil. Como uma dica de amigo expert.
+- **Item 1 a 5:** Seleção criteriosa (Onde, Quanto, Porquê).
+- **Dica de Ouro:** Um segredo extra.
 """
 
         # 5. SERVIÇO PASSO A PASSO (Utilidade Pública)
@@ -117,10 +120,9 @@ O leitor quer recomendações confiáveis sobre {editoria}.
 ## 5. ESTRUTURA: TUTORIAL DE SERVIÇO
 Guia prático para resolver um problema do cidadão ({tema}).
 - **O que é:** Breve definição.
-- **Quem tem direito/Quem é afetado:** Critérios claros.
-- **Passo a Passo:** Lista numerada (1, 2, 3...) de como proceder.
-- **Documentos/Locais:** Onde ir, o que levar.
-*Estilo:* Imperativo ("Faça", "Leve", "Acesse"). Foco total em utilidade.
+- **Quem tem direito:** Critérios.
+- **Passo a Passo:** Lista numerada.
+- **Onde ir:** Endereços e Links.
 """
 
         # 6. HARD NEWS (Notícia Padrão)
@@ -129,9 +131,9 @@ Guia prático para resolver um problema do cidadão ({tema}).
 ## 5. ESTRUTURA: HARD NEWS (PIRÂMIDE INVERTIDA)
 Notícia quente e objetiva sobre {editoria}.
 - **Lide (Lead):** Quem, o quê, onde, quando e porquê no 1º parágrafo.
-- **Corpo:** Detalhes secundários, falas de testemunhas/autoridades.
-- **Contexto:** Isso já aconteceu antes? Dados relacionados.
-- **Serviço:** Telefones ou links úteis se necessário.
+- **Corpo:** Detalhes secundários.
+- **Contexto:** Histórico breve.
+- **Serviço:** Telefones/Links úteis.
 """
 
         # 7. ENTREVISTA PING-PONG
@@ -139,33 +141,25 @@ Notícia quente e objetiva sobre {editoria}.
             return f"""
 ## 5. ESTRUTURA: ENTREVISTA (PING-PONG)
 Conversa direta com uma fonte relevante sobre {tema}.
-- **Intro:** Quem é o entrevistado e por que ele importa agora.
-- **Pergunta 1:** (Sobre o problema atual).
-- **Pergunta 2:** (Sobre soluções).
-- **Pergunta 3:** (Mensagem para a população).
-*Estilo:* Transcreva as respostas de forma fluida, mantendo a voz do entrevistado.
+- **Intro:** Quem é o entrevistado.
+- **Perguntas e Respostas:** Transcrição fluida e editada.
 """
 
-        # FALLBACK
         else:
-            return "## 5. ESTRUTURA LIVRE\nDesenvolva uma matéria jornalística completa, com início, meio e fim, focada no interesse público."
+            return "## 5. ESTRUTURA LIVRE\nDesenvolva uma matéria jornalística completa."
 
     def _get_real_estate_guidelines(self, formato_key, cluster, bairro):
-        # Lógica "Unchained" para Imobiliária
-        
         base_instruction = f"""
 ## 5. CAMINHOS PARA EXPLORAR A FUNDO (MERCADO IMOBILIÁRIO)
 Escreva um texto ÉPICO e detalhado sobre {bairro}.
 Não economize palavras. Use storytelling, dados técnicos e persuasão.
-Disserte sobre estilo de vida, valorização e diferenciais ocultos.
 """
-
         if formato_key == "LISTA_POLEMICA":
-            return base_instruction + "\n- Quebre mitos comuns sobre o bairro.\n- Use 'Mito vs Verdade'."
+            return base_instruction + "\n- Quebre mitos comuns (Mito vs Verdade)."
         elif formato_key == "COMPARATIVO_TECNICO":
-            return base_instruction + "\n- Compare com outros bairros similares.\n- Seja brutalmente honesto nos prós e contras."
+            return base_instruction + "\n- Compare com outros bairros. Seja honesto."
         elif formato_key == "INSIGHT_DE_CORRETOR":
-            return base_instruction + "\n- Use Primeira Pessoa (Eu/Nós).\n- Conte segredos de bastidores."
+            return base_instruction + "\n- Use Primeira Pessoa (Eu/Nós). Conte bastidores."
         else:
             return base_instruction
 
@@ -179,10 +173,9 @@ Disserte sobre estilo de vida, valorização e diferenciais ocultos.
 """
         else:
             return """
-### 🧠 MENTALIDADE DE ESCRITOR (DEEP FLOW / COPYWRITER)
-- **Profundidade:** Não seja raso. Aprofunde-se nas causas e consequências.
-- **Fluidez:** Escreva parágrafos encadeados, sem quebras bruscas.
-- **Conexão:** Use uma linguagem persuasiva e envolvente.
+### 🧠 MENTALIDADE DE ESCRITOR (COPYWRITER)
+- **Profundidade:** Não seja raso. Aprofunde-se.
+- **Conexão:** Use linguagem persuasiva e envolvente.
 """
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada):
@@ -197,38 +190,38 @@ Disserte sobre estilo de vida, valorização e diferenciais ocultos.
     def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
         formato_key = d.get('formato', 'NOTICIA_IMPACTO')
-        editoria = d.get('ativo_definido', 'Geral') # Agora 'ativo' é a Editoria
+        editoria = d.get('ativo_definido', 'Geral')
         tema = d.get('topico', 'Geral')
         
         structure_guide = self._get_portal_structure(formato_key, editoria, tema)
         tone_guide = self._get_tone_guidelines("NEUTRAL_JOURNALISM")
         
         return f"""
-## GENESIS MAGNETO V.60 — PORTAL NEWS ENGINE
+## GENESIS MAGNETO V.61 — PORTAL NEWS ENGINE
 **Objetivo:** JORNALISMO LOCAL DE ALTO NÍVEL.
-**Persona:** PORTAL DA CIDADE (Credibilidade, Utilidade e Imparcialidade).
+**Persona:** PORTAL DA CIDADE.
 
 ## 1. A PAUTA
 - **EDITORIA:** {editoria}
-- **TEMA/ÂNGULO:** {tema}
-- **LOCAL:** Indaiatuba (Abrangência Municipal)
+- **TEMA:** {tema}
+- **LOCAL:** Indaiatuba (Cidade Inteira)
 - **FORMATO:** {formato_key}
 
 ## 2. MISSÃO JORNALÍSTICA
 Você é um repórter investigativo e comunitário.
-- **Foco:** Interesse Público. Como isso afeta a vida do cidadão?
-- **Tom:** Profissional, mas próximo. Evite sensacionalismo barato.
-- **Dados:** Sempre que possível, cite dados (invente dados realistas para o exercício se necessário, mantendo coerência).
+- **Foco:** Interesse Público.
+- **Dados:** Use dados reais sempre que possível (ou simule com coerência extrema se for exercício).
+- **Busca:** Se for "Resumo do Dia", FAÇA A BUSCA DE FATOS REAIS.
 
 {structure_guide}
 
 {tone_guide}
 
-## 3. INSUMOS (REGRAS & CONTEXTO)
-**DIRETRIZ SUPREMA DE PERSONA (FILTRO COGNITIVO):**
-1. Você deve **IGNORAR** completamente a "OPÇÃO A (IMOBILIÁRIA)" do arquivo de regras abaixo.
-2. Você DEVE encarnar **APENAS** a "OPÇÃO B (PORTAL DA CIDADE)".
-3. Seu compromisso é com a verdade jornalística, não com a venda.
+## 3. INSUMOS (FILTRO COGNITIVO)
+**DIRETRIZ SUPREMA:**
+1. IGNORAR completamente a "OPÇÃO A (IMOBILIÁRIA)".
+2. ENCARNAR apenas a "OPÇÃO B (PORTAL DA CIDADE)".
+3. Compromisso total com a verdade jornalística.
 
 <REGRAS_DO_SISTEMA>
 {regras_texto_ajustada}
@@ -238,10 +231,10 @@ Você é um repórter investigativo e comunitário.
 {self.CTA_CAPTURE_CODE}
 
 ## 5. CHECKLIST FINAL
-1. TÍTULO (H1): Manchete jornalística (curta e direta).
-2. LIDE: Primeiro parágrafo respondendo às questões chaves.
-3. CONTEÚDO: Corpo robusto e informativo.
-4. JSON-LD: Schema de 'NewsArticle'.
+1. TÍTULO (H1): Manchete jornalística.
+2. LIDE: Resumo inicial (Quem, Quando, Onde).
+3. CONTEÚDO: Robusto e informativo.
+4. JSON-LD: Schema 'NewsArticle'.
 5. MARCADORES: {self._generate_seo_tags(d)}
 """.strip()
 
@@ -260,9 +253,9 @@ Você é um repórter investigativo e comunitário.
         tone = self._get_tone_guidelines(gatilho)
 
         return f"""
-## GENESIS MAGNETO V.60 — REAL ESTATE (UNCHAINED)
-**Objetivo:** Copywriting Imobiliário Persuasivo e Profundo.
-**Persona:** IMOBILIÁRIA SABER (Vendas).
+## GENESIS MAGNETO V.61 — REAL ESTATE (UNCHAINED)
+**Objetivo:** Copywriting Imobiliário Persuasivo.
+**Persona:** IMOBILIÁRIA SABER.
 
 ## 1. O CENÁRIO
 - **ATIVO:** {ativo}
@@ -271,16 +264,16 @@ Você é um repórter investigativo e comunitário.
 - **FORMATO:** {formato}
 - **GATILHO:** {gatilho}
 
-## 2. CARTA DE ALFORRIA (LIBERDADE TOTAL)
-Escreva um texto rico, longo e detalhado. Venda o sonho e a realidade técnica.
+## 2. CARTA DE ALFORRIA
+Escreva um texto rico, longo e detalhado. Venda o sonho.
 {structure}
 {tone}
 
-## 3. INSUMOS
-**DIRETRIZ SUPREMA DE PERSONA (FILTRO COGNITIVO):**
-1. Você deve **IGNORAR** completamente a "OPÇÃO B (PORTAL)" do arquivo de regras abaixo.
-2. Você DEVE encarnar **APENAS** a "OPÇÃO A (IMOBILIÁRIA SABER)".
-3. Seu objetivo é encantar, persuadir e vender.
+## 3. INSUMOS (FILTRO COGNITIVO)
+**DIRETRIZ SUPREMA:**
+1. IGNORAR completamente a "OPÇÃO B (PORTAL)".
+2. ENCARNAR apenas a "OPÇÃO A (IMOBILIÁRIA SABER)".
+3. Objetivo: Encantar e Vender.
 
 <REGRAS_DO_SISTEMA>
 {regras_texto_ajustada}
@@ -290,8 +283,8 @@ Escreva um texto rico, longo e detalhado. Venda o sonho e a realidade técnica.
 {self.CTA_CAPTURE_CODE}
 
 ## 5. CHECKLIST FINAL
-1. TÍTULO (H1): Persuasivo e com SEO.
+1. TÍTULO (H1): Persuasivo.
 2. CONTEÚDO: Rico e detalhado.
 3. MARCADORES: {self._generate_seo_tags(d)}
-4. JSON-LD: Schema de 'BlogPosting'.
+4. JSON-LD: Schema 'BlogPosting'.
 """.strip()
