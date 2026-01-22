@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.61 (NEWS UPDATE)"
+    VERSION = "GERADOR V.62 (SYNCED PORTAL EDITION)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -58,45 +58,6 @@ class GenesisConfig:
 
     TOPICS_WEIGHTS = {k: 80 for k in TOPICS_MAP.keys()} # Pesos equalizados
 
-    # =====================================================
-    # 3. O NOVO PORTAL: JORNALISMO MODERNO
-    # =====================================================
-    
-    # --- ÂNGULOS EDITORIAIS (THEMES) ---
-    PORTAL_TOPICS_MAP = {
-        "GIRO_NOTICIAS": "⚡ Giro de Notícias (Tempo Real)",
-        "JORNALISMO_SOLUCOES": "💡 Jornalismo de Soluções (Como resolver?)",
-        "FISCAL_DO_POVO": "🔍 Fiscal do Povo (Transparência/Denúncia)",
-        "DATA_JOURNALISM": "📊 Raio-X de Dados (O que os números dizem)",
-        "SERVICO_ESSENCIAL": "🛠️ Serviço e Utilidade (Guia Prático)",
-        "RESGATE_MEMORIA": "🏛️ Memória Viva (História e Identidade)",
-        "BASTIDORES_PODER": "⚖️ Bastidores do Poder (Política/Decisões)",
-        "ECONOMIA_REAL": "💰 Economia Real (Bolso do Cidadão)",
-        "VOZ_DA_RUA": "🗣️ Voz da Rua (Histórias Humanas/Comunidade)",
-        "FUTURO_INOVACAO": "🚀 Futuro e Inovação (Obras/Projetos)"
-    }
-
-    PORTAL_TOPICS_WEIGHTS = {
-        "GIRO_NOTICIAS": 100, "SERVICO_ESSENCIAL": 95, 
-        "FISCAL_DO_POVO": 90, "JORNALISMO_SOLUCOES": 85, 
-        "VOZ_DA_RUA": 80, "ECONOMIA_REAL": 75, 
-        "BASTIDORES_PODER": 70, "DATA_JOURNALISM": 60, 
-        "RESGATE_MEMORIA": 50
-    }
-
-    # --- FORMATOS DE TEXTO (SEPARADOS POR MODO) ---
-    
-    # Lista Exclusiva para Modo Portal
-    PORTAL_FORMATS_MAP = {
-        "NOTICIA_IMPACTO": "📰 Hard News (Notícia de Impacto)",
-        "EXPLAINER": "🧠 Explainer (Entenda o Caso)",
-        "DOSSIE_INVESTIGATIVO": "🕵️ Dossiê Investigativo (Longform)",
-        "CHECAGEM_FATOS": "✅ Checagem de Fatos (Verdade ou Mentira)",
-        "LISTA_CURADORIA": "📋 Curadoria (Top 5 / Roteiros)",
-        "ENTREVISTA_PING_PONG": "🎙️ Entrevista Ping-Pong (Direto)",
-        "SERVICO_PASSO_A_PASSO": "👣 Serviço Passo-a-Passo (Tutorial)"
-    }
-
     # Lista Exclusiva para Modo Imobiliária
     REAL_ESTATE_FORMATS_MAP = {
         "GUIA_DEFINITIVO": "📘 Guia Definitivo (Imobiliário)",
@@ -106,11 +67,118 @@ class GenesisConfig:
         "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas"
     }
 
+    # =====================================================
+    # 3. O NOVO PORTAL: MATRIZ DE SINCRONIZAÇÃO
+    # =====================================================
+    
+    # Esta matriz define a lógica: Editoria -> Tópicos Permitidos -> Formatos Permitidos
+    PORTAL_MATRIX = {
+        "GIRO_POLICIAL": {
+            "label": "🚔 Plantão Policial & Trânsito",
+            "topics": [
+                "ACIDENTE_GRAVE", "OPERACAO_POLICIAL", "ALERTAS_DEFESA_CIVIL",
+                "MOBILIDADE_URBANA", "OBRAS_VIARIAS"
+            ],
+            "formats": ["NOTICIA_IMPACTO", "CHECAGEM_FATOS", "DATA_DRIVEN"]
+        },
+        "POLITICA_BASTIDORES": {
+            "label": "🏛️ Política & Poder",
+            "topics": [
+                "CAMARA_MUNICIPAL", "DECISOES_PREFEITURA", "ELEICOES_CENARIOS",
+                "POLEMICA_LEGISLATIVA", "ORCAMENTO_PUBLICO"
+            ],
+            "formats": ["DOSSIE_INVESTIGATIVO", "EXPLAINER", "ENTREVISTA_PING_PONG", "BASTIDORES_ANALISE"]
+        },
+        "AGENDA_CULTURAL": {
+            "label": "🎉 Viver Indaiatuba (Lazer)",
+            "topics": [
+                "SHOWS_EVENTOS", "GASTRONOMIA_NOVIDADES", "PARQUE_ECOLOGICO_LAZER",
+                "ROTEIROS_FIM_DE_SEMANA", "CULTURA_ARTE"
+            ],
+            "formats": ["LISTA_CURADORIA", "ROTEIRO_EXPERIENCIA", "NOTICIA_SERVICO"]
+        },
+        "ECONOMIA_LOCAL": {
+            "label": "💰 Seu Bolso & Negócios",
+            "topics": [
+                "VAGAS_EMPREGO", "NOVAS_EMPRESAS", "MERCADO_IMOBILIARIO",
+                "CUSTO_DE_VIDA", "INAUGURACOES"
+            ],
+            "formats": ["SERVICO_PASSO_A_PASSO", "DATA_DRIVEN", "LISTA_CURADORIA"]
+        },
+        "COTIDIANO_CIDADE": {
+            "label": "🏘️ Comunidade & Serviços",
+            "topics": [
+                "CLIMA_TEMPO", "SAUDE_PUBLICA", "EDUCACAO_ESCOLAS",
+                "CAUSA_ANIMAL", "HISTORIAS_DE_VIDA"
+            ],
+            "formats": ["SERVICO_PASSO_A_PASSO", "EXPLAINER", "VOZ_DA_RUA"]
+        },
+        "DESTAQUE_DO_DIA": {
+            "label": "⚡ Resumo Diário (Manchete)",
+            "topics": ["RESUMO_GERAL", "PRINCIPAIS_MANCHETES"],
+            "formats": ["REVISTA_DIGITAL_DIARIA"]
+        }
+    }
+
+    # --- DICIONÁRIO DE VISUALIZAÇÃO (TÓPICOS) ---
+    PORTAL_TOPICS_DISPLAY = {
+        "ACIDENTE_GRAVE": "🚨 Acidentes e Ocorrências Graves",
+        "OPERACAO_POLICIAL": "🚓 Operações e Segurança Pública",
+        "ALERTAS_DEFESA_CIVIL": "⛈️ Clima Extremo e Defesa Civil",
+        "MOBILIDADE_URBANA": "🚦 Trânsito e Mudanças Viárias",
+        "OBRAS_VIARIAS": "🚧 Obras e Interdições",
+        "CAMARA_MUNICIPAL": "⚖️ Votações na Câmara",
+        "DECISOES_PREFEITURA": "✍️ Decretos e Atos do Executivo",
+        "ELEICOES_CENARIOS": "🗳️ Cenário Eleitoral e Pesquisas",
+        "POLEMICA_LEGISLATIVA": "🔥 Polêmicas e Debates",
+        "ORCAMENTO_PUBLICO": "💸 Dinheiro Público (Para onde vai?)",
+        "SHOWS_EVENTOS": "🎵 Agenda de Shows e Eventos",
+        "GASTRONOMIA_NOVIDADES": "🍔 Gastronomia e Novos Bares",
+        "PARQUE_ECOLOGICO_LAZER": "🌳 Parque Ecológico e Ar Livre",
+        "ROTEIROS_FIM_DE_SEMANA": "📅 O que fazer no Fim de Semana",
+        "CULTURA_ARTE": "🎨 Exposições e Cultura",
+        "VAGAS_EMPREGO": "💼 Balcão de Empregos",
+        "NOVAS_EMPRESAS": "🏭 Indústrias e Comércio",
+        "MERCADO_IMOBILIARIO": "🏠 Mercado Imobiliário Local",
+        "CUSTO_DE_VIDA": "🛒 Preços e Economia Doméstica",
+        "INAUGURACOES": "🎀 Inaugurações Recentes",
+        "CLIMA_TEMPO": "☀️ Previsão do Tempo Detalhada",
+        "SAUDE_PUBLICA": "🏥 SUS, Hospitais e Vacinação",
+        "EDUCACAO_ESCOLAS": "🎓 Educação e Escolas",
+        "CAUSA_ANIMAL": "🐾 Pets e Causa Animal",
+        "HISTORIAS_DE_VIDA": "❤️ Personagens da Cidade",
+        "RESUMO_GERAL": "📰 Mix de Notícias do Dia",
+        "PRINCIPAIS_MANCHETES": "🗞️ As Capas dos Jornais"
+    }
+
+    # --- DICIONÁRIO DE VISUALIZAÇÃO (FORMATOS) ---
+    PORTAL_FORMATS_DISPLAY = {
+        "NOTICIA_IMPACTO": "📰 Hard News (Fato Seco)",
+        "CHECAGEM_FATOS": "✅ Checagem (Verdade ou Mentira?)",
+        "DATA_DRIVEN": "📊 Jornalismo de Dados (Raio-X)",
+        "DOSSIE_INVESTIGATIVO": "🕵️ Dossiê Investigativo (Profundo)",
+        "EXPLAINER": "🧠 Explainer (Entenda o Caso)",
+        "ENTREVISTA_PING_PONG": "🎙️ Entrevista (Ping-Pong)",
+        "BASTIDORES_ANALISE": "👀 Coluna de Análise/Opinião",
+        "LISTA_CURADORIA": "📋 Lista / Roteiro (Top 5)",
+        "ROTEIRO_EXPERIENCIA": "⭐ Review / Experiência Real",
+        "NOTICIA_SERVICO": "ℹ️ Notícia de Serviço",
+        "SERVICO_PASSO_A_PASSO": "👣 Tutorial / Passo a Passo",
+        "VOZ_DA_RUA": "🗣️ Reportagem Humanizada",
+        "REVISTA_DIGITAL_DIARIA": "🗞️ Giro Completo (Newsletter)"
+    }
+    
+    # (Mantido para compatibilidade reversa com Imobiliária)
+    PORTAL_FORMATS_MAP = PORTAL_FORMATS_DISPLAY 
+    
     # Unificado (apenas para compatibilidade interna se necessário)
     CONTENT_FORMATS_MAP = {**PORTAL_FORMATS_MAP, **REAL_ESTATE_FORMATS_MAP}
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
-    # --- PERSONAS ---
+    # =====================================================
+    # 4. PERSONAS E CATÁLOGOS
+    # =====================================================
+    
     PERSONAS = {
         "CITIZEN_GENERAL": {
             "cluster_ref": "PORTAL", 
@@ -118,24 +186,23 @@ class GenesisConfig:
             "dor": "Desinformação e falta de profundidade nas notícias locais.",
             "desejo": "Informação confiável, verificada e útil para o dia a dia."
         },
-        # (Personas Imobiliárias mantidas para compatibilidade)
         "INVESTOR_SHARK_ROI": {"cluster_ref": "INVESTOR", "nome": "🦈 INVESTIDOR TUBARÃO", "dor": "Risco", "desejo": "Retorno"},
         "EXODUS_SP_ELITE_FAMILY": {"cluster_ref": "HIGH_END", "nome": "✈️ FAMÍLIA EXODUS", "dor": "Segurança", "desejo": "Qualidade"},
         "FIRST_HOME_DREAMER": {"cluster_ref": "URBAN", "nome": "🔑 1º IMÓVEL", "dor": "Orçamento", "desejo": "Viabilidade"}
     }
-    
-    # --- EDITORIAS (CATÁLOGO PORTAL) ---
+
+    # --- EDITORIAS (CATÁLOGO LEGADO - MANTIDO P/ BACKUP) ---
     PORTAL_CATALOG = {
-        "DESTAQUE_DIARIO": ["Resumo das Principais Notícias do Dia"], # NOVO ITEM
-        "CIDADE_ALERTA": ["Trânsito e Mobilidade", "Segurança Pública", "Clima e Defesa Civil", "Saúde Pública (SUS/Hospitais)"],
-        "PODER_POLITICA": ["Câmara Municipal", "Decisões da Prefeitura", "Diário Oficial", "Eleições e Votos"],
-        "VIVER_INDAIATUBA": ["Agenda Cultural", "Gastronomia e Bares", "Parque Ecológico", "Eventos e Shows"],
-        "SEU_DINHEIRO": ["Vagas de Emprego", "Comércio Local", "Preço da Cesta Básica", "Novas Empresas"],
-        "EDUCACAO_FUTURO": ["Escolas e Creches", "Cursos Gratuitos", "Tecnologia e Inovação", "Obras de Infraestrutura"],
-        "COMUNIDADE": ["Causas Animais (Pets)", "Solidariedade e ONGs", "Histórias de Moradores", "Esportes Locais"]
+        "DESTAQUE_DIARIO": ["Resumo das Principais Notícias do Dia"], 
+        "CIDADE_ALERTA": ["Trânsito e Mobilidade", "Segurança Pública", "Clima e Defesa Civil"],
+        "PODER_POLITICA": ["Câmara Municipal", "Decisões da Prefeitura"],
+        "VIVER_INDAIATUBA": ["Agenda Cultural", "Gastronomia e Bares", "Parque Ecológico"],
+        "SEU_DINHEIRO": ["Vagas de Emprego", "Comércio Local"],
+        "EDUCACAO_FUTURO": ["Escolas e Creches", "Cursos Gratuitos"],
+        "COMUNIDADE": ["Causas Animais (Pets)", "Solidariedade e ONGs"]
     }
     
-    # (Catálogo Imobiliário mantido em ASSETS_CATALOG...)
+    # --- CATÁLOGO IMOBILIÁRIO ---
     ASSETS_CATALOG = {
         "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO"],
         "FAMILY": ["CASA EM CONDOMÍNIO", "SOBRADO COM ÁREA GOURMET"],
@@ -145,6 +212,10 @@ class GenesisConfig:
         "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO OU HARAS"],
         "CORPORATE": ["SALA COMERCIAL", "LAJE CORPORATIVA"]
     }
+
+    # --- PESOS E MAPAS LEGADOS (COMPATIBILIDADE) ---
+    PORTAL_TOPICS_MAP = PORTAL_TOPICS_DISPLAY # Alias
+    PORTAL_TOPICS_WEIGHTS = {k: 90 for k in PORTAL_TOPICS_DISPLAY.keys()}
 
     EMOTIONAL_TRIGGERS_MAP = {
         "AUTORIDADE": "👑 Autoridade", "ESCASSEZ": "💎 Escassez",
