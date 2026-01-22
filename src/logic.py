@@ -1,7 +1,40 @@
 # src/logic.py
 import random
 import unicodedata
+from collections import defaultdict
 from .config import GenesisConfig
+
+class SEOHeatmap:
+    """
+    Monitora a saturação de pautas para evitar repetir o mesmo
+    viés de venda no mesmo bairro muitas vezes.
+    """
+    def __init__(self):
+        self.mapa = defaultdict(lambda: defaultdict(int))
+
+    def registrar(self, bairro_slug, cluster_nome):
+        self.mapa[bairro_slug][cluster_nome] += 1
+
+    def saturacao(self, bairro_slug, cluster_nome):
+        n = self.mapa[bairro_slug][cluster_nome]
+        if n >= 5: return "ALTA"
+        if n >= 3: return "MÉDIA"
+        return "BAIXA"
+
+class RiscoJuridico:
+    """
+    Calculadora independente de risco jurídico para zoneamento.
+    """
+    def calcular(self, bairro, cluster_key):
+        zona_norm = bairro.get("zona_normalizada", "")
+        score = 0
+        if zona_norm == "industrial": score += 3
+        if cluster_key in ("CORPORATE", "LOGISTICS"): score += 2
+        if "mista" in zona_norm: score += 1
+        
+        if score >= 5: return "ALTO (Consulte Depto Jurídico)"
+        if score >= 3: return "MÉDIO"
+        return "BAIXO"
 
 class PlanoDiretor:
     """
@@ -15,7 +48,7 @@ class PlanoDiretor:
         return t.lower()
 
     def calcular_risco_juridico(self, zona_norm: str, cluster_key: str) -> str:
-        """Calcula o Score de Risco Jurídico (Recuperado da V35)"""
+        """Calcula o Score de Risco Jurídico (Método interno do PlanoDiretor)"""
         score = 0
         if zona_norm == "industrial": score += 3
         if cluster_key in ("CORPORATE", "LOGISTICS"): score += 2
