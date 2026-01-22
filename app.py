@@ -10,6 +10,11 @@ from src.builder import PromptBuilder
 from src.utils import slugify
 
 # =========================================================
+# 🎲 CONFIGURAÇÃO GERAL
+# =========================================================
+CONST_RANDOM = "🎲 ALEATÓRIO"
+
+# =========================================================
 # 🎨 DESIGN SYSTEM (MINIMALIST WHITE)
 # =========================================================
 def setup_ui():
@@ -108,9 +113,6 @@ def open_selection_dialog(label, options, key):
     except:
         idx = 0
     
-    # --- CORREÇÃO DO BUG DE HEIGHT (Fix StreamlitInvalidHeightError) ---
-    # Só adiciona o parâmetro 'height' se ele for necessário (lista longa).
-    # Passar 'height=None' explicitamente quebra a validação em versões novas.
     container_kwargs = {"border": False}
     if len(options) > 10:
         container_kwargs["height"] = 300
@@ -153,12 +155,6 @@ def load_history():
             return None
     return None
 
-def show_manual():
-    with st.expander("ℹ️ NOTAS RÁPIDAS"):
-        c1, c2 = st.columns(2)
-        with c1: st.caption("Use **Escassez** para vendas rápidas.")
-        with c2: st.caption("Use **Autoridade** para branding.")
-
 # =========================================================
 # APP PRINCIPAL
 # =========================================================
@@ -172,27 +168,25 @@ def main():
         st.error(f"❌ Erro de Sistema: {e}")
         st.stop()
 
-    # Listas Básicas
+    # Listas Básicas (Agora usando CONST_RANDOM "🎲 ALEATÓRIO")
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
-    l_personas = ["ALEATÓRIO"] + list(persona_map.keys())
+    l_personas = [CONST_RANDOM] + list(persona_map.keys())
     l_bairros = sorted([b['nome'] for b in dados_mestre.bairros])
-    l_topicos = ["ALEATÓRIO"] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
-    l_formatos = ["ALEATÓRIO"] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
-    l_gatilhos = ["ALEATÓRIO"] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
+    l_topicos = [CONST_RANDOM] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
+    l_formatos = [CONST_RANDOM] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
+    l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.6 (Final Robust) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.7 (Pet Premium + PT-BR) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
     with tab_painel:
         with st.container(border=True):
             
-            # 0. SELETOR DE MODO (AGORA BLINDADO COM MAPEAMENTO)
             if "k_tipo_pauta" not in st.session_state: st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
 
-            # Dicionário de Mapeamento: Texto UI -> Código Interno
             MAPA_MODOS = {
                 "🏢 Imobiliária": "IMOBILIARIA",
                 "📢 Portal da Cidade": "PORTAL"
@@ -204,40 +198,33 @@ def main():
             except:
                 tipo_pauta_ui = st.radio("Tipo de Pauta", opcoes_pauta, horizontal=True, key="k_tipo_pauta")
             
-            # Garante que não quebre se o widget retornar None na inicialização
             if not tipo_pauta_ui: tipo_pauta_ui = opcoes_pauta[0]
-
-            # --- TRADUÇÃO SEGURA ---
-            tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA") # Default seguro
+            tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA")
             eh_portal = (tipo_pauta_code == "PORTAL")
 
-            # Define ativos
             if not eh_portal:
-                lista_ativos_display = ["ALEATÓRIO"] + dados_mestre.todos_ativos_imoveis
+                lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_imoveis
                 label_ativo = "Imóvel"
                 icon_ativo = "🏠"
             else:
-                lista_ativos_display = ["ALEATÓRIO"] + dados_mestre.todos_ativos_portal
+                lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_portal
                 label_ativo = "Categoria do Portal"
                 icon_ativo = "📰"
 
             st.markdown("---")
 
-            # 1. CONTEXTO E PERSONA (LÓGICA CORRIGIDA)
             c1, c2 = st.columns([1, 2])
             with c1:
                 data_pub = st.date_input("Data de Publicação", datetime.date.today(), key="k_data")
             with c2:
-                # SE FOR PORTAL, ESCONDE A PERSONA (A IA vai usar "Cidadão Geral")
                 if not eh_portal:
                     sel_persona = smart_select("Persona Alvo", l_personas, "k_persona", "👤", use_label=True)
                 else:
                     st.info("ℹ️ Modo Portal: Público alvo definido como 'Cidadão de Indaiatuba'.")
-                    sel_persona = "CITIZEN_GENERAL" # Chave interna forçada
+                    sel_persona = "CITIZEN_GENERAL"
 
             st.markdown("---")
 
-            # 2. GEOGRAFIA
             if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
             try:
                 modo_geo = st.pills("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
@@ -254,7 +241,6 @@ def main():
 
             st.markdown("---")
 
-            # 3. ESTRATÉGIA
             c3, c4 = st.columns(2)
             with c3:
                 sel_ativo = smart_select(label_ativo, lista_ativos_display, "k_ativo", icon_ativo, use_label=True)
@@ -269,11 +255,9 @@ def main():
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # 4. AÇÕES
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
                 def reset_state_callback():
-                    # Callback único e seguro
                     for k in ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_formato", "k_gatilho", "k_modo_geo", "k_data", "k_tipo_pauta"]:
                         if k in st.session_state: del st.session_state[k]
                     st.session_state["k_modo_geo"] = "🎲 Aleatório"
@@ -285,7 +269,6 @@ def main():
                 run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
 
         if run_btn:
-            # show_manual()
             progress_bar = st.progress(0)
             status_text = st.empty()
             try:
@@ -293,32 +276,44 @@ def main():
                 progress_bar.progress(20)
                 engine = GenesisEngine(dados_mestre)
                 
-                # Tradução de Chaves (Lógica corrigida para Portal)
+                # --- TRADUÇÃO DAS SELEÇÕES (UI "🎲 ALEATÓRIO" -> Engine "ALEATÓRIO") ---
+                
+                # 1. Persona
                 if not eh_portal:
-                    p_key = "ALEATÓRIO"
-                    if sel_persona != "ALEATÓRIO": p_key = persona_map[sel_persona]
+                    if sel_persona == CONST_RANDOM:
+                        p_key = "ALEATÓRIO"
+                    else:
+                        p_key = persona_map[sel_persona]
                 else:
-                    p_key = "CITIZEN_GENERAL" # Força a persona cidadão
+                    p_key = "CITIZEN_GENERAL"
 
+                # 2. Ativo
+                final_ativo_selecao = "ALEATÓRIO" if sel_ativo == CONST_RANDOM else sel_ativo
+                
+                # 3. Tópico, Formato, Gatilho
+                final_topico = "ALEATÓRIO" if sel_topico == CONST_RANDOM else sel_topico
+                
+                # Formato (Reverso map)
                 f_key = "ALEATÓRIO"
-                if sel_formato != "ALEATÓRIO":
+                if sel_formato != CONST_RANDOM:
                     for k,v in GenesisConfig.CONTENT_FORMATS_MAP.items():
                         if v == sel_formato: f_key = k; break
                 
+                # Gatilho (Reverso map)
                 g_key = "ALEATÓRIO"
-                if sel_gatilho != "ALEATÓRIO":
+                if sel_gatilho != CONST_RANDOM:
                     for k,v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
                         if v == sel_gatilho: g_key = k; break
 
                 user_sel = {
                     "persona_key": p_key, 
                     "bairro_nome": final_bairro_input, 
-                    "topico": sel_topico, 
-                    "ativo": sel_ativo,
+                    "topico": final_topico, 
+                    "ativo": final_ativo_selecao,
                     "formato": f_key, 
                     "gatilho": g_key,
                     "data_pub_obj": data_pub,
-                    "tipo_pauta": tipo_pauta_code # Envia o CÓDIGO limpo (IMOBILIARIA ou PORTAL)
+                    "tipo_pauta": tipo_pauta_code
                 }
                 
                 res = engine.run(user_sel)
@@ -334,14 +329,11 @@ def main():
                 regras = regras_mestre.get_for_prompt(local)
                 prompt = builder.build(res, d_pub_iso, h_iso, regras)
                 
-                # --- NOME DO ARQUIVO INTELIGENTE ---
                 data_prefix = d_pub_iso.split('T')[0]
                 if eh_portal:
-                    # Se for Portal, usa o TEMA no nome (ex: 2026-01-21_PORTAL_transito.txt)
                     clean_ativo = slugify(res['ativo_definido'])[:20]
                     nome_arq = f"{data_prefix}_PORTAL_{clean_ativo}.txt"
                 else:
-                    # Se for Imobiliária, usa a PERSONA (ex: 2026-01-21_SEO_investidor.txt)
                     clean_persona = slugify(res['persona']['nome'])[:10]
                     nome_arq = f"{data_prefix}_SEO_{clean_persona}.txt"
                 
@@ -354,7 +346,6 @@ def main():
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
                 b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
                 
-                # PROTEÇÃO CONTRA CRASH NO SPLIT DE STRING
                 parts = f_bonito.split()
                 if len(parts) >= 2:
                     estrategia_display = f"{parts[0]} {parts[1]}"
@@ -363,7 +354,6 @@ def main():
 
                 k1, k2, k3 = st.columns(3)
                 with k1: 
-                    # Exibe "Cidadão" se for Portal, ou a Persona se for Imob
                     nome_display = "Cidadão (Portal)" if eh_portal else res['persona']['nome'].split('(')[0]
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">Público</div><div class="metric-value">{nome_display}</div></div>""", unsafe_allow_html=True)
                 with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Localização</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
@@ -381,7 +371,6 @@ def main():
     with tab_hist:
         df = load_history()
         if df is not None and not df.empty:
-            # Configuração das colunas, agora suportando TIPO_PAUTA se existir
             cols_cfg = {
                 "DATA_PUB": st.column_config.DateColumn("Data Post", format="DD/MM/YYYY"),
                 "CRIADO_EM": st.column_config.DatetimeColumn("Criado Em", format="DD/MM HH:mm"),
@@ -394,7 +383,6 @@ def main():
             st.dataframe(df, use_container_width=True, hide_index=True, column_config=cols_cfg)
             csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
             
-            # --- ATUALIZAÇÃO DO NOME DO ARQUIVO ---
             now_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
             file_name_hist = f"{now_str}_historico_genesis.csv"
             
