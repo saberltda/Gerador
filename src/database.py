@@ -44,8 +44,10 @@ class GenesisData:
         # --- ORDENAÇÃO INTELIGENTE PORTAL ---
         self.todos_ativos_portal.sort()
         
-        # Força "NOTÍCIAS DO DIA" para o topo
-        ITEM_DESTAQUE = "NOTÍCIAS DO DIA"
+        # [CORREÇÃO] Força o nome EXATO que está no config.py para o topo
+        # Nome deve ser idêntico ao definido em GenesisConfig.PORTAL_CATALOG["DESTAQUE_DIARIO"]
+        ITEM_DESTAQUE = "Resumo das Principais Notícias do Dia"
+        
         if ITEM_DESTAQUE in self.todos_ativos_portal:
             self.todos_ativos_portal.remove(ITEM_DESTAQUE)
             self.todos_ativos_portal.insert(0, ITEM_DESTAQUE)
