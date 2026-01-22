@@ -16,11 +16,23 @@ class GenesisData:
         
         self.ativos_por_cluster = self.ativos_imobiliaria 
 
-        self.todos_ativos_imoveis = []
+        # --- ORDENAÇÃO INTELIGENTE DE IMÓVEIS ---
+        # Objetivo: Colocar os itens em MAIÚSCULO (Categorias Mestras) no topo da lista
+        raw_assets = []
         for lista in self.ativos_imobiliaria.values():
-            self.todos_ativos_imoveis.extend(lista)
-        self.todos_ativos_imoveis = list(set(self.todos_ativos_imoveis))
-        self.todos_ativos_imoveis.sort()
+            raw_assets.extend(lista)
+        raw_assets = list(set(raw_assets)) # Remove duplicatas
+        
+        # Separa em dois grupos
+        upper_assets = [a for a in raw_assets if a.isupper()]
+        mixed_assets = [a for a in raw_assets if not a.isupper()]
+        
+        # Ordena cada grupo alfabeticamente
+        upper_assets.sort()
+        mixed_assets.sort()
+        
+        # Funde com MAIÚSCULOS PRIMEIRO
+        self.todos_ativos_imoveis = upper_assets + mixed_assets
 
         # 2. ATIVOS DO PORTAL
         self.ativos_portal = GenesisConfig.PORTAL_CATALOG
@@ -29,11 +41,10 @@ class GenesisData:
             self.todos_ativos_portal.extend(lista)
         self.todos_ativos_portal = list(set(self.todos_ativos_portal))
         
-        # --- ORDENAÇÃO INTELIGENTE (FIXAR NOTÍCIAS NO TOPO) ---
+        # --- ORDENAÇÃO INTELIGENTE PORTAL ---
         self.todos_ativos_portal.sort()
         
-        # Força "NOTÍCIAS DO DIA" para o topo da lista (Índice 0)
-        # O Streamlit adiciona "Aleatório" antes deste índice 0
+        # Força "NOTÍCIAS DO DIA" para o topo
         ITEM_DESTAQUE = "NOTÍCIAS DO DIA"
         if ITEM_DESTAQUE in self.todos_ativos_portal:
             self.todos_ativos_portal.remove(ITEM_DESTAQUE)
