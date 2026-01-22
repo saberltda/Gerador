@@ -4,6 +4,62 @@ import unicodedata
 from collections import defaultdict
 from .config import GenesisConfig
 
+class PortalSynchronizer:
+    """
+    Garante que Editoria, Tópico e Formato sempre façam sentido juntos no Modo Portal.
+    Evita combinações ilógicas (ex: "Giro Policial" com formato "Review de Restaurante").
+    """
+    def __init__(self):
+        self.matrix = GenesisConfig.PORTAL_MATRIX
+        self.topics_display = GenesisConfig.PORTAL_TOPICS_DISPLAY
+        self.formats_display = GenesisConfig.PORTAL_FORMATS_DISPLAY
+
+    def get_editorias_display(self):
+        """Retorna lista de tuplas (KEY, LABEL) para selectbox da UI"""
+        # Retorna: [("GIRO_POLICIAL", "🚔 Plantão..."), ...]
+        return [(k, v['label']) for k, v in self.matrix.items()]
+
+    def get_valid_topics(self, editoria_key):
+        """Retorna tópicos permitidos para uma editoria específica"""
+        if editoria_key not in self.matrix:
+            return []
+        
+        raw_topics = self.matrix[editoria_key]['topics']
+        # Retorna lista de (KEY, LABEL) buscando o nome bonito no display map
+        return [(t, self.topics_display.get(t, t)) for t in raw_topics]
+
+    def get_valid_formats(self, editoria_key):
+        """Retorna formatos permitidos para uma editoria específica"""
+        if editoria_key not in self.matrix:
+            return []
+        
+        raw_formats = self.matrix[editoria_key]['formats']
+        # Retorna lista de (KEY, LABEL) buscando o nome bonito no display map
+        return [(f, self.formats_display.get(f, f)) for f in raw_formats]
+
+    def get_random_set(self):
+        """
+        Gera um conjunto completo e Sincronizado aleatoriamente.
+        Usado quando o usuário escolhe 'ALEATÓRIO' no modo Portal.
+        """
+        # 1. Escolhe Editoria Aleatória
+        editoria_key = random.choice(list(self.matrix.keys()))
+        editoria_label = self.matrix[editoria_key]['label']
+        
+        # 2. Escolhe Tópico Válido para essa Editoria
+        topic_key = random.choice(self.matrix[editoria_key]['topics'])
+        topic_label = self.topics_display.get(topic_key, topic_key)
+        
+        # 3. Escolhe Formato Válido para essa Editoria
+        format_key = random.choice(self.matrix[editoria_key]['formats'])
+        format_label = self.formats_display.get(format_key, format_key)
+        
+        return {
+            "editoria": (editoria_key, editoria_label),
+            "topico": (topic_key, topic_label),
+            "formato": (format_key, format_label)
+        }
+
 class SEOHeatmap:
     def __init__(self):
         self.mapa = defaultdict(lambda: defaultdict(int))
@@ -28,7 +84,7 @@ class RiscoJuridico:
 
 class PlanoDiretor:
     """
-    Responsável pela Lógica de Negócio e Compatibilidade Urbana.
+    Responsável pela Lógica de Negócio e Compatibilidade Urbana (Modo Imobiliária).
     Versão V.58 (Smart Uppercase Sync).
     """
 
