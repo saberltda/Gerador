@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GENESIS V.57 (BEST OF BOTH WORLDS)"
+    VERSION = "GERADOR V.53.2 (PT-BR UPDATE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -11,138 +11,22 @@ class GenesisConfig:
     FUSO_PADRAO = "-03:00"
 
     # =====================================================
-    # 1. MATRIZ DE PERSONAS (ORDENADA POR PRIORIDADE)
-    # =====================================================
-    PERSONAS = {
-        # =================================================
-        # 👑 O SEXTETO DE OURO (TOPO DA LISTA)
-        # =================================================
-        "CITIZEN_GENERAL": {
-            "cluster_ref": ["PORTAL", "URBAN"], 
-            "nome": "🏙️ CIDADÃO DE INDAIATUBA (Informação Geral)",
-            "dor": "Desinformação sobre obras, trânsito e o futuro da cidade.",
-            "desejo": "Notícias rápidas, utilidade pública e entender a valorização do bairro."
-        },
-        "INVESTOR_SHARK": {
-            "cluster_ref": ["INVESTOR"],
-            "nome": "🦈 INVESTIDOR SHARK (Foco em Yield)",
-            "dor": "Dinheiro perdendo para inflação real e medo de vacância prolongada.",
-            "desejo": "Yield comprovado, análise de dados (vacância/m²) e liquidez de saída."
-        },
-        "EXODUS_ELITE": {
-            "cluster_ref": ["HIGH_END", "FAMILY"],
-            "nome": "✈️ EXODUS ELITE SP (A Fuga da Capital)",
-            "dor": "Violência da capital, trânsito caótico e filhos crescendo sem liberdade.",
-            "desejo": "Segurança de condomínio fechado, escolas bilíngues e quintal com grama."
-        },
-        "FIRST_HOME_COUPLE": {
-            "cluster_ref": ["URBAN", "FAMILY"],
-            "nome": "🔑 1º IMÓVEL (Casal Jovem)",
-            "dor": "Medo de financiamento de 30 anos e de ficar 'preso' a um imóvel ruim.",
-            "desejo": "Entrada facilitada, localização central (fazer tudo a pé) e baixo condomínio."
-        },
-        "OLD_MONEY": {
-            "cluster_ref": ["HIGH_END"],
-            "nome": "💎 OLD MONEY (Busca Privacidade)",
-            "dor": "Exposição excessiva, vizinhos barulhentos e falta de exclusividade.",
-            "desejo": "Terrenos duplos ou de esquina, vista para mata preservada e silêncio absoluto."
-        },
-        "LOGISTICS_CEO": {
-            "cluster_ref": ["LOGISTICS", "CORPORATE"],
-            "nome": "🚚 GIGANTE DA LOGÍSTICA (CEO/Diretor)",
-            "dor": "Custo logístico (Last Mile) e falta de mão de obra qualificada.",
-            "desejo": "Frente para Rodovia Santos Dumont, pé direito de 12m e incentivos fiscais."
-        },
-
-        # =================================================
-        # 🚀 EXPANSÃO SEO (NICHO & OPORTUNIDADE)
-        # =================================================
-        "AIRBNB_PRO": {
-            "cluster_ref": ["INVESTOR", "URBAN"],
-            "nome": "🧳 Anfitrião Airbnb (Short Stay)",
-            "dor": "Concorrência alta em SP e baixa rentabilidade no aluguel tradicional.",
-            "desejo": "Studios perto do Centro/Distrito Industrial, decoração instagramável e alta rotatividade."
-        },
-        "DOCTOR_CLINIC": {
-            "cluster_ref": ["CORPORATE", "HIGH_END"],
-            "nome": "🏥 Médico/Clínica (Setor Saúde)",
-            "dor": "Consultórios antigos e sem estacionamento para pacientes.",
-            "desejo": "Salas modernas próximas ao HAOC/Santa Ignês ou terrenos para clínicas."
-        },
-        "LAND_BANKER": {
-            "cluster_ref": ["INVESTOR"],
-            "nome": "🗺️ Land Banker (Especulador de Terras)",
-            "dor": "Comprar no pico do preço e ficar com capital travado.",
-            "desejo": "Loteamentos em pré-lançamento (Vetor de Crescimento) e valorização de longo prazo."
-        },
-
-        # =================================================
-        # 🧠 INTELLIGENCE PACK (DETALHAMENTO DE PERSONA)
-        # =================================================
-        "INVESTOR_DATA": {
-            "cluster_ref": ["INVESTOR"],
-            "nome": "📊 Investidor 3.0 (Data-Driven)",
-            "dor": "Falta de dados confiáveis para tomada de decisão.",
-            "desejo": "Relatórios, gráficos de tendência e comparação técnica."
-        },
-        "THE_FLIPPER": {
-            "cluster_ref": ["INVESTOR"],
-            "nome": "🛠️ O Flipper (Reformar para Vender)",
-            "dor": "Margem de lucro espremida em imóveis prontos.",
-            "desejo": "Imóvel 'feio' (desatualizado) em bairro nobre com desconto agressivo."
-        },
-        "TECH_NOMAD": {
-            "cluster_ref": ["URBAN", "HIGH_END"],
-            "nome": "💻 Tech Nomad / Home Office Definitivo",
-            "dor": "Internet instável e mistura de ambiente de trabalho com lazer.",
-            "desejo": "Cômodo extra isolado (Office), fibra ótica e silêncio."
-        },
-        "SOLO_OWNER": {
-            "cluster_ref": ["URBAN"],
-            "nome": "👩 Mulher Independente (Solo Owner)",
-            "dor": "Preocupação com segurança pessoal e manutenção complexa.",
-            "desejo": "Portaria 24h rigorosa, apartamento prático e serviços no entorno."
-        },
-        "PET_PARENT": {
-            "cluster_ref": ["FAMILY", "URBAN"],
-            "nome": "🐾 Pet Parent Premium",
-            "dor": "Condomínios hostis a animais e falta de espaço.",
-            "desejo": "Garden privativo, quintal seguro e parques pet-friendly."
-        },
-        "SILVER_PREMIUM": {
-            "cluster_ref": ["HIGH_END", "URBAN"],
-            "nome": "🍷 Silver Premium (Melhor Idade)",
-            "dor": "Casa grande demais (ninho vazio) e escadas perigosas.",
-            "desejo": "Casa térrea compacta ou apartamento de luxo com acessibilidade."
-        },
-        "EXP_SEEKER": {
-            "cluster_ref": ["HIGH_END"],
-            "nome": "✨ Buscador de Experiência (Novo Luxo)",
-            "dor": "Arquitetura 'caixote' padronizada.",
-            "desejo": "Design autoral, biofilia e integração com a natureza."
-        },
-        "ECO_CONSCIOUS": {
-            "cluster_ref": ["HIGH_END", "FAMILY"],
-            "nome": "🌿 O Comprador Eco-Consciente",
-            "dor": "Desperdício e conta de energia alta.",
-            "desejo": "Fotovoltaica, cisterna e sustentabilidade real."
-        }
-    }
-
-    # =====================================================
-    # 2. REGRAS DE SEGURANÇA (MANTIDAS)
+    # 1. REGRAS DE SEGURANÇA E BLOQUEIOS
     # =====================================================
     RULES = {
+        # Ativos que NÃO podem aparecer em zonas industriais/logísticas
         "INDUSTRIAL_RESTRICTION": [
             "Casa de Rua", "Casa em Condomínio", "Apartamento",
             "Apartamento 2 ou 3 dormitórios", "Casa térrea de rua",
             "Sobrado em bairro residencial aberto", "Cobertura", "Studio residencial"
         ],
+        # Recursos que NÃO podem aparecer em bairro aberto
         "OPEN_NEIGHBORHOOD_RESTRICTION": [
             "Condomínio Fechado", "Portaria 24h", "Portaria 24 horas",
             "Acesso controlado", "Controle de acesso", "Lazer Completo",
             "Área de lazer completa"
         ],
+        # Clichês imobiliários banidos
         "FORBIDDEN_WORDS": [
             "sonho", "sonhos", "oportunidade única", "excelente localização",
             "ótimo investimento", "preço imperdível", "lindo", "maravilhoso",
@@ -151,6 +35,7 @@ class GenesisConfig:
             "imóvel dos sonhos", "toque de requinte",
             "locação", "aluguel", "alugar", "inquilino", "fiador", "locatário"
         ],
+        # Features sensíveis
         "FORBIDDEN_FEATURES": ["varanda gourmet"]
     }
 
@@ -164,7 +49,7 @@ class GenesisConfig:
     ]
 
     # =====================================================
-    # 3. TÓPICOS, FORMATOS E CLUSTERS
+    # 2. INTELIGÊNCIA DE SEO (Tópicos Gerais)
     # =====================================================
     TOPICS_MAP = {
         "MERCADO_DADOS": "📈 Análise de Mercado & Dados (Yield/Vacância)",
@@ -177,7 +62,7 @@ class GenesisConfig:
         "HOME_OFFICE_FLEX": "💻 Home Office & Plantas Flexíveis",
         "LOGISTICA_HUB": "🚚 Logística, Viracopos e Last Mile",
         "BEM_ESTAR_BIOFILIA": "🌿 Bem-Estar, Saúde e Design Biofílico",
-        "SENIOR_LIVING": "🍷 Silver Economy (Acessibilidade 60+)",
+        "SENIOR_LIVING": "🍷 Melhor Idade (Acessibilidade 60+)",
         "SEGURANCA_TECH": "🛡️ Segurança Tecnológica & IA",
         "SHORT_STAY": "🧳 Short Stay & Rentabilidade Airbnb",
         "PETS_GARDEN": "🐾 Pet Friendly & Garden Privativo",
@@ -190,6 +75,82 @@ class GenesisConfig:
         "CIDADES_INTELIGENTES": 70, "HOME_OFFICE_FLEX": 65, "LOGISTICA_HUB": 60,
         "BEM_ESTAR_BIOFILIA": 50, "SENIOR_LIVING": 45, "SEGURANCA_TECH": 40,
         "SHORT_STAY": 35, "PETS_GARDEN": 30, "SMART_HOME": 20
+    }
+
+    # =====================================================
+    # 3. MATRIZ DE PERSONAS (Reordenada e Traduzida)
+    # =====================================================
+    PERSONAS = {
+        # 1. GERAL (PORTAL)
+        "CITIZEN_GENERAL": {
+            "cluster_ref": "PORTAL", 
+            "nome": "🏙️ CIDADÃO DE INDAIATUBA (Informação Geral)",
+            "dor": "Desinformação sobre o que acontece na cidade e oportunidades perdidas.",
+            "desejo": "Saber sobre obras, trânsito, eventos, utilidade pública e valorização do seu bairro."
+        },
+        # 2. INVESTIDOR
+        "INVESTOR_SHARK_ROI": {
+            "cluster_ref": "INVESTOR",
+            "nome": "🦈 INVESTIDOR TUBARÃO (Foco em Retorno)",
+            "dor": "Dinheiro parado no CDI perdendo para inflação real e medo de vacância.",
+            "desejo": "Ativos com liquidez comprovada, dados matemáticos de valorização e Cap Rate acima da média."
+        },
+        # 3. FAMÍLIA SP
+        "EXODUS_SP_ELITE_FAMILY": {
+            "cluster_ref": "HIGH_END",
+            "nome": "✈️ ÊXODO SÃO PAULO (Fuga da Capital)",
+            "dor": "Insegurança extrema em SP, filhos presos em apartamento e poluição.",
+            "desejo": "Condomínio fechado com segurança armada, escolas bilingues e qualidade de vida imediata."
+        },
+        # 4. PRIMEIRO IMÓVEL
+        "FIRST_HOME_DREAMER": {
+            "cluster_ref": "URBAN",
+            "nome": "🔑 1º IMÓVEL (Casal Jovem)",
+            "dor": "Medo de comprometer a renda por 30 anos e comprar um imóvel que desvalorize.",
+            "desejo": "Entrada facilitada, bairro com potencial de crescimento e baixo custo de condomínio."
+        },
+        # 5. LUXO / PRIVACIDADE
+        "LUXURY_PRIVACY_SEEKER": {
+            "cluster_ref": "HIGH_END",
+            "nome": "💎 OLD MONEY (Busca Privacidade)",
+            "dor": "Exposição excessiva, vizinhos barulhentos e falta de exclusividade.",
+            "desejo": "Terrenos duplos ou de esquina, vista para mata preservada, arquitetura autoral e silêncio absoluto."
+        },
+        # 6. LOGÍSTICA / EMPRESÁRIO
+        "COMMERCIAL_LOGISTICS_BOSS": {
+            "cluster_ref": "LOGISTICS",
+            "nome": "🚚 GIGANTE DA LOGÍSTICA (CEO/Diretor)",
+            "dor": "Custo do 'Last Mile', falta de mão de obra local e trânsito para escoar carga.",
+            "desejo": "Proximidade da SP-75/Viracopos, pé direito de 12m e incentivos fiscais."
+        },
+        # 7. PET PARENT (PROMOVIDO PARA 7ª POSIÇÃO)
+        "PET_PARENT_PREMIUM": {
+            "cluster_ref": "FAMILY",
+            "nome": "🐾 DONO DE ANIMAIS DE ESTIMAÇÃO (Pet Lover)",
+            "dor": "Dificuldade em encontrar condomínios com grandes quintais e regras flexíveis para animais de grande porte.",
+            "desejo": "Casa com amplo quintal gramado, próxima a 'Pet Places' e parques para caminhada."
+        },
+        # 8. HOME OFFICE
+        "REMOTE_WORKER_TECH": {
+            "cluster_ref": "URBAN",
+            "nome": "💻 NÔMADE DIGITAL / HOME OFFICE",
+            "dor": "Apartamentos apertados sem isolamento acústico para reuniões e internet instável.",
+            "desejo": "Cômodo extra para escritório (3º dormitório), vista livre e fibra ótica de alta velocidade."
+        },
+        # 9. MÉDICOS / SAÚDE
+        "MEDICAL_PRO_HEALTH": {
+            "cluster_ref": "HIGH_END",
+            "nome": "🩺 MÉDICO / PROFISSIONAL DE SAÚDE",
+            "dor": "Rotina exaustiva de plantões, necessidade de silêncio absoluto para descanso.",
+            "desejo": "Proximidade do Hospital HAOC/Santa Ignês e suíte master com isolamento acústico."
+        },
+        # 10. APOSENTADOS ATIVOS
+        "ACTIVE_RETIREE": {
+            "cluster_ref": "FAMILY",
+            "nome": "🍷 MELHOR IDADE ATIVA",
+            "dor": "Casas com muitas escadas, manutenção difícil e solidão.",
+            "desejo": "Casa térrea prática, próxima a farmácias, mercados e convivência social."
+        }
     }
 
     CONTENT_FORMATS_MAP = {
@@ -221,6 +182,9 @@ class GenesisConfig:
     }
     EMOTIONAL_TRIGGERS = list(EMOTIONAL_TRIGGERS_MAP.keys())
 
+    # =====================================================
+    # CATÁLOGOS
+    # =====================================================
     ASSETS_CATALOG = {
         "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO", "SOBRADO NEO CLÁSSICO", "Lote em Condomínio de Luxo"],
         "FAMILY": ["CASA EM CONDOMÍNIO", "SOBRADO COM ÁREA GOURMET", "CASA TÉRREA ACESSÍVEL", "Casa de Rua em Bairro Planejado"],
