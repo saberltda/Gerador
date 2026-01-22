@@ -5,8 +5,9 @@ from .config import GenesisConfig
 
 class PromptBuilder:
     """
-    O 'Redator' (Versão 60 - Modern Journalism Edition).
-    Suporta os novos formatos de jornalismo local (Explainer, Fact-Check, Soluções).
+    O 'Redator' (Versão 60.1 - Synced Editions).
+    Separação total de lógica entre Portal e Imobiliária.
+    Inclui Filtros Cognitivos para evitar contaminação de persona.
     """
 
     CTA_CAPTURE_CODE = """
@@ -27,11 +28,35 @@ class PromptBuilder:
         except: return iso_date_str
 
     def _generate_seo_tags(self, d):
-        tags = ["Indaiatuba", "Notícias Indaiatuba"]
-        if d.get('bairro'): tags.append(d['bairro']['nome'])
-        if d.get('ativo_definido'): tags.append(d['ativo_definido'])
-        if d.get('topico'): tags.append(d['topico'])
-        return ", ".join(tags[:10])
+        """
+        Gera tags otimizadas e sensíveis ao contexto (Portal vs Imobiliária).
+        """
+        # 1. Definição da Base de Tags
+        if d.get('tipo_pauta') == "PORTAL":
+            tags = ["Indaiatuba", "Notícias Indaiatuba", "Portal da Cidade", "Utilidade Pública"]
+        else:
+            tags = ["Indaiatuba", "Imóveis Indaiatuba", "Mercado Imobiliário", "Morar em Indaiatuba"]
+
+        # 2. Injeção de Localização
+        if d.get('bairro') and d['bairro']['nome'] != "Indaiatuba":
+            tags.append(d['bairro']['nome'])
+        
+        # 3. Injeção de Ativo/Editoria (Limpo)
+        raw_ativo = d.get('ativo_definido', '')
+        # Remove sufixos como (Loteamento Aberto) ou (Portal)
+        ativo_limpo = raw_ativo.split('(')[0].strip()
+        if ativo_limpo: 
+            tags.append(ativo_limpo)
+        
+        # 4. Injeção de Tópico
+        if d.get('topico'): 
+            tags.append(d['topico'])
+        
+        # 5. Deduplicação mantendo ordem
+        seen = set()
+        final_tags = [x for x in tags if not (x in seen or seen.add(x))]
+        
+        return ", ".join(final_tags[:10])
 
     def _get_portal_structure(self, formato_key, editoria, tema):
         """
@@ -126,20 +151,38 @@ Conversa direta com uma fonte relevante sobre {tema}.
             return "## 5. ESTRUTURA LIVRE\nDesenvolva uma matéria jornalística completa, com início, meio e fim, focada no interesse público."
 
     def _get_real_estate_guidelines(self, formato_key, cluster, bairro):
-        # Mantém a lógica "Unchained" para Imobiliária (simplificada aqui para focar no Portal)
-        return f"""
-## 5. CAMINHOS PARA EXPLORAR (MERCADO IMOBILIÁRIO)
+        # Lógica "Unchained" para Imobiliária
+        
+        base_instruction = f"""
+## 5. CAMINHOS PARA EXPLORAR A FUNDO (MERCADO IMOBILIÁRIO)
 Escreva um texto ÉPICO e detalhado sobre {bairro}.
 Não economize palavras. Use storytelling, dados técnicos e persuasão.
 Disserte sobre estilo de vida, valorização e diferenciais ocultos.
 """
 
+        if formato_key == "LISTA_POLEMICA":
+            return base_instruction + "\n- Quebre mitos comuns sobre o bairro.\n- Use 'Mito vs Verdade'."
+        elif formato_key == "COMPARATIVO_TECNICO":
+            return base_instruction + "\n- Compare com outros bairros similares.\n- Seja brutalmente honesto nos prós e contras."
+        elif formato_key == "INSIGHT_DE_CORRETOR":
+            return base_instruction + "\n- Use Primeira Pessoa (Eu/Nós).\n- Conte segredos de bastidores."
+        else:
+            return base_instruction
+
     def _get_tone_guidelines(self, gatilho_key):
-        return """
-### 🧠 MENTALIDADE DE ESCRITOR (DEEP FLOW)
+        if gatilho_key == "NEUTRAL_JOURNALISM":
+            return """
+### 🧠 MENTALIDADE DE ESCRITOR (JORNALISTA)
+- **Tom:** Imparcial, objetivo e focado em fatos.
+- **Proibido:** Adjetivos de venda ("maravilhoso", "oportunidade").
+- **Foco:** Informar e prestar serviço.
+"""
+        else:
+            return """
+### 🧠 MENTALIDADE DE ESCRITOR (DEEP FLOW / COPYWRITER)
 - **Profundidade:** Não seja raso. Aprofunde-se nas causas e consequências.
 - **Fluidez:** Escreva parágrafos encadeados, sem quebras bruscas.
-- **Conexão:** Use uma linguagem que o morador de Indaiatuba entenda e se identifique.
+- **Conexão:** Use uma linguagem persuasiva e envolvente.
 """
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada):
@@ -158,6 +201,7 @@ Disserte sobre estilo de vida, valorização e diferenciais ocultos.
         tema = d.get('topico', 'Geral')
         
         structure_guide = self._get_portal_structure(formato_key, editoria, tema)
+        tone_guide = self._get_tone_guidelines("NEUTRAL_JOURNALISM")
         
         return f"""
 ## GENESIS MAGNETO V.60 — PORTAL NEWS ENGINE
@@ -178,11 +222,17 @@ Você é um repórter investigativo e comunitário.
 
 {structure_guide}
 
-{self._get_tone_guidelines("NEUTRAL")}
+{tone_guide}
 
 ## 3. INSUMOS (REGRAS & CONTEXTO)
-**ATIVE A PERSONA JORNALÍSTICA:**
+**DIRETRIZ SUPREMA DE PERSONA (FILTRO COGNITIVO):**
+1. Você deve **IGNORAR** completamente a "OPÇÃO A (IMOBILIÁRIA)" do arquivo de regras abaixo.
+2. Você DEVE encarnar **APENAS** a "OPÇÃO B (PORTAL DA CIDADE)".
+3. Seu compromisso é com a verdade jornalística, não com a venda.
+
+<REGRAS_DO_SISTEMA>
 {regras_texto_ajustada}
+</REGRAS_DO_SISTEMA>
 
 ## 4. CTA (ENGAGEMENT)
 {self.CTA_CAPTURE_CODE}
@@ -192,6 +242,7 @@ Você é um repórter investigativo e comunitário.
 2. LIDE: Primeiro parágrafo respondendo às questões chaves.
 3. CONTEÚDO: Corpo robusto e informativo.
 4. JSON-LD: Schema de 'NewsArticle'.
+5. MARCADORES: {self._generate_seo_tags(d)}
 """.strip()
 
     # =========================================================================
@@ -226,8 +277,21 @@ Escreva um texto rico, longo e detalhado. Venda o sonho e a realidade técnica.
 {tone}
 
 ## 3. INSUMOS
+**DIRETRIZ SUPREMA DE PERSONA (FILTRO COGNITIVO):**
+1. Você deve **IGNORAR** completamente a "OPÇÃO B (PORTAL)" do arquivo de regras abaixo.
+2. Você DEVE encarnar **APENAS** a "OPÇÃO A (IMOBILIÁRIA SABER)".
+3. Seu objetivo é encantar, persuadir e vender.
+
+<REGRAS_DO_SISTEMA>
 {regras_texto_ajustada}
+</REGRAS_DO_SISTEMA>
 
 ## 4. CTA
 {self.CTA_CAPTURE_CODE}
+
+## 5. CHECKLIST FINAL
+1. TÍTULO (H1): Persuasivo e com SEO.
+2. CONTEÚDO: Rico e detalhado.
+3. MARCADORES: {self._generate_seo_tags(d)}
+4. JSON-LD: Schema de 'BlogPosting'.
 """.strip()
