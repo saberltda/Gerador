@@ -108,9 +108,14 @@ def open_selection_dialog(label, options, key):
     except:
         idx = 0
     
-    h_scroll = 300 if len(options) > 10 else None
+    # --- CORREÇÃO DO BUG DE HEIGHT (Fix StreamlitInvalidHeightError) ---
+    # Só adiciona o parâmetro 'height' se ele for necessário (lista longa).
+    # Passar 'height=None' explicitamente quebra a validação em versões novas.
+    container_kwargs = {"border": False}
+    if len(options) > 10:
+        container_kwargs["height"] = 300
     
-    with st.container(height=h_scroll, border=False):
+    with st.container(**container_kwargs):
         new_val = st.radio(label, options, index=idx, key=f"radio_modal_{key}", label_visibility="collapsed")
     
     if new_val != current:
