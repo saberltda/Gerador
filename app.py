@@ -168,7 +168,7 @@ def main():
         st.error(f"❌ Erro de Sistema: {e}")
         st.stop()
 
-    # Listas Básicas (Agora usando CONST_RANDOM "🎲 ALEATÓRIO")
+    # Listas Básicas
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     l_personas = [CONST_RANDOM] + list(persona_map.keys())
     l_bairros = sorted([b['nome'] for b in dados_mestre.bairros])
@@ -178,7 +178,7 @@ def main():
 
     # --- CABEÇALHO ---
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.7 (Pet Premium + PT-BR) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 7.8 (PT-BR Full + Novos Ângulos) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -245,7 +245,8 @@ def main():
             with c3:
                 sel_ativo = smart_select(label_ativo, lista_ativos_display, "k_ativo", icon_ativo, use_label=True)
             with c4:
-                sel_topico = smart_select("Tópico de Apoio", l_topicos, "k_topico", "🚀", use_label=True)
+                # AQUI: MUDANÇA DE NOME PARA "ÂNGULO EDITORIAL"
+                sel_topico = smart_select("Ângulo Editorial", l_topicos, "k_topico", "🚀", use_label=True)
 
             c5, c6 = st.columns(2)
             with c5:
@@ -276,7 +277,7 @@ def main():
                 progress_bar.progress(20)
                 engine = GenesisEngine(dados_mestre)
                 
-                # --- TRADUÇÃO DAS SELEÇÕES (UI "🎲 ALEATÓRIO" -> Engine "ALEATÓRIO") ---
+                # --- TRADUÇÃO DAS SELEÇÕES ---
                 
                 # 1. Persona
                 if not eh_portal:
@@ -290,7 +291,7 @@ def main():
                 # 2. Ativo
                 final_ativo_selecao = "ALEATÓRIO" if sel_ativo == CONST_RANDOM else sel_ativo
                 
-                # 3. Tópico, Formato, Gatilho
+                # 3. Ângulo Editorial (Antigo Tópico)
                 final_topico = "ALEATÓRIO" if sel_topico == CONST_RANDOM else sel_topico
                 
                 # Formato (Reverso map)
