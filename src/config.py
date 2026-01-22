@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.53.5 (FULL ROSTER UPDATE)"
+    VERSION = "GERADOR V.54.0 (EDITORIAL UPDATE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -49,24 +49,31 @@ class GenesisConfig:
     ]
 
     # =====================================================
-    # 2. INTELIGÊNCIA DE SEO (Tópicos Gerais)
+    # 2. INTELIGÊNCIA DE SEO (ÂNGULOS EDITORIAIS)
     # =====================================================
+    # TRADUÇÃO COMPLETA: Removemos inglês/termos técnicos.
+    # EXPANSÃO: Adicionados Jurídico, Arquitetura, Comunidade.
     TOPICS_MAP = {
-        "MERCADO_DADOS": "📈 Análise de Mercado & Dados (Yield/Vacância)",
-        "INVESTIMENTO_ROI": "💰 ROI e Valorização Patrimonial (Investidor)",
-        "FINANCAS_TOKEN": "💳 Financiamento Inteligente & Tokenização",
-        "SUSTENTABILIDADE_ESG": "🌱 Sustentabilidade ESG & Economia Verde",
-        "LOCALIZACAO_PREMIUM": "📍 Localização Estratégica & Mobilidade",
-        "LUXO_COMPACTO": "💎 Luxo Compacto & Design Autoral",
-        "CIDADES_INTELIGENTES": "🏙️ Cidades Inteligentes & Infraestrutura",
-        "HOME_OFFICE_FLEX": "💻 Home Office & Plantas Flexíveis",
-        "LOGISTICA_HUB": "🚚 Logística, Viracopos e Last Mile",
-        "BEM_ESTAR_BIOFILIA": "🌿 Bem-Estar, Saúde e Design Biofílico",
-        "SENIOR_LIVING": "🍷 Melhor Idade (Acessibilidade 60+)",
-        "SEGURANCA_TECH": "🛡️ Segurança Tecnológica & IA",
-        "SHORT_STAY": "🧳 Short Stay & Rentabilidade Airbnb",
-        "PETS_GARDEN": "🐾 Pet Friendly & Garden Privativo",
-        "SMART_HOME": "📱 Automação Residencial (Smart Home)"
+        "MERCADO_DADOS": "📈 Dados de Mercado e Rentabilidade",
+        "INVESTIMENTO_ROI": "💰 Lucro e Valorização de Patrimônio",
+        "FINANCAS_TOKEN": "💳 Potencial de Financiamento e Crédito",
+        "SUSTENTABILIDADE_ESG": "🌱 Sustentabilidade e Economia Verde",
+        "LOCALIZACAO_PREMIUM": "📍 Localização e Facilidade de Acesso",
+        "LUXO_COMPACTO": "💎 Luxo e Design Exclusivo",
+        "CIDADES_INTELIGENTES": "🏙️ Infraestrutura Urbana e Modernidade",
+        "HOME_OFFICE_FLEX": "💻 Espaço para Trabalho e Flexibilidade",
+        "LOGISTICA_HUB": "🚚 Logística e Proximidade com Aeroporto",
+        "BEM_ESTAR_BIOFILIA": "🌿 Saúde, Bem-Estar e Natureza",
+        "SENIOR_LIVING": "🍷 Qualidade de Vida na Melhor Idade",
+        "SEGURANCA_TECH": "🛡️ Segurança e Monitoramento Inteligente",
+        "SHORT_STAY": "🧳 Aluguel por Temporada e Renda Extra",
+        "PETS_GARDEN": "🐾 Espaço para Animais e Quintal",
+        "SMART_HOME": "📱 Casa Inteligente e Tecnologia",
+        
+        # NOVOS ÂNGULOS EDITORIAIS
+        "JURIDICO_SEGURANCA": "⚖️ Segurança Jurídica e Documentação",
+        "ARQUITETURA_FACHADA": "🎨 Arquitetura e Estilo da Fachada",
+        "COMUNIDADE_VIZINHANCA": "🤝 Vizinhança e Vida em Comunidade"
     }
 
     TOPICS_WEIGHTS = {
@@ -74,7 +81,8 @@ class GenesisConfig:
         "SUSTENTABILIDADE_ESG": 85, "LOCALIZACAO_PREMIUM": 85, "LUXO_COMPACTO": 80,
         "CIDADES_INTELIGENTES": 70, "HOME_OFFICE_FLEX": 65, "LOGISTICA_HUB": 60,
         "BEM_ESTAR_BIOFILIA": 50, "SENIOR_LIVING": 45, "SEGURANCA_TECH": 40,
-        "SHORT_STAY": 35, "PETS_GARDEN": 30, "SMART_HOME": 20
+        "SHORT_STAY": 35, "PETS_GARDEN": 30, "SMART_HOME": 20,
+        "JURIDICO_SEGURANCA": 80, "ARQUITETURA_FACHADA": 60, "COMUNIDADE_VIZINHANCA": 70
     }
 
     # =====================================================
