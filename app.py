@@ -99,15 +99,14 @@ def main():
     # --- DEFINIÇÃO DO MODO (DETERMINA AS LISTAS) ---
     if "k_tipo_pauta" not in st.session_state: st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
 
-    # Listas estáticas
+    # Listas estáticas (Gerais)
     persona_map = {v['nome']: k for k, v in GenesisConfig.PERSONAS.items()}
     l_personas = [CONST_RANDOM] + list(persona_map.keys())
     l_bairros = sorted([b['nome'] for b in dados_mestre.bairros])
-    l_formatos = [CONST_RANDOM] + list(GenesisConfig.CONTENT_FORMATS_MAP.values())
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.0 (Portal Revolution) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.1 (Synced Editions) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -124,15 +123,21 @@ def main():
             tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA")
             eh_portal = (tipo_pauta_code == "PORTAL")
 
-            # --- LÓGICA DINÂMICA DE LISTAS E VISIBILIDADE ---
+            # --- LÓGICA DINÂMICA DE LISTAS (SINCRONIZAÇÃO) ---
             if not eh_portal:
+                # MODO IMOBILIÁRIA
                 lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_imoveis
                 l_topicos = [CONST_RANDOM] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
+                # [FIX] Carrega apenas formatos de Imobiliária
+                l_formatos = [CONST_RANDOM] + list(GenesisConfig.REAL_ESTATE_FORMATS_MAP.values())
                 label_ativo = "Imóvel / Ativo"
                 icon_ativo = "🏠"
             else:
+                # MODO PORTAL
                 lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_portal
                 l_topicos = [CONST_RANDOM] + sorted(list(GenesisConfig.PORTAL_TOPICS_MAP.values()))
+                # [FIX] Carrega apenas formatos de Jornalismo/Portal
+                l_formatos = [CONST_RANDOM] + list(GenesisConfig.PORTAL_FORMATS_MAP.values())
                 label_ativo = "Editoria (Seção)"
                 icon_ativo = "📰"
 
@@ -150,14 +155,12 @@ def main():
 
             # --- CONTROLE GEOGRÁFICO ---
             final_bairro_input = "ALEATÓRIO"
-            modo_geo_val = "🎲 Aleatório"
-
+            
             if not eh_portal:
                 if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
                 try: modo_geo = st.pills("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
                 except: modo_geo = st.radio("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], horizontal=True, key="k_modo_geo")
                 
-                modo_geo_val = modo_geo
                 if modo_geo == "📍 Bairro Específico":
                     st.markdown("<br>", unsafe_allow_html=True)
                     final_bairro_input = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️", use_label=True)
@@ -212,6 +215,7 @@ def main():
                 
                 f_key = "ALEATÓRIO"
                 if sel_formato != CONST_RANDOM:
+                    # Busca reversa no MAPA UNIFICADO para garantir que encontra a chave
                     for k,v in GenesisConfig.CONTENT_FORMATS_MAP.items():
                         if v == sel_formato: f_key = k; break
                 
@@ -252,6 +256,7 @@ def main():
                 progress_bar.progress(100); time.sleep(0.3); progress_bar.empty(); status_text.empty()
                 st.success("✅ Pauta Gerada com Sucesso!")
                 
+                # Exibição segura do formato bonito
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
                 b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
                 estrategia_display = f_bonito.split()[0] + " " + f_bonito.split()[1] if len(f_bonito.split()) >= 2 else f_bonito
