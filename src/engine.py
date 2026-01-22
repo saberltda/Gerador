@@ -62,7 +62,7 @@ class GenesisEngine:
 
     def run(self, user_selection: dict):
         self.scanner.mapear()
-        historico_recente = self.scanner.get_ultimos_titulos(20)
+        historico_recente = self.scanner.get_ultimos_titulos(9999)
 
         tipo_pauta_code = user_selection.get("tipo_pauta", "IMOBILIARIA")
         eh_portal = (tipo_pauta_code == "PORTAL")
@@ -139,3 +139,4 @@ class GenesisEngine:
             "formato": formato, "gatilho": gatilho, "obs_tecnica": obs_tecnica,
             "historico_titulos": historico_recente, "tipo_pauta": tipo_pauta_code
         }
+
