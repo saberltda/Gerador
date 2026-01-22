@@ -5,10 +5,10 @@ from .config import GenesisConfig
 
 class PromptBuilder:
     """
-    O 'Redator' (Versão Híbrida Definitiva + REGRAS.TXT).
-    Combina:
-    1. A inteligência de 'Esqueletos Editoriais' da V35.
-    2. O CTA Focado em Captura de E-mail (Kit.com).
+    O 'Redator' (Versão Criativa & Estratégica).
+    Principais características:
+    1. Estrutura Editorial Sugerida (A IA deve criar títulos próprios).
+    2. CTA Focado em Captura de E-mail (Kit.com).
     3. Injeção obrigatória do conteúdo de REGRAS.TXT.
     """
 
@@ -48,52 +48,86 @@ class PromptBuilder:
         return f'<script type="application/ld+json">{json.dumps(json_ld, ensure_ascii=False)}</script>'
 
     # =========================================================================
-    # ESQUELETOS EDITORIAIS (RECUPERADOS DA V35)
+    # SUGESTÕES EDITORIAIS (A IA DEVE CRIAR OS TÍTULOS)
     # =========================================================================
-    def _get_editorial_skeleton(self, cluster_key, ativo, bairro_nome):
-        """Retorna a estrutura de H2 rígida para cada perfil de cliente."""
+    def _get_editorial_suggestions(self, cluster_key, ativo, bairro_nome):
+        """
+        Retorna um GUIA DE TÓPICOS. A IA é instruída a criar títulos originais
+        baseados nestes temas, nunca copiar os nomes genéricos.
+        """
         
         # 1. INVESTIDOR / LOGÍSTICA
         if cluster_key in ("INVESTOR", "LOGISTICS"):
             return f"""
-## 5. ESTRUTURA EDITORIAL OBRIGATÓRIA (MODO: {cluster_key})
-Siga exatamente esta ordem de tópicos (H2):
-0. (Título H1 oculto)
-1. <h2>Contexto Histórico e Urbanístico de {bairro_nome}</h2>
-2. <h2>A Verdade Sobre a Valorização na Zona</h2>
-3. <h2>Infraestrutura e Mobilidade: O Que os Dados Revelam</h2>
-4. <h2>O Detalhe Invisível Que Impacta Seu Investimento</h2>
-5. <h2>Tabela de Distâncias Estratégicas</h2> (Use o CSS de Tabela Anti-Quebra).
-6. <h2>Conclusão: O Veredito do Analista</h2>
+## 5. GUIA ESTRUTURAL (SUGESTÃO TEMÁTICA - CRIE SEUS TÍTULOS)
+Siga esta lógica de raciocínio, mas **INVENTE TÍTULOS H2 ORIGINAIS** para cada seção:
+
+1. **Tema do H2:** Contexto da Região (Fale sobre a história ou localização estratégica de {bairro_nome}).
+   *Exemplo do que NÃO fazer:* "Contexto Histórico".
+   *O que fazer:* "A Evolução Logística da Zona Norte", "Por que {bairro_nome} atrai Capital".
+
+2. **Tema do H2:** Dados de Valorização (Fale sobre números, demanda e oferta).
+   *Crie um título agressivo sobre lucro/retorno.*
+
+3. **Tema do H2:** Infraestrutura Técnica (Fale sobre energia, estradas ou topografia).
+   *Crie um título técnico que passe autoridade.*
+
+4. **Tema do H2:** O "Pulo do Gato" (Um detalhe que só especialista sabe).
+   *Crie um título que gere curiosidade.*
+
+5. **Tema do H2:** Distâncias (Use a Tabela Obrigatória aqui).
+   *Título sugerido:* "Raio-X Logístico: Distâncias Reais".
+
+6. **Tema do H2:** Conclusão Financeira.
 """
         # 2. FAMÍLIA / ALTO PADRÃO
         elif cluster_key in ("FAMILY", "HIGH_END"):
             return f"""
-## 5. ESTRUTURA EDITORIAL OBRIGATÓRIA (MODO: {cluster_key})
-Siga exatamente esta ordem de tópicos (H2):
-1. <h2>A Atmosfera Exclusiva de {bairro_nome}</h2>
-2. <h2>Logística Familiar & Escolas Próximas</h2>
-3. <h2>Segurança e Vizinhança: O Que Esperar?</h2>
-4. <h2>O "Segredo" do Bairro que Poucos Conhecem</h2>
-5. <h2>Por que {ativo} é a Melhor Escolha Aqui?</h2>
+## 5. GUIA ESTRUTURAL (SUGESTÃO TEMÁTICA - CRIE SEUS TÍTULOS)
+Siga esta lógica de raciocínio, mas **INVENTE TÍTULOS H2 ORIGINAIS** para cada seção:
+
+1. **Tema do H2:** Atmosfera e "Vibe" (Descreva a sensação de morar em {bairro_nome}).
+   *Exemplo do que NÃO fazer:* "Atmosfera Exclusiva".
+   *O que fazer:* "O Silêncio que Você Procura no {bairro_nome}", "Como é Acordar no Paraíso".
+
+2. **Tema do H2:** Vida em Família e Escolas (Fale sobre logística escolar e clubes).
+   *Crie um título emocional sobre o futuro dos filhos.*
+
+3. **Tema do H2:** Segurança Real (Fale sobre portaria, rondas ou tranquilidade da rua).
+   *Crie um título que passe paz de espírito.*
+
+4. **Tema do H2:** O Segredo Local (Algo que só moradores conhecem).
+   *Crie um título de "Insider".*
+
+5. **Tema do H2:** Por que este imóvel específico ({ativo}) funciona aqui?
+   *Título focado na tipologia.*
 """
         # 3. VIDA URBANA
         elif cluster_key == "URBAN":
             return f"""
-## 5. ESTRUTURA EDITORIAL OBRIGATÓRIA (MODO: URBAN)
-Siga exatamente esta ordem de tópicos (H2):
-1. <h2>A Regra dos 15 Minutos (Walkability)</h2>
-2. <h2>Gastronomia e Lazer no Entorno</h2>
-3. <h2>Conectividade Inteligente e Serviços</h2>
-4. <h2>Raio-X: Este Bairro é Para Você?</h2>
+## 5. GUIA ESTRUTURAL (SUGESTÃO TEMÁTICA - CRIE SEUS TÍTULOS)
+Siga esta lógica de raciocínio, mas **INVENTE TÍTULOS H2 ORIGINAIS** para cada seção:
+
+1. **Tema do H2:** Walkability (Fazer tudo a pé).
+   *Exemplo do que NÃO fazer:* "A Regra dos 15 Minutos".
+   *O que fazer:* "Esqueça o Carro: A Vida a Pé no {bairro_nome}".
+
+2. **Tema do H2:** Gastronomia e Nightlife (O que fazer à noite/fim de semana).
+   *Crie um título vibrante sobre lazer.*
+
+3. **Tema do H2:** Conectividade e Serviços (Internet, Ifood, Uber, Farmácias).
+   *Crie um título sobre conveniência moderna.*
+
+4. **Tema do H2:** Perfil do Morador (Para quem é esse bairro?).
 """
         # 4. DEFAULT
         return """
-## 5. ESTRUTURA EDITORIAL GENÉRICA
-1. <h2>Visão Geral da Localização</h2>
-2. <h2>Pontos Fortes e Diferenciais</h2>
-3. <h2>Análise de Custo-Benefício</h2>
-4. <h2>Considerações Finais</h2>
+## 5. GUIA ESTRUTURAL (SUGESTÃO)
+Crie 4 Títulos H2 originais cobrindo:
+1. Localização e Acessos.
+2. Os Diferenciais Competitivos.
+3. Custo-Benefício Atual.
+4. Veredito Final.
 """
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada):
@@ -103,7 +137,7 @@ Siga exatamente esta ordem de tópicos (H2):
             return self._build_real_estate_prompt(d, data_pub, data_mod, regras_texto_ajustada)
 
     # =========================================================================
-    # MODO 1: IMOBILIÁRIA (INTELLIGENCE + EMAIL CTA + REGRAS.TXT)
+    # MODO 1: IMOBILIÁRIA (CRIATIVIDADE + EMAIL CTA + REGRAS.TXT)
     # =========================================================================
     def _build_real_estate_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
@@ -123,11 +157,11 @@ Siga exatamente esta ordem de tópicos (H2):
 </style>"""
 
         return f"""
-## GENESIS MAGNETO V.53 — EMAIL CONVERSION MODE
-**Objetivo:** Texto SEO Imobiliário com Inteligência de Mercado e Captura de Leads.
+## GENESIS MAGNETO V.54 — CREATIVE MODE
+**Objetivo:** Texto SEO Imobiliário com Títulos Únicos e Captura de Leads.
 
 ### 🛡️ PROTOCOLO ANTI-CANIBALISMO
-Você está PROIBIDO de repetir os temas abaixo. Escolha um ângulo novo:
+Você está PROIBIDO de repetir os ângulos abordados nestes artigos passados:
 {historico_txt}
 
 ---
@@ -138,31 +172,35 @@ Você está PROIBIDO de repetir os temas abaixo. Escolha um ângulo novo:
 - **OBS TÉCNICA/RISCO:** {d.get('obs_tecnica', 'N/A')}
 - **PERSONA:** {d['persona']['nome']}
 
-## 2. ESTRUTURA DO TEXTO (HTML)
+## 2. CONFIGURAÇÃO VISUAL (CSS)
 Use este CSS inline (Tabelas blindadas contra quebra):
 {estilo_html}
 
-{self._get_editorial_skeleton(cluster_key, ativo, bairro_nome)}
+## 3. MANUAL DE ESTILO (REGRAS.TXT)
+AS SEGUINTES REGRAS TÊM PRECEDÊNCIA TOTAL. SIGA CADA INSTRUÇÃO ABAIXO:
+---------------------------------------------------
+{regras_texto_ajustada}
+---------------------------------------------------
+
+{self._get_editorial_suggestions(cluster_key, ativo, bairro_nome)}
+
+### 🚫 PROIBIÇÕES DE ESTRUTURA
+1. **JAMAIS** use os títulos genéricos (ex: "Contexto Histórico", "Atmosfera Exclusiva") como seus H2. Eles são apenas guias do tema. Crie títulos atraentes.
+2. **JAMAIS** esqueça da Tabela de Distâncias no caso de Investidores/Logística.
 
 ## 6. CTA OBRIGATÓRIO (CAPTURA)
 Ao final do artigo, insira **EXATAMENTE** este código para inscrição na lista VIP.
 NÃO convide para visitas, NÃO peça para chamar no WhatsApp. O único objetivo é o cadastro:
 {self.CTA_CAPTURE_CODE}
 
-## 7. REGRAS DE OURO (CONFIG INTERNA)
+## 7. REGRAS GERAIS
 {GenesisConfig.RULES['FORBIDDEN_WORDS']}
 NUNCA use: "Sonho", "Oportunidade única".
 
-## 8. MANUAL DE ESTILO (REGRAS.TXT)
-AS SEGUINTES REGRAS TÊM PRECEDÊNCIA TOTAL. SIGA CADA INSTRUÇÃO ABAIXO:
----------------------------------------------------
-{regras_texto_ajustada}
----------------------------------------------------
-
-## 9. CHECKLIST DE ENTREGA
+## 8. CHECKLIST DE ENTREGA
 1. LOG BASTIDORES
 2. BLOCKCODE HTML (Com JSON-LD embutido: {self._get_json_ld(data_pub, data_mod, f"{ativo} em {bairro_nome}")} + Script de Email no final)
-3. TÍTULO (H1)
+3. TÍTULO (H1) CRIATIVO
 4. MARCADORES: {self._generate_seo_tags(d)}
 5. DATA: {data_fmt}
 6. DESCRIÇÃO (Meta)
@@ -170,7 +208,7 @@ AS SEGUINTES REGRAS TÊM PRECEDÊNCIA TOTAL. SIGA CADA INSTRUÇÃO ABAIXO:
 """.strip()
 
     # =========================================================================
-    # MODO 2: PORTAL (COM REGRAS.TXT)
+    # MODO 2: PORTAL (MANTIDO COM REGRAS.TXT)
     # =========================================================================
     def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
@@ -183,7 +221,7 @@ AS SEGUINTES REGRAS TÊM PRECEDÊNCIA TOTAL. SIGA CADA INSTRUÇÃO ABAIXO:
 </style>"""
 
         return f"""
-## GENESIS MAGNETO V.53 — JOURNALIST MODE
+## GENESIS MAGNETO V.54 — JOURNALIST MODE
 **Objetivo:** Notícia de Utilidade Pública que gera Autoridade.
 
 ## 1. A PAUTA
@@ -191,15 +229,12 @@ AS SEGUINTES REGRAS TÊM PRECEDÊNCIA TOTAL. SIGA CADA INSTRUÇÃO ABAIXO:
 - **LOCAL:** {d['bairro']['nome'] if d['bairro'] else 'Indaiatuba'}
 - **GATILHO:** {d['gatilho']}
 
-## 2. ESTRUTURA
+## 2. ESTRUTURA SUGERIDA
+Crie títulos jornalísticos para as seções (Não use "Introdução" ou "Conclusão").
+Siga o roteiro lógico: Fato -> Contexto -> Impacto na Vida/Imóveis -> Fechamento.
+
 Use este CSS:
 {estilo_html}
-
-**ROTEIRO:**
-1. Manchete (H1)
-2. Fatos Recentes (O que, onde, quando)
-3. A Ponte (Conecte a notícia com a qualidade de vida/imóveis)
-4. Conclusão
 
 ## 3. CTA OBRIGATÓRIO
 Finalize com o convite para a newsletter:
@@ -210,7 +245,7 @@ Finalize com o convite para a newsletter:
 
 ## 5. CHECKLIST
 1. HTML + JSON-LD
-2. TÍTULO
+2. TÍTULO (Manchete)
 3. DATA: {data_fmt}
 4. IMAGEM PROMPT
 """.strip()
