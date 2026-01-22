@@ -54,7 +54,7 @@ class GenesisEngine:
         """
         # 1. Atualiza Scanner
         self.scanner.mapear()
-        historico_recente = self.scanner.get_ultimos_titulos(20)
+        historico_recente = self.scanner.get_ultimos_titulos(9999)
 
         # Captura o CÓDIGO DO TIPO DA PAUTA (Vem limpo do app.py)
         tipo_pauta_code = user_selection.get("tipo_pauta", "IMOBILIARIA")
@@ -176,3 +176,4 @@ class GenesisEngine:
         self._salvar_log(pacote, data_pub)
         
         return pacote
+
