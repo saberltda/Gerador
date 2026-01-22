@@ -5,10 +5,11 @@ from .config import GenesisConfig
 
 class PromptBuilder:
     """
-    O 'Redator' (Versão Híbrida Definitiva).
+    O 'Redator' (Versão Híbrida Definitiva + REGRAS.TXT).
     Combina:
-    1. A inteligência de 'Esqueletos Editoriais' da V35 (Investidor, Família, etc).
-    2. O CTA Focado em Captura de E-mail (Kit.com) solicitado.
+    1. A inteligência de 'Esqueletos Editoriais' da V35.
+    2. O CTA Focado em Captura de E-mail (Kit.com).
+    3. Injeção obrigatória do conteúdo de REGRAS.TXT.
     """
 
     # --- CTA OBRIGATÓRIO (CAPTURA DE E-MAIL) ---
@@ -48,7 +49,6 @@ class PromptBuilder:
 
     # =========================================================================
     # ESQUELETOS EDITORIAIS (RECUPERADOS DA V35)
-    # Garante que o texto tenha estrutura profissional e não genérica.
     # =========================================================================
     def _get_editorial_skeleton(self, cluster_key, ativo, bairro_nome):
         """Retorna a estrutura de H2 rígida para cada perfil de cliente."""
@@ -103,7 +103,7 @@ Siga exatamente esta ordem de tópicos (H2):
             return self._build_real_estate_prompt(d, data_pub, data_mod, regras_texto_ajustada)
 
     # =========================================================================
-    # MODO 1: IMOBILIÁRIA (INTELLIGENCE + EMAIL CTA)
+    # MODO 1: IMOBILIÁRIA (INTELLIGENCE + EMAIL CTA + REGRAS.TXT)
     # =========================================================================
     def _build_real_estate_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
@@ -145,15 +145,21 @@ Use este CSS inline (Tabelas blindadas contra quebra):
 {self._get_editorial_skeleton(cluster_key, ativo, bairro_nome)}
 
 ## 6. CTA OBRIGATÓRIO (CAPTURA)
-Ao final do artigo, insira **EXATAMENTE** este código para inscrição na lista de e-mail da "Imobiliária Saber".
+Ao final do artigo, insira **EXATAMENTE** este código para inscrição na lista VIP.
 NÃO convide para visitas, NÃO peça para chamar no WhatsApp. O único objetivo é o cadastro:
 {self.CTA_CAPTURE_CODE}
 
-## 7. REGRAS DE OURO (CONFIG)
+## 7. REGRAS DE OURO (CONFIG INTERNA)
 {GenesisConfig.RULES['FORBIDDEN_WORDS']}
 NUNCA use: "Sonho", "Oportunidade única".
 
-## 8. CHECKLIST DE ENTREGA
+## 8. MANUAL DE ESTILO (REGRAS.TXT)
+AS SEGUINTES REGRAS TÊM PRECEDÊNCIA TOTAL. SIGA CADA INSTRUÇÃO ABAIXO:
+---------------------------------------------------
+{regras_texto_ajustada}
+---------------------------------------------------
+
+## 9. CHECKLIST DE ENTREGA
 1. LOG BASTIDORES
 2. BLOCKCODE HTML (Com JSON-LD embutido: {self._get_json_ld(data_pub, data_mod, f"{ativo} em {bairro_nome}")} + Script de Email no final)
 3. TÍTULO (H1)
@@ -164,7 +170,7 @@ NUNCA use: "Sonho", "Oportunidade única".
 """.strip()
 
     # =========================================================================
-    # MODO 2: PORTAL (MANTER PADRÃO)
+    # MODO 2: PORTAL (COM REGRAS.TXT)
     # =========================================================================
     def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
@@ -199,10 +205,12 @@ Use este CSS:
 Finalize com o convite para a newsletter:
 {self.CTA_CAPTURE_CODE}
 
-## 4. CHECKLIST
+## 4. DIRETRIZES DE ESTILO (REGRAS.TXT)
+{regras_texto_ajustada}
+
+## 5. CHECKLIST
 1. HTML + JSON-LD
 2. TÍTULO
 3. DATA: {data_fmt}
 4. IMAGEM PROMPT
 """.strip()
-
