@@ -29,7 +29,7 @@ class RiscoJuridico:
 class PlanoDiretor:
     """
     Responsável pela Lógica de Negócio e Compatibilidade Urbana.
-    Versão V.57 (SEO Uppercase Patch).
+    Versão V.58 (Smart Uppercase Sync).
     """
 
     def _normalize(self, texto: str) -> str:
@@ -48,8 +48,7 @@ class PlanoDiretor:
 
     def refinar_ativo(self, cluster_tecnico, bairro_obj, ativos_base_list):
         """
-        Analisa a compatibilidade. Se houver conflito de zona, 
-        substitui por um ativo compatível EM MAIÚSCULO (SEO).
+        Analisa a compatibilidade e corrige alucinações físicas.
         """
         if isinstance(ativos_base_list, str): ativos_base_list = [ativos_base_list]
 
@@ -60,37 +59,42 @@ class PlanoDiretor:
         obs_log = []
         risco = self.calcular_risco_juridico(zona, cluster_tecnico)
 
-        # --- LÓGICA DE PROTEÇÃO (COM FALLBACKS MAIÚSCULOS) ---
+        # --- LÓGICA DE PROTEÇÃO (Sincronizada com Catalog) ---
 
         # 1. ZONA INDUSTRIAL (Bloqueio Residencial)
         if zona == "industrial":
             termos_proibidos = ["casa", "apto", "apartamento", "dormitórios", "sobrado", "residencial", "mansão", "lote"]
             if any(t in ativo_norm for t in termos_proibidos) or cluster_tecnico in ["FAMILY", "URBAN", "HIGH_END"]:
                 if cluster_tecnico == "INVESTOR":
-                    ativo_final = "TERRENO INDUSTRIAL (Z1/Z2)" # Uppercase
+                    # Usa termo do catálogo INVESTOR
+                    ativo_final = "TERRENO INDUSTRIAL"
                     obs_log.append("CORREÇÃO: Residencial proibido em Z.I. -> Ajustado para TERRENO IND.")
                 else:
-                    ativo_final = "GALPÃO LOGÍSTICO / INDUSTRIAL" # Uppercase
+                    # Usa termo do catálogo LOGISTICS
+                    ativo_final = "GALPÃO INDUSTRIAL AAA"
                     obs_log.append("CORREÇÃO: Zona Industrial exige GALPÃO.")
 
         # 2. CONDOMÍNIO FECHADO (Bloqueio Comercial/Aberto)
         elif zona == "residencial_fechado":
             termos_proibidos = ["galpão", "loja", "comercial", "rua", "bairro aberto"]
             if any(t in ativo_norm for t in termos_proibidos):
-                ativo_final = "CASA EM CONDOMÍNIO FECHADO" # Uppercase
+                # Usa termo do catálogo FAMILY
+                ativo_final = "CASA EM CONDOMÍNIO"
                 obs_log.append("CORREÇÃO: Zona Fechada -> Forçado CASA CONDOMÍNIO.")
 
         # 3. BAIRRO ABERTO (Bloqueio de Condomínio)
         elif zona == "residencial_aberto":
             termos_condominio = ["condominio", "fechado", "portaria", "lazer completo"]
             if any(t in ativo_norm for t in termos_condominio):
-                ativo_final = "CASA DE RUA (BAIRRO ABERTO)" # Uppercase
+                # Usa termo do catálogo FAMILY
+                ativo_final = "CASA DE RUA EM BAIRRO PLANEJADO"
                 obs_log.append("CORREÇÃO: Bairro Aberto -> Forçado CASA DE RUA.")
 
         # 4. CHÁCARAS
         elif "chacara" in zona:
             if "apartamento" in ativo_norm or "predio" in ativo_norm:
-                ativo_final = "CHÁCARA DE LAZER" # Uppercase
+                # Usa termo do catálogo RURAL
+                ativo_final = "CHÁCARA EM CONDOMÍNIO FECHADO" if "fechado" in zona else "CHÁCARA EM ITAICI"
                 obs_log.append("CORREÇÃO: Verticalização proibida em zona rural.")
 
         if not obs_log:
