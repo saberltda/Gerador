@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.60 (MODERN JOURNALISM SUITE)"
+    VERSION = "GERADOR V.60.1 (SYNCED EDITIONS)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -33,7 +33,7 @@ class GenesisConfig:
     ]
 
     # =====================================================
-    # 2. INTEGRAÇÃO IMOBILIÁRIA (MANTIDA)
+    # 2. INTEGRAÇÃO IMOBILIÁRIA (MODO CORRETOR)
     # =====================================================
     TOPICS_MAP = {
         "MERCADO_DADOS": "📈 Dados de Mercado e Rentabilidade",
@@ -82,24 +82,30 @@ class GenesisConfig:
         "DATA_JOURNALISM": 70, "RESGATE_MEMORIA": 60
     }
 
-    # --- FORMATOS DE TEXTO (MIXED) ---
-    CONTENT_FORMATS_MAP = {
-        # Formatos Jornalísticos (Portal)
+    # --- FORMATOS DE TEXTO (SEPARADOS POR MODO) ---
+    
+    # Lista Exclusiva para Modo Portal
+    PORTAL_FORMATS_MAP = {
         "NOTICIA_IMPACTO": "📰 Hard News (Notícia de Impacto)",
         "EXPLAINER": "🧠 Explainer (Entenda o Caso)",
         "DOSSIE_INVESTIGATIVO": "🕵️ Dossiê Investigativo (Longform)",
         "CHECAGEM_FATOS": "✅ Checagem de Fatos (Verdade ou Mentira)",
         "LISTA_CURADORIA": "📋 Curadoria (Top 5 / Roteiros)",
         "ENTREVISTA_PING_PONG": "🎙️ Entrevista Ping-Pong (Direto)",
-        "SERVICO_PASSO_A_PASSO": "👣 Serviço Passo-a-Passo (Tutorial)",
-        
-        # Formatos Imobiliários (Legado)
+        "SERVICO_PASSO_A_PASSO": "👣 Serviço Passo-a-Passo (Tutorial)"
+    }
+
+    # Lista Exclusiva para Modo Imobiliária
+    REAL_ESTATE_FORMATS_MAP = {
         "GUIA_DEFINITIVO": "📘 Guia Definitivo (Imobiliário)",
         "LISTA_POLEMICA": "🔥 Lista Polêmica (Imobiliário)",
         "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Imobiliário)",
         "INSIGHT_DE_CORRETOR": "💡 Insight de Corretor",
         "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas"
     }
+
+    # Unificado (apenas para compatibilidade interna se necessário)
+    CONTENT_FORMATS_MAP = {**PORTAL_FORMATS_MAP, **REAL_ESTATE_FORMATS_MAP}
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
     # --- PERSONAS ---
