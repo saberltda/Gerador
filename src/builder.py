@@ -5,8 +5,8 @@ from .config import GenesisConfig
 
 class PromptBuilder:
     """
-    O 'Redator' (Versão 59 - Portal Revolution).
-    Separação total entre lógica de Imobiliária (Vendas/Copy) e Portal (Jornalismo/News).
+    O 'Redator' (Versão 60 - Modern Journalism Edition).
+    Suporta os novos formatos de jornalismo local (Explainer, Fact-Check, Soluções).
     """
 
     CTA_CAPTURE_CODE = """
@@ -27,57 +27,119 @@ class PromptBuilder:
         except: return iso_date_str
 
     def _generate_seo_tags(self, d):
-        tags = ["Indaiatuba", "Imóveis Indaiatuba"]
+        tags = ["Indaiatuba", "Notícias Indaiatuba"]
         if d.get('bairro'): tags.append(d['bairro']['nome'])
-        if d.get('ativo_definido'): tags.append(d['ativo_definido'].split('/')[0])
-        if d.get('formato'): tags.append(d['formato'])
+        if d.get('ativo_definido'): tags.append(d['ativo_definido'])
+        if d.get('topico'): tags.append(d['topico'])
         return ", ".join(tags[:10])
 
-    def _get_structural_guidelines(self, formato_key, cluster_key, bairro_nome):
-        # 1. LISTA POLÊMICA
-        if formato_key == "LISTA_POLEMICA":
+    def _get_portal_structure(self, formato_key, editoria, tema):
+        """
+        Define a arquitetura da informação para Jornalismo Moderno.
+        """
+        
+        # 1. EXPLAINER (Jornalismo Didático)
+        if formato_key == "EXPLAINER":
             return f"""
-## 5. CAMINHOS PARA EXPLORAR A FUNDO (MITOS & VERDADES)
-Não faça apenas uma lista rápida. Pegue cada mito e DESCONSTRUA ele completamente.
-Use dados, lógica, exemplos e narrativas para provar seu ponto.
+## 5. ESTRUTURA: EXPLAINER (ENTENDA O CASO)
+O leitor está confuso. Sua missão é explicar o tema "{tema}" de forma didática.
+- **Intro:** O que aconteceu? (Resumo em 1 parágrafo).
+- **Contexto:** Como chegamos até aqui? (Background).
+- **O que muda na prática:** 3 pontos fundamentais que afetam a vida do leitor.
+- **Próximos passos:** O que esperar do futuro?
+*Estilo:* Use analogias simples. Evite "juridiquês" ou "politiquês".
 """
-        # 2. COMPARATIVO TÉCNICO
-        elif formato_key == "COMPARATIVO_TECNICO":
+
+        # 2. DOSSIÊ INVESTIGATIVO (Profundidade)
+        elif formato_key == "DOSSIE_INVESTIGATIVO":
             return f"""
-## 5. CAMINHOS PARA EXPLORAR A FUNDO (ANÁLISE COMPARATIVA)
-O leitor quer um dossiê completo. Não economize nas comparações.
-Crie cenários hipotéticos e compare estilos de vida detalhadamente.
+## 5. ESTRUTURA: DOSSIÊ INVESTIGATIVO (LONGFORM)
+Uma análise profunda sobre {editoria}.
+- **Manchete Impactante.**
+- **O Problema:** Dados e fatos que mostram a dimensão da questão.
+- **As Causas:** Por que isso acontece em Indaiatuba?
+- **O Outro Lado:** O que dizem as autoridades ou envolvidos?
+- **Impacto Humano:** Histórias reais de quem é afetado.
+*Estilo:* Jornalismo sério, baseada em dados, mas com narrativa envolvente.
 """
-        # 3. GUIA DEFINITIVO
-        elif formato_key == "GUIA_DEFINITIVO":
+
+        # 3. CHECAGEM DE FATOS (Fact-Checking)
+        elif formato_key == "CHECAGEM_FATOS":
             return f"""
-## 5. CAMINHOS PARA EXPLORAR A FUNDO (O MAPA COMPLETO)
-Escreva o guia definitivo. Seja exaustivo nos detalhes.
-Disserte sobre a qualidade da educação, sensação de segurança e infraestrutura.
+## 5. ESTRUTURA: CHECAGEM DE FATOS (VERDADE OU MENTIRA?)
+Há boatos circulando sobre "{tema}". Vamos esclarecer.
+- **O Boato:** "Dizem por aí que..." (Cite o que circula no WhatsApp/Redes).
+- **A Checagem:** O que apuramos (Fomos até o local, ligamos para o órgão, checamos a lei).
+- **As Evidências:** Mostre provas (Dados, fotos, documentos).
+- **Veredito:** É VERDADE, É MENTIRA ou É IMPRECISO?
+*Estilo:* Direto, seco e baseado puramente em evidências.
 """
-        # 4. INSIGHT DE CORRETOR
-        elif formato_key == "INSIGHT_DE_CORRETOR":
+
+        # 4. LISTA DE CURADORIA (Serviço/Lazer)
+        elif formato_key == "LISTA_CURADORIA":
             return f"""
-## 5. CAMINHOS PARA EXPLORAR A FUNDO (STORYTELLING)
-Conte tudo. O detalhe da visita, a conversa com o porteiro, a vista da varanda.
-A riqueza está nas nuances que só quem vive o mercado conhece.
+## 5. ESTRUTURA: CURADORIA (LISTA TOP X)
+O leitor quer recomendações confiáveis sobre {editoria}.
+- **Intro:** Por que esse tema está em alta?
+- **Item 1 a 5:** Seleção criteriosa. Para cada item, explique ONDE fica, QUANTO custa e POR QUE vale a pena.
+- **Dica de Ouro:** Um segredo extra para quem leu até o fim.
+*Estilo:* Leve, convidativo e útil. Como uma dica de amigo expert.
 """
-        # 5. PERGUNTAS E RESPOSTAS
-        elif formato_key == "PERGUNTAS_RESPOSTAS":
+
+        # 5. SERVIÇO PASSO A PASSO (Utilidade Pública)
+        elif formato_key == "SERVICO_PASSO_A_PASSO":
             return f"""
-## 5. CAMINHOS PARA EXPLORAR A FUNDO (RESPOSTAS COMPLETAS)
-Não dê respostas de 'sim ou não'. Dê uma aula sobre cada pergunta.
+## 5. ESTRUTURA: TUTORIAL DE SERVIÇO
+Guia prático para resolver um problema do cidadão ({tema}).
+- **O que é:** Breve definição.
+- **Quem tem direito/Quem é afetado:** Critérios claros.
+- **Passo a Passo:** Lista numerada (1, 2, 3...) de como proceder.
+- **Documentos/Locais:** Onde ir, o que levar.
+*Estilo:* Imperativo ("Faça", "Leve", "Acesse"). Foco total em utilidade.
 """
+
+        # 6. HARD NEWS (Notícia Padrão)
+        elif formato_key == "NOTICIA_IMPACTO":
+            return f"""
+## 5. ESTRUTURA: HARD NEWS (PIRÂMIDE INVERTIDA)
+Notícia quente e objetiva sobre {editoria}.
+- **Lide (Lead):** Quem, o quê, onde, quando e porquê no 1º parágrafo.
+- **Corpo:** Detalhes secundários, falas de testemunhas/autoridades.
+- **Contexto:** Isso já aconteceu antes? Dados relacionados.
+- **Serviço:** Telefones ou links úteis se necessário.
+"""
+
+        # 7. ENTREVISTA PING-PONG
+        elif formato_key == "ENTREVISTA_PING_PONG":
+            return f"""
+## 5. ESTRUTURA: ENTREVISTA (PING-PONG)
+Conversa direta com uma fonte relevante sobre {tema}.
+- **Intro:** Quem é o entrevistado e por que ele importa agora.
+- **Pergunta 1:** (Sobre o problema atual).
+- **Pergunta 2:** (Sobre soluções).
+- **Pergunta 3:** (Mensagem para a população).
+*Estilo:* Transcreva as respostas de forma fluida, mantendo a voz do entrevistado.
+"""
+
         # FALLBACK
         else:
-            return f"## 5. CAMINHOS PARA EXPLORAR\nSinta-se livre para escrever um ensaio completo sobre o tema."
+            return "## 5. ESTRUTURA LIVRE\nDesenvolva uma matéria jornalística completa, com início, meio e fim, focada no interesse público."
+
+    def _get_real_estate_guidelines(self, formato_key, cluster, bairro):
+        # Mantém a lógica "Unchained" para Imobiliária (simplificada aqui para focar no Portal)
+        return f"""
+## 5. CAMINHOS PARA EXPLORAR (MERCADO IMOBILIÁRIO)
+Escreva um texto ÉPICO e detalhado sobre {bairro}.
+Não economize palavras. Use storytelling, dados técnicos e persuasão.
+Disserte sobre estilo de vida, valorização e diferenciais ocultos.
+"""
 
     def _get_tone_guidelines(self, gatilho_key):
         return """
-### 🧠 MENTALIDADE DE ESCRITOR (DEEP WRITING)
-- **Extensão:** Escreva o quanto for necessário para esgotar o assunto. Não tenha pressa.
-- **Conexão:** Use linguagem natural, fluida e envolvente.
-- **Profundidade:** Evite o óbvio. Vá duas camadas abaixo da superfície.
+### 🧠 MENTALIDADE DE ESCRITOR (DEEP FLOW)
+- **Profundidade:** Não seja raso. Aprofunde-se nas causas e consequências.
+- **Fluidez:** Escreva parágrafos encadeados, sem quebras bruscas.
+- **Conexão:** Use uma linguagem que o morador de Indaiatuba entenda e se identifique.
 """
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada):
@@ -87,116 +149,85 @@ Não dê respostas de 'sim ou não'. Dê uma aula sobre cada pergunta.
             return self._build_real_estate_prompt(d, data_pub, data_mod, regras_texto_ajustada)
 
     # =========================================================================
-    # MODO IMOBILIÁRIA (UNCHAINED)
+    # MODO PORTAL (MODERN JOURNALISM)
+    # =========================================================================
+    def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
+        data_fmt = self._format_date_blogger(data_pub)
+        formato_key = d.get('formato', 'NOTICIA_IMPACTO')
+        editoria = d.get('ativo_definido', 'Geral') # Agora 'ativo' é a Editoria
+        tema = d.get('topico', 'Geral')
+        
+        structure_guide = self._get_portal_structure(formato_key, editoria, tema)
+        
+        return f"""
+## GENESIS MAGNETO V.60 — PORTAL NEWS ENGINE
+**Objetivo:** JORNALISMO LOCAL DE ALTO NÍVEL.
+**Persona:** PORTAL DA CIDADE (Credibilidade, Utilidade e Imparcialidade).
+
+## 1. A PAUTA
+- **EDITORIA:** {editoria}
+- **TEMA/ÂNGULO:** {tema}
+- **LOCAL:** Indaiatuba (Abrangência Municipal)
+- **FORMATO:** {formato_key}
+
+## 2. MISSÃO JORNALÍSTICA
+Você é um repórter investigativo e comunitário.
+- **Foco:** Interesse Público. Como isso afeta a vida do cidadão?
+- **Tom:** Profissional, mas próximo. Evite sensacionalismo barato.
+- **Dados:** Sempre que possível, cite dados (invente dados realistas para o exercício se necessário, mantendo coerência).
+
+{structure_guide}
+
+{self._get_tone_guidelines("NEUTRAL")}
+
+## 3. INSUMOS (REGRAS & CONTEXTO)
+**ATIVE A PERSONA JORNALÍSTICA:**
+{regras_texto_ajustada}
+
+## 4. CTA (ENGAGEMENT)
+{self.CTA_CAPTURE_CODE}
+
+## 5. CHECKLIST FINAL
+1. TÍTULO (H1): Manchete jornalística (curta e direta).
+2. LIDE: Primeiro parágrafo respondendo às questões chaves.
+3. CONTEÚDO: Corpo robusto e informativo.
+4. JSON-LD: Schema de 'NewsArticle'.
+""".strip()
+
+    # =========================================================================
+    # MODO IMOBILIÁRIA (UNCHAINED LEGACY)
     # =========================================================================
     def _build_real_estate_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
         ativo = d['ativo_definido']
         bairro_nome = d['bairro']['nome'] if d['bairro'] else "Indaiatuba"
-        cluster_key = d.get('cluster_tecnico', 'FAMILY')
-        formato_key = d.get('formato', 'GUIA_DEFINITIVO')
-        gatilho_key = d.get('gatilho', 'AUTORIDADE')
+        cluster = d.get('cluster_tecnico', 'FAMILY')
+        formato = d.get('formato', 'GUIA_DEFINITIVO')
+        gatilho = d.get('gatilho', 'AUTORIDADE')
         
-        historico_txt = "\n".join([f"- {t}" for t in d.get('historico_titulos', [])])
-
-        estilo_html = f"""<style>
-.post-body h2 {{ color: {GenesisConfig.COLOR_PRIMARY}; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 40px; }}
-.post-body h3 {{ color: #cc0000; margin-top: 30px; }}
-.post-body p {{ font-size: 19px; line-height: 1.8; color: #333; margin-bottom: 20px; }}
-.post-body li {{ margin-bottom: 10px; font-size: 18px; }}
-</style>"""
-
-        structural_guidelines = self._get_structural_guidelines(formato_key, cluster_key, bairro_nome)
-        tone_guidelines = self._get_tone_guidelines(gatilho_key)
+        structure = self._get_real_estate_guidelines(formato, cluster, bairro_nome)
+        tone = self._get_tone_guidelines(gatilho)
 
         return f"""
-## GENESIS MAGNETO V.58 — IMOBILIÁRIA (UNCHAINED)
-**Objetivo:** Texto ÉPICO e IMERSIVO sobre Mercado Imobiliário.
-**Persona Ativa:** IMOBILIÁRIA SABER (Vendas & Autoridade).
-
-### 🛡️ CONTEXTO
-Evite repetir ângulos destes posts:
-{historico_txt}
-
----
+## GENESIS MAGNETO V.60 — REAL ESTATE (UNCHAINED)
+**Objetivo:** Copywriting Imobiliário Persuasivo e Profundo.
+**Persona:** IMOBILIÁRIA SABER (Vendas).
 
 ## 1. O CENÁRIO
-- **FORMATO:** {formato_key}
-- **MOOD:** {gatilho_key}
 - **ATIVO:** {ativo}
-- **BAIRRO:** {bairro_nome}
-- **LEITOR:** {d['persona']['nome']} (DOR: {d['persona']['dor']})
-- **TEMA:** {d.get('topico', 'Geral')}
+- **LOCAL:** {bairro_nome}
+- **CLIENTE:** {d['persona']['nome']}
+- **FORMATO:** {formato}
+- **GATILHO:** {gatilho}
 
-## 2. ESTILO VISUAL (CSS)
-{estilo_html}
+## 2. CARTA DE ALFORRIA (LIBERDADE TOTAL)
+Escreva um texto rico, longo e detalhado. Venda o sonho e a realidade técnica.
+{structure}
+{tone}
 
-## 3. CARTA DE ALFORRIA (LIBERDADE TOTAL)
-Você foi liberado das amarras de tamanho.
-1. **Escreva MUITO:** Desenvolva cada parágrafo com riqueza de detalhes.
-2. **Conte Histórias:** Use storytelling para ilustrar dados técnicos.
-3. **Seja Humano:** Escreva como alguém apaixonado pelo assunto, não como um robô.
-
-{structural_guidelines}
-
-{tone_guidelines}
-
-## 4. BASE DE CONHECIMENTO
-**IMPORTANTE:** Ative a persona "IMOBILIÁRIA SABER" definida abaixo.
+## 3. INSUMOS
 {regras_texto_ajustada}
 
-## 5. CTA (Código Obrigatório)
-{self.CTA_CAPTURE_CODE}
-
-## 6. CHECKLIST DE ENTREGA
-1. LOG ESTRATÉGICO
-2. BLOCKCODE HTML (JSON-LD + Texto Completo)
-3. TÍTULO (H1)
-4. MARCADORES: {self._generate_seo_tags(d)}
-5. DATA: {data_fmt}
-6. DESCRIÇÃO
-7. IMAGEM PROMPT
-""".strip()
-
-    # =========================================================================
-    # MODO PORTAL (REVOLUTION)
-    # =========================================================================
-    def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
-        data_fmt = self._format_date_blogger(data_pub)
-        formato_key = d.get('formato', 'GUIA_DEFINITIVO')
-        
-        # Adaptação para notícias
-        structural_guidelines = f"""
-## 5. ESTRUTURA JORNALÍSTICA (SUGESTÃO)
-- **Lide (Lead):** O que, quem, quando, onde, porquê.
-- **Corpo da Notícia:** Detalhes, impacto na comunidade, dados históricos.
-- **Serviço:** O que o cidadão precisa fazer? (Links, datas, locais).
-- **Encerramento:** Contexto futuro ou contato útil.
-"""
-
-        return f"""
-## GENESIS MAGNETO V.59 — PORTAL NEWS ENGINE
-**Objetivo:** JORNALISMO LOCAL PROFISSIONAL.
-**Persona Ativa:** PORTAL DA CIDADE (Imparcialidade & Utilidade).
-
-## 1. A PAUTA (EDITORIA: {d['ativo_definido']})
-- **MANCHETE SUGERIDA:** Crie algo impactante sobre {d['topico']}.
-- **LOCAL:** Indaiatuba (Foco na Cidade inteira).
-- **FORMATO:** Matéria Jornalística Completa (Long-form).
-
-## 2. DIRETRIZES DE JORNALISMO (SEM GATILHOS MENTAIS)
-Você NÃO está vendendo nada. Você está informando.
-- **Tom:** Sério, confiável, útil.
-- **Proibido:** "Imperdível", "Sonho", "Oportunidade única".
-- **Foco:** O impacto na vida do cidadão comum.
-- **Liberdade:** Escreva uma matéria densa e completa.
-
-{structural_guidelines}
-
-## 3. BASE DE CONHECIMENTO
-**IMPORTANTE:** Ative a persona "PORTAL DA CIDADE" definida abaixo.
-{regras_texto_ajustada}
-
-## 4. CTA (NEWSLETTER)
+## 4. CTA
 {self.CTA_CAPTURE_CODE}
 """.strip()
