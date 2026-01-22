@@ -107,7 +107,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 7.9 (Portal Sync) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.0 (Portal Revolution) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -124,18 +124,16 @@ def main():
             tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA")
             eh_portal = (tipo_pauta_code == "PORTAL")
 
-            # --- LÓGICA DINÂMICA DE LISTAS ---
+            # --- LÓGICA DINÂMICA DE LISTAS E VISIBILIDADE ---
             if not eh_portal:
                 lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_imoveis
-                # Usa tópicos imobiliários
                 l_topicos = [CONST_RANDOM] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
-                label_ativo = "Imóvel"
+                label_ativo = "Imóvel / Ativo"
                 icon_ativo = "🏠"
             else:
                 lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_portal
-                # Usa tópicos de portal
                 l_topicos = [CONST_RANDOM] + sorted(list(GenesisConfig.PORTAL_TOPICS_MAP.values()))
-                label_ativo = "Categoria do Portal"
+                label_ativo = "Editoria (Seção)"
                 icon_ativo = "📰"
 
             st.markdown("---")
@@ -144,30 +142,48 @@ def main():
             with c1: data_pub = st.date_input("Data de Publicação", datetime.date.today(), key="k_data")
             with c2:
                 if not eh_portal: sel_persona = smart_select("Persona Alvo", l_personas, "k_persona", "👤", use_label=True)
-                else: st.info("ℹ️ Modo Portal: Público alvo definido como 'Cidadão'."); sel_persona = "CITIZEN_GENERAL"
+                else: 
+                    st.info("ℹ️ Modo Portal: Persona 'Jornalista' ativada.")
+                    sel_persona = "CITIZEN_GENERAL"
 
             st.markdown("---")
 
-            if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
-            try: modo_geo = st.pills("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
-            except: modo_geo = st.radio("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], horizontal=True, key="k_modo_geo")
-            
+            # --- CONTROLE GEOGRÁFICO ---
             final_bairro_input = "ALEATÓRIO"
-            if modo_geo == "📍 Bairro Específico":
-                st.markdown("<br>", unsafe_allow_html=True)
-                final_bairro_input = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️", use_label=True)
-            elif modo_geo == "🏙️ Foco Cidade":
-                final_bairro_input = "FORCE_CITY_MODE"; st.caption("ℹ️ O texto falará sobre Indaiatuba como um todo.")
+            modo_geo_val = "🎲 Aleatório"
+
+            if not eh_portal:
+                if "k_modo_geo" not in st.session_state: st.session_state["k_modo_geo"] = "🎲 Aleatório"
+                try: modo_geo = st.pills("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], key="k_modo_geo")
+                except: modo_geo = st.radio("Modo Geográfico", ["🎲 Aleatório", "🏙️ Foco Cidade", "📍 Bairro Específico"], horizontal=True, key="k_modo_geo")
+                
+                modo_geo_val = modo_geo
+                if modo_geo == "📍 Bairro Específico":
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    final_bairro_input = smart_select("Selecionar Bairro", l_bairros, "k_bairro", "🏘️", use_label=True)
+                elif modo_geo == "🏙️ Foco Cidade":
+                    final_bairro_input = "FORCE_CITY_MODE"; st.caption("ℹ️ O texto falará sobre Indaiatuba como um todo.")
+            else:
+                # MODO PORTAL: TRAVADO EM CIDADE
+                st.caption("📍 Abrangência: **Cidade Inteira (Indaiatuba)**")
+                final_bairro_input = "FORCE_CITY_MODE"
 
             st.markdown("---")
 
             c3, c4 = st.columns(2)
             with c3: sel_ativo = smart_select(label_ativo, lista_ativos_display, "k_ativo", icon_ativo, use_label=True)
-            with c4: sel_topico = smart_select("Ângulo Editorial", l_topicos, "k_topico", "🚀", use_label=True)
+            with c4: sel_topico = smart_select("Ângulo / Tema", l_topicos, "k_topico", "🚀", use_label=True)
 
             c5, c6 = st.columns(2)
-            with c5: sel_formato = smart_select("Formato do Conteúdo", l_formatos, "k_formato", "📝", use_label=True)
-            with c6: sel_gatilho = smart_select("Gatilho Mental", l_gatilhos, "k_gatilho", "🧠", use_label=True)
+            with c5: sel_formato = smart_select("Formato do Texto", l_formatos, "k_formato", "📝", use_label=True)
+            
+            # --- GATILHO: SOMENTE SE NÃO FOR PORTAL ---
+            sel_gatilho = "ALEATÓRIO"
+            with c6:
+                if not eh_portal:
+                    sel_gatilho = smart_select("Gatilho Mental", l_gatilhos, "k_gatilho", "🧠", use_label=True)
+                else:
+                    st.empty() # Espaço vazio no layout
 
             st.markdown("<br>", unsafe_allow_html=True)
 
@@ -180,7 +196,7 @@ def main():
                     st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
                     st.session_state["k_data"] = datetime.date.today()
                 st.button("🧹 LIMPAR", on_click=reset_state_callback, type="primary", use_container_width=True)
-            with c_run: run_btn = st.button("✨ GERAR ESTRATÉGIA", type="secondary", use_container_width=True)
+            with c_run: run_btn = st.button("✨ GERAR TEXTO", type="secondary", use_container_width=True)
 
         if run_btn:
             progress_bar = st.progress(0); status_text = st.empty()
@@ -192,8 +208,6 @@ def main():
                 # --- TRADUÇÃO DAS SELEÇÕES ---
                 p_key = "CITIZEN_GENERAL" if eh_portal else ("ALEATÓRIO" if sel_persona == CONST_RANDOM else persona_map[sel_persona])
                 final_ativo_selecao = "ALEATÓRIO" if sel_ativo == CONST_RANDOM else sel_ativo
-                
-                # Tópico: Não precisa reversão pois usamos o display value
                 final_topico = "ALEATÓRIO" if sel_topico == CONST_RANDOM else sel_topico
                 
                 f_key = "ALEATÓRIO"
@@ -202,9 +216,11 @@ def main():
                         if v == sel_formato: f_key = k; break
                 
                 g_key = "ALEATÓRIO"
-                if sel_gatilho != CONST_RANDOM:
+                if not eh_portal and sel_gatilho != CONST_RANDOM:
                     for k,v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
                         if v == sel_gatilho: g_key = k; break
+                elif eh_portal:
+                    g_key = "NEUTRAL_JOURNALISM" # Gatilho nulo para portal
 
                 user_sel = {
                     "persona_key": p_key, "bairro_nome": final_bairro_input, "topico": final_topico,
@@ -242,7 +258,7 @@ def main():
 
                 k1, k2, k3 = st.columns(3)
                 with k1: 
-                    nome_display = "Cidadão (Portal)" if eh_portal else res['persona']['nome'].split('(')[0]
+                    nome_display = "Jornalismo (Portal)" if eh_portal else res['persona']['nome'].split('(')[0]
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">Público</div><div class="metric-value">{nome_display}</div></div>""", unsafe_allow_html=True)
                 with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Localização</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
                 with k3: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{estrategia_display}</div></div>""", unsafe_allow_html=True)
