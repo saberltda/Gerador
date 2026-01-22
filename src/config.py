@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.53.2 (PT-BR UPDATE)"
+    VERSION = "GERADOR V.53.5 (FULL ROSTER UPDATE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -78,78 +78,95 @@ class GenesisConfig:
     }
 
     # =====================================================
-    # 3. MATRIZ DE PERSONAS (Reordenada e Traduzida)
+    # 3. MATRIZ DE PERSONAS (COMPLETA)
     # =====================================================
     PERSONAS = {
-        # 1. GERAL (PORTAL)
+        # --- ELITE / TOPO DA LISTA (PRIORITÁRIOS) ---
         "CITIZEN_GENERAL": {
             "cluster_ref": "PORTAL", 
             "nome": "🏙️ CIDADÃO DE INDAIATUBA (Informação Geral)",
             "dor": "Desinformação sobre o que acontece na cidade e oportunidades perdidas.",
             "desejo": "Saber sobre obras, trânsito, eventos, utilidade pública e valorização do seu bairro."
         },
-        # 2. INVESTIDOR
         "INVESTOR_SHARK_ROI": {
             "cluster_ref": "INVESTOR",
-            "nome": "🦈 INVESTIDOR TUBARÃO (Foco em Retorno)",
+            "nome": "🦈 INVESTIDOR TUBARÃO (Foco em Yield)",
             "dor": "Dinheiro parado no CDI perdendo para inflação real e medo de vacância.",
             "desejo": "Ativos com liquidez comprovada, dados matemáticos de valorização e Cap Rate acima da média."
         },
-        # 3. FAMÍLIA SP
         "EXODUS_SP_ELITE_FAMILY": {
             "cluster_ref": "HIGH_END",
             "nome": "✈️ ÊXODO SÃO PAULO (Fuga da Capital)",
             "dor": "Insegurança extrema em SP, filhos presos em apartamento e poluição.",
             "desejo": "Condomínio fechado com segurança armada, escolas bilingues e qualidade de vida imediata."
         },
-        # 4. PRIMEIRO IMÓVEL
         "FIRST_HOME_DREAMER": {
             "cluster_ref": "URBAN",
             "nome": "🔑 1º IMÓVEL (Casal Jovem)",
             "dor": "Medo de comprometer a renda por 30 anos e comprar um imóvel que desvalorize.",
             "desejo": "Entrada facilitada, bairro com potencial de crescimento e baixo custo de condomínio."
         },
-        # 5. LUXO / PRIVACIDADE
         "LUXURY_PRIVACY_SEEKER": {
             "cluster_ref": "HIGH_END",
             "nome": "💎 OLD MONEY (Busca Privacidade)",
             "dor": "Exposição excessiva, vizinhos barulhentos e falta de exclusividade.",
             "desejo": "Terrenos duplos ou de esquina, vista para mata preservada, arquitetura autoral e silêncio absoluto."
         },
-        # 6. LOGÍSTICA / EMPRESÁRIO
         "COMMERCIAL_LOGISTICS_BOSS": {
             "cluster_ref": "LOGISTICS",
             "nome": "🚚 GIGANTE DA LOGÍSTICA (CEO/Diretor)",
             "dor": "Custo do 'Last Mile', falta de mão de obra local e trânsito para escoar carga.",
             "desejo": "Proximidade da SP-75/Viracopos, pé direito de 12m e incentivos fiscais."
         },
-        # 7. PET PARENT (PROMOVIDO PARA 7ª POSIÇÃO)
         "PET_PARENT_PREMIUM": {
             "cluster_ref": "FAMILY",
-            "nome": "🐾 DONO DE ANIMAIS DE ESTIMAÇÃO (Pet Lover)",
-            "dor": "Dificuldade em encontrar condomínios com grandes quintais e regras flexíveis para animais de grande porte.",
-            "desejo": "Casa com amplo quintal gramado, próxima a 'Pet Places' e parques para caminhada."
+            "nome": "🐾 DONO DE ANIMAIS (Pet Lover)",
+            "dor": "Dificuldade em encontrar condomínios com quintais e regras flexíveis para animais grandes.",
+            "desejo": "Casa com amplo quintal gramado, próxima a 'Pet Places' e parques."
         },
-        # 8. HOME OFFICE
+
+        # --- CLÁSSICOS & RESTAURADOS (SEQUÊNCIA) ---
+        "HYBRID_COMMUTER": {
+            "cluster_ref": "URBAN",
+            "nome": "🚗 O PENDULAR (Trabalha em SP/Campinas)",
+            "dor": "Cansaço da estrada diária e tempo perdido no trânsito urbano até a rodovia.",
+            "desejo": "Acesso imediato à Rodovia Santos Dumont (SP-75) e serviços rápidos na saída da cidade."
+        },
         "REMOTE_WORKER_TECH": {
             "cluster_ref": "URBAN",
             "nome": "💻 NÔMADE DIGITAL / HOME OFFICE",
             "dor": "Apartamentos apertados sem isolamento acústico para reuniões e internet instável.",
             "desejo": "Cômodo extra para escritório (3º dormitório), vista livre e fibra ótica de alta velocidade."
         },
-        # 9. MÉDICOS / SAÚDE
         "MEDICAL_PRO_HEALTH": {
             "cluster_ref": "HIGH_END",
             "nome": "🩺 MÉDICO / PROFISSIONAL DE SAÚDE",
             "dor": "Rotina exaustiva de plantões, necessidade de silêncio absoluto para descanso.",
             "desejo": "Proximidade do Hospital HAOC/Santa Ignês e suíte master com isolamento acústico."
         },
-        # 10. APOSENTADOS ATIVOS
         "ACTIVE_RETIREE": {
             "cluster_ref": "FAMILY",
             "nome": "🍷 MELHOR IDADE ATIVA",
             "dor": "Casas com muitas escadas, manutenção difícil e solidão.",
             "desejo": "Casa térrea prática, próxima a farmácias, mercados e convivência social."
+        },
+        "INVESTOR_CONSERVATIVE": {
+            "cluster_ref": "INVESTOR",
+            "nome": "🛡️ INVESTIDOR CONSERVADOR (Patrimônio)",
+            "dor": "Medo de arriscar em mercado financeiro e perder o principal.",
+            "desejo": "Imóvel físico ('tijolo'), segurança jurídica total e reserva de valor para os filhos."
+        },
+        "INVESTOR_FLIP": {
+            "cluster_ref": "INVESTOR",
+            "nome": "🛠️ INVESTIDOR DE REFORMA (Flipper)",
+            "dor": "Margem de lucro apertada em imóveis prontos.",
+            "desejo": "Imóvel depreciado em boa localização para reformar e vender com margem."
+        },
+        "COUNTRYSIDE_LIFESTYLE": {
+            "cluster_ref": "RURAL_LIFESTYLE",
+            "nome": "🌿 ESTILO DE VIDA CAMPESTRE (Chácaras)",
+            "dor": "Estresse da cidade grande e falta de contato com a natureza.",
+            "desejo": "Chácara em condomínio (segurança) com espaço para horta e lazer."
         }
     }
 
