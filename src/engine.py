@@ -17,7 +17,6 @@ class GenesisEngine:
     def _selecionar_persona_compativel(self, cluster_key):
         """
         Encontra uma persona que tenha interesse no cluster sorteado.
-        Ex: Se cluster='LOGISTICS', retorna 'COMMERCIAL_LOGISTICS_BOSS'.
         """
         candidatos = []
         for chave, persona in GenesisConfig.PERSONAS.items():
@@ -29,97 +28,84 @@ class GenesisEngine:
         
         if candidatos:
             return random.choice(candidatos)
-        return GenesisConfig.PERSONAS["CITIZEN_GENERAL"] # Fallback
+        # Fallback inteligente: Se falhar, usa o Pet Parent (alta conversão) ou Cidadão
+        return GenesisConfig.PERSONAS.get("PET_PARENT_PREMIUM", GenesisConfig.PERSONAS["CITIZEN_GENERAL"])
 
     def _filtrar_bairros_por_cluster(self, cluster_key):
-        """
-        Retorna apenas bairros cujo zoneamento faz sentido para o cluster.
-        Evita alucinações (ex: Mansão em Distrito Industrial).
-        """
         todos_bairros = self.data.bairros
         candidatos = []
 
-        # Regras de Compatibilidade (Zoneamento Inteligente)
         for b in todos_bairros:
             z = b.get("zona_normalizada", "indefinido")
             match = False
             
             if cluster_key == "HIGH_END":
                 if z in ["residencial_fechado", "chacaras_fechado"]: match = True
-            
             elif cluster_key == "FAMILY":
-                # Família aceita aberto ou fechado, mas evita industrial
                 if z in ["residencial_fechado", "residencial_aberto", "chacaras_fechado"]: match = True
-            
             elif cluster_key == "URBAN":
-                # Foco em apartamentos/casas de rua
                 if z in ["residencial_aberto", "mista"]: match = True
-            
             elif cluster_key == "INVESTOR":
-                # Investidor olha tudo (terreno em aberto, fechado ou industrial)
                 if z in ["industrial", "residencial_fechado", "mista", "residencial_aberto"]: match = True
-            
             elif cluster_key == "LOGISTICS":
                 if z in ["industrial", "mista"]: match = True
-            
             elif cluster_key == "CORPORATE":
                 if z in ["mista", "industrial", "residencial_aberto"]: match = True
-                
             elif cluster_key == "RURAL_LIFESTYLE":
                 if "chacara" in z: match = True
 
             if match:
                 candidatos.append(b)
 
-        # Se o filtro for muito restritivo e não achar nada, retorna tudo (fallback seguro)
         return candidatos if candidatos else todos_bairros
 
+    def _escolher_topico_ponderado(self):
+        """
+        Usa os pesos definidos em TOPICS_WEIGHTS para priorizar pautas de alta conversão.
+        """
+        opcoes = []
+        pesos = []
+        
+        for key, nome_display in GenesisConfig.TOPICS_MAP.items():
+            opcoes.append(nome_display)
+            # Pega o peso do config, default 50 se não existir
+            pesos.append(GenesisConfig.TOPICS_WEIGHTS.get(key, 50))
+            
+        return random.choices(opcoes, weights=pesos, k=1)[0]
+
     def run(self, user_selection: dict):
-        """
-        Execução Otimizada: Cluster -> Persona -> Bairro -> Ativo
-        """
-        # 1. Scanner (Anti-Repetição)
+        # 1. Scanner
         self.scanner.mapear()
         historico_recente = self.scanner.get_ultimos_titulos(20)
 
         tipo_pauta_code = user_selection.get("tipo_pauta", "IMOBILIARIA")
         eh_portal = (tipo_pauta_code == "PORTAL")
 
-        # --- PASSO 1: DEFINIR O CLUSTER (A INTENÇÃO) ---
-        # O Cluster guia tudo. Se a persona for manual, o cluster vem dela.
-        # Se for aleatória, sorteamos o cluster PRIMEIRO.
-        
+        # --- PASSO 1: CLUSTER & PERSONA ---
         persona_data = None
-        cluster_ref = "FAMILY" # Default
+        cluster_ref = "FAMILY" 
 
         if user_selection['persona_key'] != "ALEATÓRIO":
-            # Persona Manual
             key = user_selection['persona_key']
             persona_data = GenesisConfig.PERSONAS[key]
             cluster_ref = persona_data['cluster_ref']
         else:
-            # Persona Aleatória -> Sorteamos o Cluster primeiro
+            # Sorteio do Cluster com leve viés para High Ticket
             clusters_disponiveis = list(self.data.ativos_por_cluster.keys())
-            
-            # Peso SEO: Dá uma leve preferência para clusters de alto valor (High End/Investor)
-            # 2x chance para HIGH_END e INVESTOR
-            pesos = []
+            pesos_cluster = []
             for c in clusters_disponiveis:
-                if c in ["HIGH_END", "INVESTOR"]: pesos.append(c); pesos.append(c)
-                else: pesos.append(c)
+                if c in ["HIGH_END", "INVESTOR", "LOGISTICS"]: pesos_cluster.append(2.0) # Dobro de chance
+                else: pesos_cluster.append(1.0)
             
-            cluster_ref = random.choice(pesos)
-            
-            # Agora define a persona baseada no cluster
+            cluster_ref = random.choices(clusters_disponiveis, weights=pesos_cluster, k=1)[0]
             persona_data = self._selecionar_persona_compativel(cluster_ref)
 
-        # --- PASSO 2: DEFINIR O BAIRRO (FILTRADO PELO CLUSTER) ---
+        # --- PASSO 2: BAIRRO ---
         bairro_selecionado = None
         modo = "CIDADE"
         obs_tecnica = f"Cluster: {cluster_ref}"
 
         if user_selection['bairro_nome'] != "ALEATÓRIO":
-            # Bairro Manual
             if user_selection['bairro_nome'] == "FORCE_CITY_MODE":
                 modo = "CIDADE"
             else:
@@ -131,27 +117,23 @@ class GenesisEngine:
                     modo = "BAIRRO"
                     obs_tecnica += " | Bairro Manual"
         else:
-            # Bairro Aleatório (AGORA FILTRADO)
             candidatos = self._filtrar_bairros_por_cluster(cluster_ref)
-            
-            # Tenta pegar um bairro inédito no blog
             ineditos = [b for b in candidatos if not self.scanner.ja_publicado(b["nome"])]
             
-            if ineditos and random.random() < 0.75: # 75% de chance de priorizar inédito
+            if ineditos and random.random() < 0.75:
                  bairro_selecionado = random.choice(ineditos)
                  obs_tecnica += " | Bairro Inédito (Smart SEO)"
-            else:
+            elif candidatos:
                  bairro_selecionado = random.choice(candidatos)
-                 obs_tecnica += " | Bairro Recorrente (Smart SEO)"
+                 obs_tecnica += " | Bairro Recorrente"
             
             if bairro_selecionado:
                 modo = "BAIRRO"
 
-        # --- PASSO 3: DEFINIR O ATIVO (COM ATENÇÃO AO MAIÚSCULO) ---
+        # --- PASSO 3: ATIVO ---
         if user_selection['ativo'] != "ALEATÓRIO":
             ativo_final = user_selection['ativo']
             obs_ref = "Ativo Manual"
-            # Validação cruzada rápida
             if modo == "BAIRRO" and bairro_selecionado:
                  ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, [ativo_final])
                  obs_ref += f" ({obs_ajuste})"
@@ -163,11 +145,8 @@ class GenesisEngine:
                 obs_ref = "Notícia Portal"
             else:
                 lista_ativos = self.data.ativos_por_cluster.get(cluster_ref, ["IMÓVEL PADRÃO"])
-                
-                # Sorteio do ativo base
                 ativo_base = random.choice(lista_ativos)
                 
-                # Refinamento Lógico (Plano Diretor)
                 if modo == "BAIRRO" and bairro_selecionado:
                     ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, [ativo_base])
                     obs_ref = obs_ajuste
@@ -177,13 +156,20 @@ class GenesisEngine:
 
         obs_tecnica += f" | {obs_ref}"
 
-        # --- PASSO 4: FLAVOR TEXT (TÓPICO, FORMATO, GATILHO) ---
-        if user_selection['topico'] != "ALEATÓRIO": topico = user_selection['topico']
-        else: topico = random.choice(list(GenesisConfig.TOPICS_MAP.values()))
+        # --- PASSO 4: FLAVOR TEXT (COM INTELIGÊNCIA PONDERADA) ---
+        
+        # 4.1 Ângulo Editorial (Topico)
+        if user_selection['topico'] != "ALEATÓRIO": 
+            topico = user_selection['topico']
+        else: 
+            # AGORA USA OS PESOS DE SEO (Mais "ROI", menos "Genérico")
+            topico = self._escolher_topico_ponderado()
 
+        # 4.2 Formato
         if user_selection['formato'] != "ALEATÓRIO": formato = user_selection['formato']
         else: formato = random.choice(GenesisConfig.CONTENT_FORMATS)
             
+        # 4.3 Gatilho
         if user_selection['gatilho'] != "ALEATÓRIO": gatilho = user_selection['gatilho']
         else: gatilho = random.choice(GenesisConfig.EMOTIONAL_TRIGGERS)
 
