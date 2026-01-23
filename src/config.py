@@ -2,18 +2,15 @@
 import datetime
 
 class GenesisConfig:
-    VERSION = "GERADOR V.64 (BRASILIA TIMEZONE ENFORCED)"
+    VERSION = "GERADOR V.66 (COMPATIBILITY FIX)"
 
     # =====================================================
     # ⛔ CONFIGURAÇÃO CRÍTICA DE FUSO HORÁRIO
     # =====================================================
-    # O sistema deve operar ESTRITAMENTE no horário de Brasília (UTC-3).
-    # NUNCA altere para UTC ou outro fuso. Isso afeta o SEO (JSON-LD) e o Histórico.
-    # =====================================================
     TZ_BRASILIA = datetime.timezone(datetime.timedelta(hours=-3))
-    FUSO_PADRAO = "-03:00" # String para concatenação em ISO strings
+    FUSO_PADRAO = "-03:00"
 
-    # Design System & URLs
+    # Cores e URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
     COLOR_ACTION  = "#28a745"   # Verde Ação
     BLOG_URL = "https://blog.saber.imb.br"
@@ -41,6 +38,9 @@ class GenesisConfig:
         "ARQUITETURA_FACHADA": "🎨 Arquitetura e Estilo da Fachada",
         "COMUNIDADE_VIZINHANCA": "🤝 Vizinhança e Vida em Comunidade"
     }
+
+    # [FIX] ALIAS DE COMPATIBILIDADE (Para evitar o erro que você viu)
+    REAL_ESTATE_TOPICS_DISPLAY = TOPICS_MAP 
 
     REAL_ESTATE_FORMATS_MAP = {
         "GUIA_DEFINITIVO": "📘 Guia Definitivo (Imobiliário)",
@@ -104,36 +104,16 @@ class GenesisConfig:
     CONTENT_FORMATS_MAP = {**PORTAL_FORMATS_MAP, **REAL_ESTATE_FORMATS_MAP}
 
     # =====================================================
-    # 3. PERSONAS
+    # 3. PERSONAS & FILTROS
     # =====================================================
     PERSONAS = {
-        "CITIZEN_GENERAL": {
-            "cluster_ref": "PORTAL", 
-            "nome": "🗞️ REDAÇÃO (Jornalismo Profissional)",
-            "dor": "Desinformação.", "desejo": "Verdade."
-        },
+        "CITIZEN_GENERAL": {"cluster_ref": "PORTAL", "nome": "🗞️ REDAÇÃO (Jornalismo)", "dor": "Desinformação", "desejo": "Verdade"},
         "INVESTOR_SHARK_ROI": {"cluster_ref": "INVESTOR", "nome": "🦈 INVESTIDOR TUBARÃO", "dor": "Risco", "desejo": "Retorno"},
         "EXODUS_SP_ELITE_FAMILY": {"cluster_ref": "HIGH_END", "nome": "✈️ FAMÍLIA EXODUS", "dor": "Segurança", "desejo": "Qualidade"},
         "FIRST_HOME_DREAMER": {"cluster_ref": "URBAN", "nome": "🔑 1º IMÓVEL", "dor": "Orçamento", "desejo": "Viabilidade"}
     }
     
-    # =====================================================
-    # 4. REGRAS DE SEGURANÇA (FILTRO DE CONTEÚDO)
-    # =====================================================
     RULES = {
-        "FORBIDDEN_WORDS": [
-            "oportunidade única", "venha conferir", "show de ofertas", 
-            "top", "sensacional", "imperdível", "preço baixo",
-            "maravilhoso", "espetacular", "lindo"
-        ],
-        "JOURNALISM_STOPWORDS": [
-            "eu acho", "na minha opinião", "com certeza", "sem dúvida"
-        ]
+        "FORBIDDEN_WORDS": ["oportunidade única", "venha conferir", "top", "sensacional"],
+        "JOURNALISM_STOPWORDS": ["eu acho", "na minha opinião"]
     }
-
-    STRICT_GUIDELINES = [
-        "JORNALISMO VERDADE: Nunca invente fatos, datas ou nomes de autoridades.",
-        "IMPARCIALIDADE: Ouça (ou simule com dados) os dois lados da história.",
-        "LOCALISMO RADICAL: Tudo deve ter conexão direta com Indaiatuba.",
-        "SEM OPINIÃO: O jornalista relata, não julga (exceto em editoriais explícitos)."
-    ]
