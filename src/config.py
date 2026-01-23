@@ -1,7 +1,7 @@
 # src/config.py
 
 class GenesisConfig:
-    VERSION = "GERADOR V.62 (SYNCED PORTAL EDITION)"
+    VERSION = "GERADOR V.63 (SYNCED REAL ESTATE)"
 
     # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
@@ -11,13 +11,12 @@ class GenesisConfig:
     FUSO_PADRAO = "-03:00"
 
     # =====================================================
-    # 1. REGRAS GERAIS E BLOQUEIOS
+    # 1. REGRAS GERAIS
     # =====================================================
     RULES = {
         "FORBIDDEN_WORDS": [
             "oportunidade única", "venha conferir", "show de ofertas", 
             "top", "sensacional", "imperdível", "preço baixo",
-            # No modo jornalismo, proibimos adjetivos vazios
             "maravilhoso", "espetacular", "lindo"
         ],
         "JOURNALISM_STOPWORDS": [
@@ -33,84 +32,128 @@ class GenesisConfig:
     ]
 
     # =====================================================
-    # 2. INTEGRAÇÃO IMOBILIÁRIA (MODO CORRETOR)
-    # =====================================================
-    TOPICS_MAP = {
-        "MERCADO_DADOS": "📈 Dados de Mercado e Rentabilidade",
-        "INVESTIMENTO_ROI": "💰 Lucro e Valorização de Patrimônio",
-        "FINANCAS_TOKEN": "💳 Potencial de Financiamento e Crédito",
-        "SUSTENTABILIDADE_ESG": "🌱 Sustentabilidade e Economia Verde",
-        "LOCALIZACAO_PREMIUM": "📍 Localização e Facilidade de Acesso",
-        "LUXO_COMPACTO": "💎 Luxo e Design Exclusivo",
-        "CIDADES_INTELIGENTES": "🏙️ Infraestrutura Urbana e Modernidade",
-        "HOME_OFFICE_FLEX": "💻 Espaço para Trabalho e Flexibilidade",
-        "LOGISTICA_HUB": "🚚 Logística e Proximidade com Aeroporto",
-        "BEM_ESTAR_BIOFILIA": "🌿 Saúde, Bem-Estar e Natureza",
-        "SENIOR_LIVING": "🍷 Qualidade de Vida na Melhor Idade",
-        "SEGURANCA_TECH": "🛡️ Segurança e Monitoramento Inteligente",
-        "SHORT_STAY": "🧳 Aluguel por Temporada e Renda Extra",
-        "PETS_GARDEN": "🐾 Espaço para Animais e Quintal",
-        "SMART_HOME": "📱 Casa Inteligente e Tecnologia",
-        "JURIDICO_SEGURANCA": "⚖️ Segurança Jurídica e Documentação",
-        "ARQUITETURA_FACHADA": "🎨 Arquitetura e Estilo da Fachada",
-        "COMUNIDADE_VIZINHANCA": "🤝 Vizinhança e Vida em Comunidade"
-    }
-
-    TOPICS_WEIGHTS = {k: 80 for k in TOPICS_MAP.keys()} # Pesos equalizados
-
-    # Lista Exclusiva para Modo Imobiliária
-    REAL_ESTATE_FORMATS_MAP = {
-        "GUIA_DEFINITIVO": "📘 Guia Definitivo (Imobiliário)",
-        "LISTA_POLEMICA": "🔥 Lista Polêmica (Imobiliário)",
-        "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Imobiliário)",
-        "INSIGHT_DE_CORRETOR": "💡 Insight de Corretor",
-        "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas"
-    }
-
-    # =====================================================
-    # 3. O NOVO PORTAL: MATRIZ DE SINCRONIZAÇÃO
+    # 2. MATRIZ DE SINCRONIZAÇÃO (IMOBILIÁRIA)
     # =====================================================
     
-    # Esta matriz define a lógica: Editoria -> Tópicos Permitidos -> Formatos Permitidos
+    # Esta matriz define a lógica: Cluster -> Tópicos Permitidos -> Formatos Permitidos
+    REAL_ESTATE_MATRIX = {
+        "HIGH_END": {
+            "label": "💎 Alto Padrão & Luxo",
+            "topics": ["PRIVACIDADE_TOTAL", "ARQUITETURA_ASSINADA", "SEGURANCA_ARMADA", "LAZER_PRIVATIVO", "LOCALIZACAO_NOBRE"],
+            "formats": ["INSIGHT_DE_CORRETOR", "COMPARATIVO_TECNICO", "GUIA_DEFINITIVO"]
+        },
+        "FAMILY": {
+            "label": "👨‍👩‍👧‍👦 Família & Moradia",
+            "topics": ["EDUCACAO_FILHOS", "SEGURANCA_CONDOMINIO", "LAZER_CLUBE", "PETS_GARDEN", "COMUNIDADE_VIZINHANCA"],
+            "formats": ["GUIA_DEFINITIVO", "PERGUNTAS_RESPOSTAS", "LISTA_POLEMICA"]
+        },
+        "INVESTOR": {
+            "label": "💰 Investidor & Rentabilidade",
+            "topics": ["INVESTIMENTO_ROI", "LIQUIDEZ_ALUGUEL", "MERCADO_DADOS", "OPORTUNIDADE_FLIP", "VALORIZACAO_FUTURA"],
+            "formats": ["DATA_DRIVEN", "COMPARATIVO_TECNICO", "CENARIO_ANALITICO"]
+        },
+        "URBAN": {
+            "label": "🏙️ Urbano & Praticidade",
+            "topics": ["MOBILIDADE_RAPIDA", "SERVICOS_APE", "PRIMEIRO_IMOVEL", "SMART_LIVING", "VARANDA_GOURMET"],
+            "formats": ["LISTA_POLEMICA", "CHECKLIST_TECNICO", "GUIA_DEFINITIVO"]
+        },
+        "RURAL_LIFESTYLE": {
+            "label": "🌿 Chácaras & Lazer Rural",
+            "topics": ["DESCOMPRESSAO", "PRODUCAO_PROPRIA", "ESPACO_EVENTOS", "INTERNET_RURAL", "SEGURANCA_RURAL"],
+            "formats": ["INSIGHT_DE_CORRETOR", "ROTINA_SUGERIDA", "GUIA_DEFINITIVO"]
+        },
+        "LOGISTICS": {
+            "label": "🚚 Logística & Industrial",
+            "topics": ["LOGISTICA_HUB", "ENERGIA_POTENCIA", "ACESSO_RODOVIA", "PE_DIREITO", "AREA_MANOBRA"],
+            "formats": ["CHECKLIST_TECNICO", "DATA_DRIVEN", "COMPARATIVO_TECNICO"]
+        },
+        "CORPORATE": {
+            "label": "💼 Corporativo & Escritórios",
+            "topics": ["IMAGEM_CORPORATIVA", "NETWORKING_LOCAL", "FACILIDADE_CLIENTE", "CONECTIVIDADE", "SEGURANCA_TECH"],
+            "formats": ["CHECKLIST_TECNICO", "LISTA_POLEMICA", "PERGUNTAS_RESPOSTAS"]
+        }
+    }
+
+    # VISUALIZAÇÃO DE TÓPICOS IMOBILIÁRIOS
+    REAL_ESTATE_TOPICS_DISPLAY = {
+        "PRIVACIDADE_TOTAL": "🔒 Privacidade Absoluta e Sossego",
+        "ARQUITETURA_ASSINADA": "🎨 Arquitetura Autoral e Design",
+        "SEGURANCA_ARMADA": "🛡️ Segurança Patrimonial de Elite",
+        "LAZER_PRIVATIVO": "🏊 Lazer Privativo (Piscina/Gourmet)",
+        "LOCALIZACAO_NOBRE": "📍 Localização Premium e Valorizada",
+        "EDUCACAO_FILHOS": "🎓 Proximidade de Escolas Bilíngues",
+        "SEGURANCA_CONDOMINIO": "👮 Segurança e Portaria 24h",
+        "LAZER_CLUBE": "club Lazer Completo (Estilo Resort)",
+        "PETS_GARDEN": "🐾 Espaço Pet e Quintal",
+        "COMUNIDADE_VIZINHANCA": "🤝 Vizinhança e Perfil Familiar",
+        "INVESTIMENTO_ROI": "📈 ROI e Potencial de Valorização",
+        "LIQUIDEZ_ALUGUEL": "💸 Liquidez para Locação",
+        "MERCADO_DADOS": "📊 Dados de Mercado e Metro Quadrado",
+        "OPORTUNIDADE_FLIP": "🔨 Oportunidade de Reforma (Flip)",
+        "VALORIZACAO_FUTURA": "🚀 Vetor de Crescimento Urbano",
+        "MOBILIDADE_RAPIDA": "🚦 Mobilidade e Acesso ao Centro",
+        "SERVICOS_APE": "🛍️ Conveniência e Serviços a Pé",
+        "PRIMEIRO_IMOVEL": "🔑 Estratégia do 1º Imóvel",
+        "SMART_LIVING": "📱 Automação e Modernidade",
+        "VARANDA_GOURMET": "🍖 Varanda Gourmet e Receber Bem",
+        "DESCOMPRESSAO": "🧘 Refúgio e Descompressão Mental",
+        "PRODUCAO_PROPRIA": "🍎 Pomar e Horta Orgânica",
+        "ESPACO_EVENTOS": "🎉 Espaço para Grandes Famílias",
+        "INTERNET_RURAL": "📡 Conectividade no Campo",
+        "SEGURANCA_RURAL": "🚧 Monitoramento Rural e Segurança",
+        "LOGISTICA_HUB": "✈️ Proximidade Viracopos/SP-75",
+        "ENERGIA_POTENCIA": "⚡ Capacidade Elétrica Industrial",
+        "ACESSO_RODOVIA": "🚛 Logística Last Mile",
+        "PE_DIREITO": "🏭 Pé Direito e Capacidade de Piso",
+        "AREA_MANOBRA": "🚛 Pátio e Docas",
+        "IMAGEM_CORPORATIVA": "👔 Status e Imagem da Empresa",
+        "NETWORKING_LOCAL": "🤝 Networking no Condomínio",
+        "FACILIDADE_CLIENTE": "🅿️ Estacionamento e Acesso Cliente",
+        "CONECTIVIDADE": "💻 Fibra Óptica e Redundância",
+        "SEGURANCA_TECH": "📷 Controle de Acesso Facial"
+    }
+
+    # VISUALIZAÇÃO DE FORMATOS IMOBILIÁRIOS
+    REAL_ESTATE_FORMATS_DISPLAY = {
+        "GUIA_DEFINITIVO": "📘 Guia Definitivo de Compra",
+        "LISTA_POLEMICA": "🔥 Mitos vs Verdades (Polêmico)",
+        "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Tabela)",
+        "INSIGHT_DE_CORRETOR": "💡 Insight de Bastidores (Expert)",
+        "PERGUNTAS_RESPOSTAS": "❓ FAQ (Perguntas Frequentes)",
+        "DATA_DRIVEN": "📊 Análise Baseada em Dados",
+        "CENARIO_ANALITICO": "🔮 Previsão de Cenário Futuro",
+        "CHECKLIST_TECNICO": "✅ Checklist de Vistoria/Avaliação",
+        "ROTINA_SUGERIDA": "📅 Rotina de Vida (Storytelling)"
+    }
+    
+    # =====================================================
+    # 3. MATRIZ DE SINCRONIZAÇÃO (PORTAL)
+    # =====================================================
+    
     PORTAL_MATRIX = {
         "GIRO_POLICIAL": {
             "label": "🚔 Plantão Policial & Trânsito",
-            "topics": [
-                "ACIDENTE_GRAVE", "OPERACAO_POLICIAL", "ALERTAS_DEFESA_CIVIL",
-                "MOBILIDADE_URBANA", "OBRAS_VIARIAS"
-            ],
+            "topics": ["ACIDENTE_GRAVE", "OPERACAO_POLICIAL", "ALERTAS_DEFESA_CIVIL", "MOBILIDADE_URBANA", "OBRAS_VIARIAS"],
             "formats": ["NOTICIA_IMPACTO", "CHECAGEM_FATOS", "DATA_DRIVEN"]
         },
         "POLITICA_BASTIDORES": {
             "label": "🏛️ Política & Poder",
-            "topics": [
-                "CAMARA_MUNICIPAL", "DECISOES_PREFEITURA", "ELEICOES_CENARIOS",
-                "POLEMICA_LEGISLATIVA", "ORCAMENTO_PUBLICO"
-            ],
+            "topics": ["CAMARA_MUNICIPAL", "DECISOES_PREFEITURA", "ELEICOES_CENARIOS", "POLEMICA_LEGISLATIVA", "ORCAMENTO_PUBLICO"],
             "formats": ["DOSSIE_INVESTIGATIVO", "EXPLAINER", "ENTREVISTA_PING_PONG", "BASTIDORES_ANALISE"]
         },
         "AGENDA_CULTURAL": {
             "label": "🎉 Viver Indaiatuba (Lazer)",
-            "topics": [
-                "SHOWS_EVENTOS", "GASTRONOMIA_NOVIDADES", "PARQUE_ECOLOGICO_LAZER",
-                "ROTEIROS_FIM_DE_SEMANA", "CULTURA_ARTE"
-            ],
+            "topics": ["SHOWS_EVENTOS", "GASTRONOMIA_NOVIDADES", "PARQUE_ECOLOGICO_LAZER", "ROTEIROS_FIM_DE_SEMANA", "CULTURA_ARTE"],
             "formats": ["LISTA_CURADORIA", "ROTEIRO_EXPERIENCIA", "NOTICIA_SERVICO"]
         },
         "ECONOMIA_LOCAL": {
             "label": "💰 Seu Bolso & Negócios",
-            "topics": [
-                "VAGAS_EMPREGO", "NOVAS_EMPRESAS", "MERCADO_IMOBILIARIO",
-                "CUSTO_DE_VIDA", "INAUGURACOES"
-            ],
+            "topics": ["VAGAS_EMPREGO", "NOVAS_EMPRESAS", "MERCADO_IMOBILIARIO", "CUSTO_DE_VIDA", "INAUGURACOES"],
             "formats": ["SERVICO_PASSO_A_PASSO", "DATA_DRIVEN", "LISTA_CURADORIA"]
         },
         "COTIDIANO_CIDADE": {
             "label": "🏘️ Comunidade & Serviços",
-            "topics": [
-                "CLIMA_TEMPO", "SAUDE_PUBLICA", "EDUCACAO_ESCOLAS",
-                "CAUSA_ANIMAL", "HISTORIAS_DE_VIDA"
-            ],
+            "topics": ["CLIMA_TEMPO", "SAUDE_PUBLICA", "EDUCACAO_ESCOLAS", "CAUSA_ANIMAL", "HISTORIAS_DE_VIDA"],
             "formats": ["SERVICO_PASSO_A_PASSO", "EXPLAINER", "VOZ_DA_RUA"]
         },
         "DESTAQUE_DO_DIA": {
@@ -120,7 +163,6 @@ class GenesisConfig:
         }
     }
 
-    # --- DICIONÁRIO DE VISUALIZAÇÃO (TÓPICOS) ---
     PORTAL_TOPICS_DISPLAY = {
         "ACIDENTE_GRAVE": "🚨 Acidentes e Ocorrências Graves",
         "OPERACAO_POLICIAL": "🚓 Operações e Segurança Pública",
@@ -151,7 +193,6 @@ class GenesisConfig:
         "PRINCIPAIS_MANCHETES": "🗞️ As Capas dos Jornais"
     }
 
-    # --- DICIONÁRIO DE VISUALIZAÇÃO (FORMATOS) ---
     PORTAL_FORMATS_DISPLAY = {
         "NOTICIA_IMPACTO": "📰 Hard News (Fato Seco)",
         "CHECAGEM_FATOS": "✅ Checagem (Verdade ou Mentira?)",
@@ -168,54 +209,46 @@ class GenesisConfig:
         "REVISTA_DIGITAL_DIARIA": "🗞️ Giro Completo (Newsletter)"
     }
     
-    # (Mantido para compatibilidade reversa com Imobiliária)
-    PORTAL_FORMATS_MAP = PORTAL_FORMATS_DISPLAY 
-    
-    # Unificado (apenas para compatibilidade interna se necessário)
-    CONTENT_FORMATS_MAP = {**PORTAL_FORMATS_MAP, **REAL_ESTATE_FORMATS_MAP}
+    # UNIFICAÇÃO PARA FALLBACK
+    CONTENT_FORMATS_MAP = {**PORTAL_FORMATS_DISPLAY, **REAL_ESTATE_FORMATS_DISPLAY}
     CONTENT_FORMATS = list(CONTENT_FORMATS_MAP.keys())
 
     # =====================================================
-    # 4. PERSONAS E CATÁLOGOS
+    # 4. PERSONAS E CATÁLOGOS (ASSETS)
     # =====================================================
     
     PERSONAS = {
         "CITIZEN_GENERAL": {
             "cluster_ref": "PORTAL", 
             "nome": "🗞️ REDAÇÃO (Jornalismo Profissional)",
-            "dor": "Desinformação e falta de profundidade nas notícias locais.",
-            "desejo": "Informação confiável, verificada e útil para o dia a dia."
+            "dor": "Desinformação e falta de profundidade.",
+            "desejo": "Informação confiável e útil."
         },
-        "INVESTOR_SHARK_ROI": {"cluster_ref": "INVESTOR", "nome": "🦈 INVESTIDOR TUBARÃO", "dor": "Risco", "desejo": "Retorno"},
-        "EXODUS_SP_ELITE_FAMILY": {"cluster_ref": "HIGH_END", "nome": "✈️ FAMÍLIA EXODUS", "dor": "Segurança", "desejo": "Qualidade"},
-        "FIRST_HOME_DREAMER": {"cluster_ref": "URBAN", "nome": "🔑 1º IMÓVEL", "dor": "Orçamento", "desejo": "Viabilidade"}
+        "INVESTOR_SHARK_ROI": {"cluster_ref": "INVESTOR", "nome": "🦈 INVESTIDOR TUBARÃO", "dor": "Risco de Vacância", "desejo": "ROI acima da SELIC"},
+        "EXODUS_SP_ELITE_FAMILY": {"cluster_ref": "HIGH_END", "nome": "✈️ FAMÍLIA EXODUS (SP)", "dor": "Segurança e Violência", "desejo": "Qualidade de Vida e Espaço"},
+        "FIRST_HOME_DREAMER": {"cluster_ref": "URBAN", "nome": "🔑 1º IMÓVEL (CASAL)", "dor": "Orçamento Apertado", "desejo": "Viabilidade Financeira"},
+        "LOGISTICS_MANAGER": {"cluster_ref": "LOGISTICS", "nome": "🚚 GESTOR LOGÍSTICO", "dor": "Custo Last Mile", "desejo": "Eficiência e Acesso"},
+        "RURAL_RETIREE": {"cluster_ref": "RURAL_LIFESTYLE", "nome": "🌿 APOSENTADORIA VERDE", "dor": "Barulho e Estresse", "desejo": "Paz e Terra"},
+        "CORPORATE_CEO": {"cluster_ref": "CORPORATE", "nome": "👔 CEO / EMPRESÁRIO", "dor": "Imagem da Empresa", "desejo": "Status e Networking"}
     }
 
-    # --- EDITORIAS (CATÁLOGO LEGADO - MANTIDO P/ BACKUP) ---
-    PORTAL_CATALOG = {
-        "DESTAQUE_DIARIO": ["Resumo das Principais Notícias do Dia"], 
-        "CIDADE_ALERTA": ["Trânsito e Mobilidade", "Segurança Pública", "Clima e Defesa Civil"],
-        "PODER_POLITICA": ["Câmara Municipal", "Decisões da Prefeitura"],
-        "VIVER_INDAIATUBA": ["Agenda Cultural", "Gastronomia e Bares", "Parque Ecológico"],
-        "SEU_DINHEIRO": ["Vagas de Emprego", "Comércio Local"],
-        "EDUCACAO_FUTURO": ["Escolas e Creches", "Cursos Gratuitos"],
-        "COMUNIDADE": ["Causas Animais (Pets)", "Solidariedade e ONGs"]
+    # CATÁLOGO DE ATIVOS IMOBILIÁRIOS (AGRUPADOS PELA CHAVE DO CLUSTER)
+    ASSETS_CATALOG = {
+        "HIGH_END": ["MANSÃO EM CONDOMÍNIO DE LUXO", "CASA TÉRREA ALTO PADRÃO", "TERRENO DE ALTO PADRÃO", "SOBRADO DE LUXO"],
+        "FAMILY": ["CASA EM CONDOMÍNIO (FAMÍLIA)", "SOBRADO COM ÁREA GOURMET", "CASA DE RUA EM BAIRRO PLANEJADO"],
+        "URBAN": ["APARTAMENTO 3 DORMITÓRIOS", "STUDIO / LOFT MODERNO", "APARTAMENTO GARDEN", "COBERTURA DUPLEX"],
+        "INVESTOR": ["TERRENO EM CONDOMÍNIO (INVESTIMENTO)", "IMÓVEL PARA REFORMA (FLIP)", "LOTE COMERCIAL", "KITNET PARA RENDA"],
+        "LOGISTICS": ["GALPÃO INDUSTRIAL AAA", "ÁREA PARA CD LOGÍSTICO", "TERRENO INDUSTRIAL"],
+        "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO DE LAZER", "HARAS OU CHÁCARA DE PRODUÇÃO"],
+        "CORPORATE": ["SALA COMERCIAL PREMIUM", "LAJE CORPORATIVA", "PRÉDIO MONOUSUÁRIO", "CONSULTÓRIO MÉDICO"]
     }
     
-    # --- CATÁLOGO IMOBILIÁRIO ---
-    ASSETS_CATALOG = {
-        "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO"],
-        "FAMILY": ["CASA EM CONDOMÍNIO", "SOBRADO COM ÁREA GOURMET"],
-        "URBAN": ["APARTAMENTO 3 DORMITÓRIOS", "STUDIO / LOFT MODERNO"],
-        "INVESTOR": ["TERRENO EM CONDOMÍNIO", "IMÓVEL PARA REFORMA"],
-        "LOGISTICS": ["GALPÃO INDUSTRIAL AAA", "ÁREA PARA CD"],
-        "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO OU HARAS"],
-        "CORPORATE": ["SALA COMERCIAL", "LAJE CORPORATIVA"]
+    # CATÁLOGO DO PORTAL
+    PORTAL_CATALOG = {
+        "DESTAQUE_DIARIO": ["Resumo das Principais Notícias do Dia"], 
+        "CIDADE_ALERTA": ["Trânsito e Mobilidade", "Segurança Pública"],
+        # ... (simplificado pois usamos a Matrix agora)
     }
-
-    # --- PESOS E MAPAS LEGADOS (COMPATIBILIDADE) ---
-    PORTAL_TOPICS_MAP = PORTAL_TOPICS_DISPLAY # Alias
-    PORTAL_TOPICS_WEIGHTS = {k: 90 for k in PORTAL_TOPICS_DISPLAY.keys()}
 
     EMOTIONAL_TRIGGERS_MAP = {
         "AUTORIDADE": "👑 Autoridade", "ESCASSEZ": "💎 Escassez",
