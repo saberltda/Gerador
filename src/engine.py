@@ -2,7 +2,7 @@
 import random
 import copy
 from .database import GenesisData
-from .logic import PlanoDiretor, SEOHeatmap, RiscoJuridico, PortalSynchronizer
+from .logic import PlanoDiretor, SEOHeatmap, RiscoJuridico, PortalSynchronizer, RealEstateSynchronizer
 from .scanner import BlogScanner
 from .config import GenesisConfig
 
@@ -13,7 +13,8 @@ class GenesisEngine:
         self.heatmap = SEOHeatmap()
         self.risco_juridico = RiscoJuridico()
         self.scanner = BlogScanner()
-        self.portal_sync = PortalSynchronizer() # Novo Cérebro de Sincronização
+        self.portal_sync = PortalSynchronizer()
+        self.imob_sync = RealEstateSynchronizer() # Novo Cérebro Imobiliário
 
     def _selecionar_persona_compativel(self, cluster_key):
         candidatos = []
@@ -23,7 +24,8 @@ class GenesisEngine:
             if cluster_key in refs: candidatos.append(persona)
         
         if candidatos: return random.choice(candidatos)
-        return GenesisConfig.PERSONAS.get("PET_PARENT_PREMIUM", GenesisConfig.PERSONAS["CITIZEN_GENERAL"])
+        # Fallback inteligente
+        return GenesisConfig.PERSONAS.get("EXODUS_SP_ELITE_FAMILY", list(GenesisConfig.PERSONAS.values())[0])
 
     def _filtrar_bairros_por_cluster(self, cluster_key):
         todos_bairros = self.data.bairros
@@ -31,8 +33,9 @@ class GenesisEngine:
         for b in todos_bairros:
             z = b.get("zona_normalizada", "indefinido")
             match = False
+            # Lógica de compatibilidade Cluster <-> Zona
             if cluster_key == "HIGH_END" and z in ["residencial_fechado", "chacaras_fechado"]: match = True
-            elif cluster_key == "FAMILY" and z in ["residencial_fechado", "residencial_aberto", "chacaras_fechado"]: match = True
+            elif cluster_key == "FAMILY" and z in ["residencial_fechado", "residencial_aberto"]: match = True
             elif cluster_key == "URBAN" and z in ["residencial_aberto", "mista"]: match = True
             elif cluster_key == "INVESTOR" and z in ["industrial", "residencial_fechado", "mista", "residencial_aberto"]: match = True
             elif cluster_key == "LOGISTICS" and z in ["industrial", "mista"]: match = True
@@ -41,27 +44,6 @@ class GenesisEngine:
             if match: candidatos.append(b)
         return candidatos if candidatos else todos_bairros
 
-    def _escolher_topico_ponderado(self, tipo_pauta):
-        """
-        Seleciona o tópico baseado no universo correto (Imob ou Portal) usando pesos.
-        Mantido para fallback ou uso específico.
-        """
-        opcoes = []
-        pesos = []
-        
-        if tipo_pauta == "PORTAL":
-            mapa = GenesisConfig.PORTAL_TOPICS_DISPLAY
-            pesos_ref = GenesisConfig.PORTAL_TOPICS_WEIGHTS
-        else:
-            mapa = GenesisConfig.TOPICS_MAP
-            pesos_ref = GenesisConfig.TOPICS_WEIGHTS
-
-        for key, nome_display in mapa.items():
-            opcoes.append(nome_display)
-            pesos.append(pesos_ref.get(key, 50))
-            
-        return random.choices(opcoes, weights=pesos, k=1)[0]
-
     def run(self, user_selection: dict):
         self.scanner.mapear()
         historico_recente = self.scanner.get_ultimos_titulos(9999)
@@ -69,38 +51,117 @@ class GenesisEngine:
         tipo_pauta_code = user_selection.get("tipo_pauta", "IMOBILIARIA")
         eh_portal = (tipo_pauta_code == "PORTAL")
 
-        # --- PASSO 1: CLUSTER & PERSONA ---
-        persona_data = None
-        cluster_ref = "FAMILY" 
-
-        if user_selection['persona_key'] != "ALEATÓRIO":
-            key = user_selection['persona_key']
-            persona_data = GenesisConfig.PERSONAS[key]
-            cluster_ref = persona_data['cluster_ref']
-        else:
-            if eh_portal:
-                persona_data = GenesisConfig.PERSONAS["CITIZEN_GENERAL"]
-                cluster_ref = "PORTAL"
-            else:
-                clusters_disponiveis = list(self.data.ativos_por_cluster.keys())
-                pesos_cluster = [2.0 if c in ["HIGH_END", "INVESTOR", "LOGISTICS"] else 1.0 for c in clusters_disponiveis]
-                cluster_ref = random.choices(clusters_disponiveis, weights=pesos_cluster, k=1)[0]
-                persona_data = self._selecionar_persona_compativel(cluster_ref)
-
-        # --- PASSO 2: BAIRRO ---
-        bairro_selecionado = None
+        # Variáveis de saída padrão
         modo = "CIDADE"
-        obs_tecnica = f"Cluster: {cluster_ref}"
+        obs_tecnica = ""
+        ativo_final = "INDEFINIDO"
+        topico = "INDEFINIDO"
+        formato = "INDEFINIDO"
+        gatilho = "ALEATÓRIO"
+        persona_data = None
+        cluster_ref = None
+        bairro_selecionado = None
 
-        if user_selection['bairro_nome'] != "ALEATÓRIO":
-            if user_selection['bairro_nome'] == "FORCE_CITY_MODE": modo = "CIDADE"
+        # =========================================================
+        # MODO PORTAL (Lógica Sincronizada)
+        # =========================================================
+        if eh_portal:
+            persona_data = GenesisConfig.PERSONAS["CITIZEN_GENERAL"]
+            cluster_ref = "PORTAL"
+            
+            # --- Seleção Sincronizada ---
+            # 'ativo' vem como a Chave da Editoria
+            sel_editoria = user_selection.get('ativo', 'ALEATÓRIO') 
+            sel_topico = user_selection.get('topico', 'ALEATÓRIO')
+            sel_formato = user_selection.get('formato', 'ALEATÓRIO')
+
+            valid_keys = [k for k,v in self.portal_sync.get_editorias_display()]
+
+            if sel_editoria != "ALEATÓRIO" and sel_editoria in valid_keys:
+                editoria_key = sel_editoria
+                editoria_label = GenesisConfig.PORTAL_MATRIX[editoria_key]['label']
+                
+                # Sincroniza Tópico
+                valid_t = [t[0] for t in self.portal_sync.get_valid_topics(editoria_key)]
+                topico_key = sel_topico if sel_topico in valid_t else random.choice(valid_t)
+
+                # Sincroniza Formato
+                valid_f = [f[0] for f in self.portal_sync.get_valid_formats(editoria_key)]
+                formato_key = sel_formato if sel_formato in valid_f else random.choice(valid_f)
+
+                ativo_final = editoria_label
+                topico = GenesisConfig.PORTAL_TOPICS_DISPLAY.get(topico_key, topico_key)
+                formato = formato_key
+                obs_ref = "Manual (Sync)"
             else:
-                for b in self.data.bairros:
-                    if b['nome'] == user_selection['bairro_nome']: bairro_selecionado = b; break
-                if bairro_selecionado: modo = "BAIRRO"; obs_tecnica += " | Bairro Manual"
+                pack = self.portal_sync.get_random_set()
+                ativo_final = pack['editoria'][1]
+                topico = pack['topico'][1]
+                formato = pack['formato'][0]
+                obs_ref = "Auto (Sync)"
+            
+            gatilho = "NEUTRAL_JOURNALISM"
+            obs_tecnica = f"{obs_ref}"
+            
+            # Bairro geralmente é Cidade, mas aceita input
+            if user_selection.get('bairro_nome') == "FORCE_CITY_MODE": modo = "CIDADE"
+            else: modo = "CIDADE" # Portal default
+
+        # =========================================================
+        # MODO IMOBILIÁRIA (Lógica Sincronizada V2)
+        # =========================================================
         else:
-            # Lógica de seleção aleatória de bairro (se não for City Mode forçado pelo app.py)
-            if not eh_portal: # Portal geralmente foca na cidade, mas pode ter bairro
+            # Recupera Inputs da UI
+            # Agora 'ativo' na UI do Imob é a CATEGORIA/CLUSTER (Parent)
+            # E temos um campo novo 'sub_ativo' para o imóvel específico (Child)
+            sel_cluster = user_selection.get('ativo', 'ALEATÓRIO') # Parent
+            sel_asset = user_selection.get('sub_ativo', 'ALEATÓRIO') # Child 1
+            sel_topico = user_selection.get('topico', 'ALEATÓRIO') # Child 2
+            sel_formato = user_selection.get('formato', 'ALEATÓRIO') # Child 3
+            
+            valid_clusters = [k for k,v in self.imob_sync.get_clusters_display()]
+            
+            # 1. Definição do Cluster (Categoria)
+            if sel_cluster != "ALEATÓRIO" and sel_cluster in valid_clusters:
+                cluster_ref = sel_cluster
+                # Seleciona Persona baseada no cluster escolhido
+                persona_data = self._selecionar_persona_compativel(cluster_ref)
+                
+                # Sincroniza Ativo (Imóvel Específico)
+                valid_assets = self.imob_sync.get_valid_assets(cluster_ref)
+                ativo_final = sel_asset if sel_asset in valid_assets else random.choice(valid_assets)
+                
+                # Sincroniza Tópico
+                valid_t = [t[0] for t in self.imob_sync.get_valid_topics(cluster_ref)]
+                topico_key = sel_topico if sel_topico in valid_t else random.choice(valid_t)
+                topico = GenesisConfig.REAL_ESTATE_TOPICS_DISPLAY.get(topico_key, topico_key)
+                
+                # Sincroniza Formato
+                valid_f = [f[0] for f in self.imob_sync.get_valid_formats(cluster_ref)]
+                formato_key = sel_formato if sel_formato in valid_f else random.choice(valid_f)
+                formato = GenesisConfig.REAL_ESTATE_FORMATS_DISPLAY.get(formato_key, formato_key)
+                
+                obs_ref = f"Manual ({cluster_ref})"
+            
+            else:
+                # Tudo Aleatório Sincronizado
+                pack = self.imob_sync.get_random_set()
+                cluster_ref = pack['cluster'][0]
+                ativo_final = pack['ativo']
+                topico = pack['topico'][1]
+                formato = pack['formato'][1]
+                persona_data = self._selecionar_persona_compativel(cluster_ref)
+                obs_ref = f"Auto ({cluster_ref})"
+
+            # 2. Definição do Bairro (Compatível com o Cluster)
+            if user_selection['bairro_nome'] != "ALEATÓRIO":
+                if user_selection['bairro_nome'] == "FORCE_CITY_MODE": 
+                    modo = "CIDADE"
+                else:
+                    for b in self.data.bairros:
+                        if b['nome'] == user_selection['bairro_nome']: bairro_selecionado = b; break
+                    if bairro_selecionado: modo = "BAIRRO"
+            else:
                 candidatos = self._filtrar_bairros_por_cluster(cluster_ref)
                 ineditos = [b for b in candidatos if not self.scanner.ja_publicado(b["nome"])]
                 if ineditos and random.random() < 0.75:
@@ -109,99 +170,18 @@ class GenesisEngine:
                     bairro_selecionado = random.choice(candidatos); obs_tecnica += " | Bairro Recorrente"
                 if bairro_selecionado: modo = "BAIRRO"
 
-        # --- PASSO 3 & 4 (DIVISÃO DE MUNDOS: PORTAL vs IMOBILIÁRIA) ---
-        
-        ativo_final = "INDEFINIDO"
-        topico = "INDEFINIDO"
-        formato = "INDEFINIDO"
-        gatilho = "NEUTRAL_JOURNALISM"
-
-        if eh_portal:
-            # === MODO PORTAL SINCRONIZADO ===
-            
-            # Recupera seleções (que podem ser ALEATÓRIO ou chaves específicas)
-            sel_ativo = user_selection.get('ativo', 'ALEATÓRIO') # Aqui 'ativo' é a Editoria
-            sel_topico = user_selection.get('topico', 'ALEATÓRIO')
-            sel_formato = user_selection.get('formato', 'ALEATÓRIO')
-
-            # Verifica se é uma chave válida de editoria
-            valid_editorias_keys = [k for k,v in self.portal_sync.get_editorias_display()]
-
-            if sel_ativo != "ALEATÓRIO" and sel_ativo in valid_editorias_keys:
-                # 1. Editoria Manual -> Sincronizar o resto
-                editoria_key = sel_ativo
-                editoria_label = GenesisConfig.PORTAL_MATRIX[editoria_key]['label']
-                
-                # Sincroniza Tópico
-                valid_topics = [t[0] for t in self.portal_sync.get_valid_topics(editoria_key)]
-                if sel_topico in valid_topics:
-                    topico_key = sel_topico
-                else:
-                    topico_key = random.choice(valid_topics)
-
-                # Sincroniza Formato
-                valid_formats = [f[0] for f in self.portal_sync.get_valid_formats(editoria_key)]
-                if sel_formato in valid_formats:
-                    formato_key = sel_formato
-                else:
-                    formato_key = random.choice(valid_formats)
-
-                ativo_final = editoria_label
-                topico = GenesisConfig.PORTAL_TOPICS_DISPLAY.get(topico_key, topico_key)
-                formato = formato_key
-                obs_ref = "Sincronização Manual (Portal)"
-
-            else:
-                # 2. Tudo Aleatório -> Pacote Sincronizado Completo
-                pack = self.portal_sync.get_random_set()
-                ativo_final = pack['editoria'][1] # Label
-                topico = pack['topico'][1]       # Label
-                formato = pack['formato'][0]     # Key
-                obs_ref = "Sorteio Sincronizado (Portal)"
-            
-            # Gatilho para Portal
-            gatilho = "NEUTRAL_JOURNALISM" # Padrão
-            
-            obs_tecnica += f" | {obs_ref}"
-
-        else:
-            # === MODO IMOBILIÁRIA (ORIGINAL) ===
-
-            # Ativo (Imóvel)
-            if user_selection['ativo'] != "ALEATÓRIO":
-                ativo_final = user_selection['ativo']
-                obs_ref = "Ativo Manual"
-                if modo == "BAIRRO" and bairro_selecionado:
-                    ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, [ativo_final])
-                    obs_ref += f" ({obs_ajuste})"
-            else:
-                lista_ativos = self.data.ativos_por_cluster.get(cluster_ref, ["IMÓVEL PADRÃO"])
-                ativo_base = random.choice(lista_ativos)
-                if modo == "BAIRRO" and bairro_selecionado:
-                    ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, [ativo_base])
-                    obs_ref = obs_ajuste
-                else: 
-                    ativo_final = ativo_base; obs_ref = "Sorteio Simples"
-            obs_tecnica += f" | {obs_ref}"
-
-            # Tópico
-            if user_selection['topico'] != "ALEATÓRIO": 
-                topico = user_selection['topico']
-            else: 
-                topico = self._escolher_topico_ponderado(tipo_pauta_code)
-
-            # Formato
-            if user_selection['formato'] != "ALEATÓRIO": 
-                formato = user_selection['formato']
-            else: 
-                formato = random.choice(GenesisConfig.REAL_ESTATE_FORMATS_MAP.keys() if hasattr(GenesisConfig, 'REAL_ESTATE_FORMATS_MAP') else GenesisConfig.CONTENT_FORMATS)
-                # Fallback para chaves se dicionário, ou lista direta
+            # Refinamento Final do Ativo com o Bairro (Check Físico)
+            if modo == "BAIRRO" and bairro_selecionado:
+                ativo_final, obs_ajuste = self.plano.refinar_ativo(cluster_ref, bairro_selecionado, [ativo_final])
+                obs_ref += f" -> {obs_ajuste}"
 
             # Gatilho
-            if user_selection['gatilho'] != "ALEATÓRIO": 
+            if user_selection.get('gatilho', 'ALEATÓRIO') != "ALEATÓRIO":
                 gatilho = user_selection['gatilho']
-            else: 
+            else:
                 gatilho = random.choice(list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values()))
+
+            obs_tecnica = obs_ref
 
         return {
             "modo": modo, 
