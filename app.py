@@ -76,7 +76,7 @@ def smart_select(label, options, key, icon="", use_label=True):
     if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"): open_selection_dialog(label, options, key)
     return st.session_state[key]
 
-# --- FUNÇÕES DE HISTÓRICO ---
+# --- FUNÇÕES DE HISTÓRICO (CORRIGIDAS) ---
 
 def load_history():
     log_file = "historico_geracao.csv"
@@ -92,34 +92,53 @@ def load_history():
 
 def save_history_log(user_inputs, engine_result):
     """
-    Salva o log da geração no CSV.
+    Salva o log da geração no CSV de forma segura (Blindado contra erros de tipo).
     """
-    log_file = "historico_geracao.csv"
-    
-    # Prepara os dados. Usa o resultado da engine para pegar o bairro REAL escolhido (caso fosse aleatório)
-    bairro_real = engine_result['bairro']['nome'] if engine_result.get('bairro') else "Indaiatuba"
-    persona_nome = engine_result['persona']['nome']
-    
-    new_data = {
-        "CRIADO_EM": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "DATA_PUB": user_inputs['data_pub_obj'].strftime("%Y-%m-%d"),
-        "TIPO_PAUTA": user_inputs['tipo_pauta'],
-        "PERSONA": persona_nome,
-        "BAIRRO": bairro_real,
-        "ATIVO": engine_result.get('ativo_definido', ''),
-        "TOPICO": engine_result.get('topico', ''),
-        "FORMATO": engine_result.get('formato', '')
-    }
-    
-    df_new = pd.DataFrame([new_data])
-    
     try:
+        log_file = "historico_geracao.csv"
+        
+        # 1. Extração Segura do Bairro (Pode ser Dict ou String "FORCE_CITY_MODE")
+        bairro_obj = engine_result.get('bairro')
+        if isinstance(bairro_obj, dict):
+            bairro_real = bairro_obj.get('nome', "Indaiatuba")
+        elif isinstance(bairro_obj, str):
+            # Se for string (ex: FORCE_CITY_MODE), usa "Indaiatuba" para ficar bonito no log
+            bairro_real = "Indaiatuba" if "FORCE" in bairro_obj else bairro_obj
+        else:
+            bairro_real = "Indaiatuba"
+
+        # 2. Extração Segura da Persona
+        persona_obj = engine_result.get('persona')
+        if isinstance(persona_obj, dict):
+            persona_nome = persona_obj.get('nome', "Desconhecida")
+        else:
+            persona_nome = str(persona_obj) if persona_obj else "Desconhecida"
+        
+        # 3. Formatação de Datas
+        data_pub = user_inputs.get('data_pub_obj')
+        data_pub_str = data_pub.strftime("%Y-%m-%d") if data_pub else datetime.date.today().strftime("%Y-%m-%d")
+
+        new_data = {
+            "CRIADO_EM": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "DATA_PUB": data_pub_str,
+            "TIPO_PAUTA": user_inputs.get('tipo_pauta', 'N/A'),
+            "PERSONA": persona_nome,
+            "BAIRRO": bairro_real,
+            "ATIVO": str(engine_result.get('ativo_definido', '')),
+            "TOPICO": str(engine_result.get('topico', '')),
+            "FORMATO": str(engine_result.get('formato', ''))
+        }
+        
+        df_new = pd.DataFrame([new_data])
+        
         if not os.path.exists(log_file):
             df_new.to_csv(log_file, sep=';', index=False, encoding='utf-8-sig')
         else:
             df_new.to_csv(log_file, sep=';', index=False, header=False, mode='a', encoding='utf-8-sig')
+            
     except Exception as e:
-        print(f"Erro ao salvar histórico: {e}")
+        # Se falhar (ex: arquivo aberto), avisa mas NÃO trava o app
+        st.warning(f"⚠️ Aviso: O histórico não pôde ser salvo (Erro: {e}). Mas sua pauta foi gerada.")
 
 def main():
     setup_ui()
@@ -139,7 +158,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.2 (History Fixed) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.3 (History Safe) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -274,7 +293,7 @@ def main():
                 fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
                 h_iso = datetime.datetime.now(fuso_br).strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
                 d_pub_iso = data_pub.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
-                local = res['bairro']['nome'] if res['bairro'] else "Indaiatuba"
+                local = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
                 regras = regras_mestre.get_for_prompt(local)
                 prompt = builder.build(res, d_pub_iso, h_iso, regras)
                 
@@ -286,7 +305,7 @@ def main():
                     clean_persona = slugify(res['persona']['nome'])[:10]
                     nome_arq = f"{data_prefix}_SEO_{clean_persona}.txt"
                 
-                # --- SALVAMENTO NO HISTÓRICO ---
+                # --- SALVAMENTO NO HISTÓRICO (AGORA BLINDADO) ---
                 save_history_log(user_sel, res)
                 
                 progress_bar.progress(100); time.sleep(0.3); progress_bar.empty(); status_text.empty()
@@ -294,12 +313,22 @@ def main():
                 
                 # Exibição segura do formato bonito
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
-                b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
+                
+                # Bairro Display Seguro
+                b_val = res.get('bairro')
+                if isinstance(b_val, dict): b_display = b_val['nome']
+                elif isinstance(b_val, str) and "FORCE" in b_val: b_display = "Indaiatuba (Macro)"
+                else: b_display = "Indaiatuba"
+
                 estrategia_display = f_bonito.split()[0] + " " + f_bonito.split()[1] if len(f_bonito.split()) >= 2 else f_bonito
 
                 k1, k2, k3 = st.columns(3)
                 with k1: 
-                    nome_display = "Jornalismo (Portal)" if eh_portal else res['persona']['nome'].split('(')[0]
+                    # Persona display segura
+                    p_obj = res.get('persona')
+                    p_nome = p_obj['nome'] if isinstance(p_obj, dict) else str(p_obj)
+                    nome_display = "Jornalismo (Portal)" if eh_portal else p_nome.split('(')[0]
+                    
                     st.markdown(f"""<div class="metric-card"><div class="metric-label">Público</div><div class="metric-value">{nome_display}</div></div>""", unsafe_allow_html=True)
                 with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Localização</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
                 with k3: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{estrategia_display}</div></div>""", unsafe_allow_html=True)
@@ -319,7 +348,7 @@ def main():
                 "CRIADO_EM": st.column_config.DatetimeColumn("Criado Em", format="DD/MM HH:mm"),
                 "BAIRRO": "Local", "PERSONA": "Persona", "TIPO_PAUTA": "Tipo"
             }
-            # Remove colunas técnicas que não precisam aparecer na tabela visual, se quiser
+            # Remove colunas técnicas que não precisam aparecer na tabela visual
             st.dataframe(df, use_container_width=True, hide_index=True, column_config=cols_cfg)
             csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
             now_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
