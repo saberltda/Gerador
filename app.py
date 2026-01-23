@@ -59,13 +59,12 @@ def smart_select(label, options, key, icon="", use_label=True):
     if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"): open_selection_dialog(label, options, key)
     return st.session_state[key]
 
-# --- HISTÓRICO (AGORA COM FUSO DE BRASÍLIA) ---
+# --- HISTÓRICO COM FUSO E CORREÇÃO DE LOCAL ---
 
 def load_history():
     log_file = "historico_geracao.csv"
     if os.path.exists(log_file):
         try:
-            # Mantém nomes de coluna em CAIXA ALTA E UNDERLINE para o código funcionar
             df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
             if 'CRIADO_EM' in df.columns:
                 df['CRIADO_EM'] = pd.to_datetime(df['CRIADO_EM'], errors='coerce')
@@ -78,23 +77,38 @@ def save_history_log(user_inputs, engine_result):
     try:
         log_file = "historico_geracao.csv"
         
-        # Dados Seguros
-        bairro_obj = engine_result.get('bairro')
-        bairro_real = bairro_obj.get('nome', "Indaiatuba") if isinstance(bairro_obj, dict) else ("Indaiatuba" if "FORCE" in str(bairro_obj) else str(bairro_obj))
+        tipo_pauta = user_inputs.get('tipo_pauta', 'N/A')
         
+        # 1. TRATAMENTO INTELIGENTE DO LOCAL
+        bairro_obj = engine_result.get('bairro')
+        
+        if tipo_pauta == "PORTAL":
+            # [CORREÇÃO] Se for Portal, define explicitamente o local
+            bairro_real = "Indaiatuba (Cidade Inteira)"
+        elif isinstance(bairro_obj, dict):
+            bairro_real = bairro_obj.get('nome', "Indaiatuba")
+        elif isinstance(bairro_obj, str):
+            bairro_real = "Indaiatuba" if "FORCE" in bairro_obj else bairro_obj
+        else:
+            bairro_real = "Indaiatuba"
+            
+        # Garantia final para não salvar vazio
+        if not bairro_real: bairro_real = "Indaiatuba"
+
+        # 2. TRATAMENTO DA PERSONA
         persona_obj = engine_result.get('persona')
         persona_nome = persona_obj.get('nome', "Desconhecida") if isinstance(persona_obj, dict) else (str(persona_obj) if persona_obj else "Desconhecida")
         
         data_pub = user_inputs.get('data_pub_obj')
         data_pub_str = data_pub.strftime("%Y-%m-%d") if data_pub else datetime.date.today().strftime("%Y-%m-%d")
 
-        # ⛔ APLICAÇÃO DO FUSO DE BRASÍLIA
+        # 3. FUSO DE BRASÍLIA
         agora_br = datetime.datetime.now(GenesisConfig.TZ_BRASILIA).strftime("%Y-%m-%d %H:%M:%S")
 
         new_data = {
             "CRIADO_EM": agora_br,
             "DATA_PUB": data_pub_str,
-            "TIPO_PAUTA": user_inputs.get('tipo_pauta', 'N/A'),
+            "TIPO_PAUTA": tipo_pauta,
             "PERSONA": persona_nome,
             "BAIRRO": bairro_real,
             "ATIVO": str(engine_result.get('ativo_definido', '')),
@@ -132,7 +146,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.6 (UTC-3 Enforced) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.7 (Location Fix) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -294,11 +308,8 @@ def main():
                 progress_bar.progress(70)
                 
                 builder = PromptBuilder()
-                
-                # ⛔ GERAÇÃO DO HORÁRIO NO FUSO CORRETO
                 h_iso = datetime.datetime.now(GenesisConfig.TZ_BRASILIA).strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
                 d_pub_iso = data_pub.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
-                
                 local = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
                 regras = regras_mestre.get_for_prompt(local)
                 prompt = builder.build(res, d_pub_iso, h_iso, regras)
@@ -312,9 +323,14 @@ def main():
                 progress_bar.progress(100); time.sleep(0.3); progress_bar.empty(); status_text.empty()
                 st.success("✅ Pauta Gerada com Sucesso!")
                 
-                # Cards de exibição
-                b_display = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
+                # Visualização na tela
+                if eh_portal:
+                    b_display = "Indaiatuba (Cidade Inteira)"
+                else:
+                    b_display = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
+                
                 parent_display = res.get('ativo_definido', 'N/A') if eh_portal else res.get('cluster_tecnico', 'N/A')
+                
                 k1, k2, k3 = st.columns(3)
                 with k1: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{parent_display}</div></div>""", unsafe_allow_html=True)
                 with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Localização</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
@@ -330,24 +346,14 @@ def main():
     with tab_hist:
         df = load_history()
         if df is not None and not df.empty:
-            # ⛔ MÁGICA DA UX: Renomeia as colunas APENAS para exibição na tela
             df_display = df.rename(columns={
-                "CRIADO_EM": "Criado Em",
-                "DATA_PUB": "Data Publicação",
-                "TIPO_PAUTA": "Tipo Pauta",
-                "PERSONA": "Público Alvo",
-                "BAIRRO": "Local",
-                "ATIVO": "Tema/Ativo",
-                "TOPICO": "Ângulo",
-                "FORMATO": "Formato"
+                "CRIADO_EM": "Criado Em", "DATA_PUB": "Data Publicação", "TIPO_PAUTA": "Tipo Pauta",
+                "PERSONA": "Público Alvo", "BAIRRO": "Local", "ATIVO": "Tema/Ativo",
+                "TOPICO": "Ângulo", "FORMATO": "Formato"
             })
-            
             st.dataframe(df_display, use_container_width=True, hide_index=True)
             
-            # ⛔ MÁGICA DO EXCEL: Renomeia as colunas também no arquivo baixado
-            # Assim o usuário final vê "Criado Em" e não "CRIADO_EM"
             csv = df_display.to_csv(sep=';', index=False).encode('utf-8-sig')
-            
             now_str = datetime.datetime.now(GenesisConfig.TZ_BRASILIA).strftime("%Y-%m-%d_%H-%M")
             st.download_button("📥 Baixar Planilha (.csv)", data=csv, file_name=f"{now_str}_historico.csv", mime="text/csv", use_container_width=True)
         else:
