@@ -7,7 +7,6 @@ from src.database import GenesisData, GenesisRules
 from src.engine import GenesisEngine
 from src.config import GenesisConfig
 from src.builder import PromptBuilder
-# Agora importamos do logic.py que acabamos de criar
 from src.logic import PortalSynchronizer, RealEstateSynchronizer
 from src.utils import slugify
 
@@ -27,16 +26,6 @@ def setup_ui():
             justify-content: flex-start !important; padding-left: 15px !important;
             text-align: left !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
         }}
-        div[data-testid="column"] button[kind="primary"], 
-        div[data-testid="column"] button[kind="secondary"] {{
-            justify-content: center !important; text-align: center !important;
-            padding-left: 0 !important; height: 60px !important;
-        }}
-        div[data-testid="stButton"] button:hover {{
-            border-color: {GenesisConfig.COLOR_PRIMARY} !important;
-            color: {GenesisConfig.COLOR_PRIMARY} !important;
-            background-color: #fff !important;
-        }}
         .metric-card {{
             background: white; padding: 15px; border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid {GenesisConfig.COLOR_PRIMARY}; height: 100%;
@@ -53,13 +42,10 @@ def open_selection_dialog(label, options, key):
     current = st.session_state.get(key, options[0])
     try: idx = options.index(current)
     except: idx = 0
-    
     container_kwargs = {"border": False}
     if len(options) > 10: container_kwargs["height"] = 300
-    
     with st.container(**container_kwargs):
         new_val = st.radio(label, options, index=idx, key=f"radio_modal_{key}", label_visibility="collapsed")
-    
     if new_val != current:
         st.session_state[key] = new_val
         st.rerun()
@@ -67,21 +53,19 @@ def open_selection_dialog(label, options, key):
 def smart_select(label, options, key, icon="", use_label=True):
     if key not in st.session_state or st.session_state[key] not in options:
         st.session_state[key] = options[0]
-        
     current_val = str(st.session_state[key])
     display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
-    
     if use_label: st.markdown(f"<p class='fake-label'>{label}</p>", unsafe_allow_html=True)
     if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"): open_selection_dialog(label, options, key)
     return st.session_state[key]
 
-# --- HISTÓRICO EXCEL (BLINDADO) ---
+# --- HISTÓRICO (AGORA COM FUSO DE BRASÍLIA) ---
 
 def load_history():
     log_file = "historico_geracao.csv"
     if os.path.exists(log_file):
         try:
-            # Lê com separador ponto e vírgula e encoding correto
+            # Mantém nomes de coluna em CAIXA ALTA E UNDERLINE para o código funcionar
             df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
             if 'CRIADO_EM' in df.columns:
                 df['CRIADO_EM'] = pd.to_datetime(df['CRIADO_EM'], errors='coerce')
@@ -94,24 +78,21 @@ def save_history_log(user_inputs, engine_result):
     try:
         log_file = "historico_geracao.csv"
         
-        # Tratamento seguro dos dados
+        # Dados Seguros
         bairro_obj = engine_result.get('bairro')
-        if isinstance(bairro_obj, dict):
-            bairro_real = bairro_obj.get('nome', "Indaiatuba")
-        elif isinstance(bairro_obj, str):
-            bairro_real = "Indaiatuba" if "FORCE" in bairro_obj else bairro_obj
-        else: bairro_real = "Indaiatuba"
-
+        bairro_real = bairro_obj.get('nome', "Indaiatuba") if isinstance(bairro_obj, dict) else ("Indaiatuba" if "FORCE" in str(bairro_obj) else str(bairro_obj))
+        
         persona_obj = engine_result.get('persona')
-        if isinstance(persona_obj, dict):
-            persona_nome = persona_obj.get('nome', "Desconhecida")
-        else: persona_nome = str(persona_obj) if persona_obj else "Desconhecida"
+        persona_nome = persona_obj.get('nome', "Desconhecida") if isinstance(persona_obj, dict) else (str(persona_obj) if persona_obj else "Desconhecida")
         
         data_pub = user_inputs.get('data_pub_obj')
         data_pub_str = data_pub.strftime("%Y-%m-%d") if data_pub else datetime.date.today().strftime("%Y-%m-%d")
 
+        # ⛔ APLICAÇÃO DO FUSO DE BRASÍLIA
+        agora_br = datetime.datetime.now(GenesisConfig.TZ_BRASILIA).strftime("%Y-%m-%d %H:%M:%S")
+
         new_data = {
-            "CRIADO_EM": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "CRIADO_EM": agora_br,
             "DATA_PUB": data_pub_str,
             "TIPO_PAUTA": user_inputs.get('tipo_pauta', 'N/A'),
             "PERSONA": persona_nome,
@@ -123,14 +104,13 @@ def save_history_log(user_inputs, engine_result):
         
         df_new = pd.DataFrame([new_data])
         
-        # Salva com PONTO E VÍRGULA (sep=';') para Excel no Brasil
         if not os.path.exists(log_file):
             df_new.to_csv(log_file, sep=';', index=False, encoding='utf-8-sig')
         else:
             df_new.to_csv(log_file, sep=';', index=False, header=False, mode='a', encoding='utf-8-sig')
             
     except Exception as e:
-        st.warning(f"⚠️ Histórico não salvo (Erro: {e}), mas o texto foi gerado.")
+        st.warning(f"⚠️ Histórico não salvo: {e}")
 
 # =========================================================
 # APP PRINCIPAL
@@ -144,8 +124,7 @@ def main():
         portal_sync = PortalSynchronizer()
         imob_sync = RealEstateSynchronizer()
     except Exception as e:
-        st.error(f"❌ Erro na Inicialização (Verifique config.py e logic.py): {e}")
-        st.stop()
+        st.error(f"❌ Erro Crítico: {e}"); st.stop()
 
     if "k_tipo_pauta" not in st.session_state: st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
     
@@ -153,7 +132,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.5 (Full Stack Fix) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.6 (UTC-3 Enforced) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -170,7 +149,7 @@ def main():
             tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA")
             eh_portal = (tipo_pauta_code == "PORTAL")
 
-            # --- SINCRONIZAÇÃO DE LISTAS ---
+            # --- SETUP DE LISTAS ---
             if eh_portal:
                 label_parent = "1. Editoria (Seção)"
                 icon_parent = "📰"
@@ -282,8 +261,7 @@ def main():
             c_reset, c_run = st.columns([1, 3])
             with c_reset:
                 def reset_state_callback():
-                    keys_to_reset = ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_sub_ativo", "k_formato", "k_gatilho", "k_modo_geo", "k_data", "k_tipo_pauta"]
-                    for k in keys_to_reset:
+                    for k in ["k_persona", "k_bairro", "k_topico", "k_ativo", "k_sub_ativo", "k_formato", "k_gatilho", "k_modo_geo", "k_data", "k_tipo_pauta"]:
                         if k in st.session_state: del st.session_state[k]
                     st.session_state["k_modo_geo"] = "🎲 Aleatório"
                     st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
@@ -299,19 +277,14 @@ def main():
                 
                 sub_ativo_val = st.session_state.get("k_sub_ativo", "ALEATÓRIO") if not eh_portal else "N/A"
                 if sub_ativo_val == CONST_RANDOM: sub_ativo_val = "ALEATÓRIO"
-
                 final_topico = sel_topico_key if 'sel_topico_key' in locals() and sel_topico_key else "ALEATÓRIO"
                 final_formato = sel_formato_key if 'sel_formato_key' in locals() and sel_formato_key else "ALEATÓRIO"
 
                 user_sel = {
-                    "persona_key": "ALEATÓRIO", 
-                    "bairro_nome": final_bairro_input,
-                    "topico": final_topico,
-                    "ativo": sel_parent_key,
-                    "sub_ativo": sub_ativo_val,
-                    "formato": final_formato,
-                    "gatilho": gatilho_key,
-                    "data_pub_obj": data_pub,
+                    "persona_key": "ALEATÓRIO", "bairro_nome": final_bairro_input,
+                    "topico": final_topico, "ativo": sel_parent_key,
+                    "sub_ativo": sub_ativo_val, "formato": final_formato,
+                    "gatilho": gatilho_key, "data_pub_obj": data_pub,
                     "tipo_pauta": tipo_pauta_code
                 }
                 
@@ -321,9 +294,11 @@ def main():
                 progress_bar.progress(70)
                 
                 builder = PromptBuilder()
-                fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
-                h_iso = datetime.datetime.now(fuso_br).strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
+                
+                # ⛔ GERAÇÃO DO HORÁRIO NO FUSO CORRETO
+                h_iso = datetime.datetime.now(GenesisConfig.TZ_BRASILIA).strftime(f"%Y-%m-%dT%H:%M:%S{GenesisConfig.FUSO_PADRAO}")
                 d_pub_iso = data_pub.strftime(f"%Y-%m-%dT00:00:00{GenesisConfig.FUSO_PADRAO}")
+                
                 local = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
                 regras = regras_mestre.get_for_prompt(local)
                 prompt = builder.build(res, d_pub_iso, h_iso, regras)
@@ -332,15 +307,14 @@ def main():
                 clean_name = slugify(str(res['ativo_definido']))[:20]
                 nome_arq = f"{data_prefix}_{'PORTAL' if eh_portal else 'IMOB'}_{clean_name}.txt"
                 
-                # Salva no histórico
                 save_history_log(user_sel, res)
 
                 progress_bar.progress(100); time.sleep(0.3); progress_bar.empty(); status_text.empty()
                 st.success("✅ Pauta Gerada com Sucesso!")
                 
+                # Cards de exibição
                 b_display = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
                 parent_display = res.get('ativo_definido', 'N/A') if eh_portal else res.get('cluster_tecnico', 'N/A')
-                
                 k1, k2, k3 = st.columns(3)
                 with k1: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{parent_display}</div></div>""", unsafe_allow_html=True)
                 with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Localização</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
@@ -356,16 +330,25 @@ def main():
     with tab_hist:
         df = load_history()
         if df is not None and not df.empty:
-            cols_cfg = {
-                "DATA_PUB": st.column_config.DateColumn("Data Post", format="DD/MM/YYYY"),
-                "CRIADO_EM": st.column_config.DatetimeColumn("Criado Em", format="DD/MM HH:mm"),
-                "BAIRRO": "Local"
-            }
-            st.dataframe(df, use_container_width=True, hide_index=True, column_config=cols_cfg)
+            # ⛔ MÁGICA DA UX: Renomeia as colunas APENAS para exibição na tela
+            df_display = df.rename(columns={
+                "CRIADO_EM": "Criado Em",
+                "DATA_PUB": "Data Publicação",
+                "TIPO_PAUTA": "Tipo Pauta",
+                "PERSONA": "Público Alvo",
+                "BAIRRO": "Local",
+                "ATIVO": "Tema/Ativo",
+                "TOPICO": "Ângulo",
+                "FORMATO": "Formato"
+            })
             
-            # BOTÃO DE DOWNLOAD DO CSV (Separado por ponto e vírgula para Excel)
-            csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
-            now_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+            st.dataframe(df_display, use_container_width=True, hide_index=True)
+            
+            # ⛔ MÁGICA DO EXCEL: Renomeia as colunas também no arquivo baixado
+            # Assim o usuário final vê "Criado Em" e não "CRIADO_EM"
+            csv = df_display.to_csv(sep=';', index=False).encode('utf-8-sig')
+            
+            now_str = datetime.datetime.now(GenesisConfig.TZ_BRASILIA).strftime("%Y-%m-%d_%H-%M")
             st.download_button("📥 Baixar Planilha (.csv)", data=csv, file_name=f"{now_str}_historico.csv", mime="text/csv", use_container_width=True)
         else:
             st.info("Nenhuma pauta gerada recentemente.")
