@@ -1,11 +1,13 @@
 # src/builder.py
 import datetime
 import json
+import re
 from .config import GenesisConfig
 
 class PromptBuilder:
     """
-    O 'Redator' (Versão 64 - Brasilia Timezone Forced).
+    O 'Redator' (Versão 65 - Clean & Polished).
+    Garante que Tags, CSV e Prompt não tenham 'lixo' visual (underlines).
     """
 
     CTA_CAPTURE_CODE = """
@@ -25,77 +27,81 @@ class PromptBuilder:
             return f"{dt.day} de {meses[dt.month]} de {dt.year}"
         except: return iso_date_str
 
+    def _humanize_key(self, key):
+        """Transforma 'ENTREVISTA_PING_PONG' em 'Entrevista Ping Pong'"""
+        if not key: return ""
+        return key.replace("_", " ").title()
+
+    def _get_display_value(self, key):
+        """Busca o nome bonito (com Emojis) nos mapas de configuração"""
+        if key in GenesisConfig.CONTENT_FORMATS_MAP:
+            return GenesisConfig.CONTENT_FORMATS_MAP[key]
+        if key in GenesisConfig.TOPICS_MAP:
+            return GenesisConfig.TOPICS_MAP[key]
+        if key in GenesisConfig.PORTAL_TOPICS_MAP:
+            return GenesisConfig.PORTAL_TOPICS_MAP[key]
+        # Fallback para limpeza simples
+        return self._humanize_key(key)
+
     def _generate_seo_tags(self, d):
+        # Define base de tags
         if d.get('tipo_pauta') == "PORTAL":
-            tags = ["Indaiatuba", "Notícias Indaiatuba", "Portal da Cidade", "Giro de Notícias", "Aconteceu em Indaiatuba"]
+            tags = ["Indaiatuba", "Notícias Indaiatuba", "Portal da Cidade", "Giro de Notícias"]
         else:
             tags = ["Indaiatuba", "Imóveis Indaiatuba", "Mercado Imobiliário", "Morar em Indaiatuba"]
 
+        # Local
         if d.get('bairro') and d['bairro']['nome'] != "Indaiatuba":
             tags.append(d['bairro']['nome'])
         
+        # Ativo (Limpeza de sufixos)
         raw_ativo = d.get('ativo_definido', '')
         ativo_limpo = raw_ativo.split('(')[0].strip()
+        # Se for chave interna (ex: CIDADE_ALERTA), humaniza
+        if "_" in ativo_limpo and ativo_limpo.isupper():
+            ativo_limpo = self._humanize_key(ativo_limpo)
         if ativo_limpo: tags.append(ativo_limpo)
         
-        if d.get('topico'): tags.append(d['topico'])
+        # Tópico (Limpeza total)
+        raw_topico = d.get('topico', '')
+        if raw_topico:
+            # Se for chave interna, humaniza. Se for display, remove emojis.
+            if "_" in raw_topico and raw_topico.isupper():
+                tags.append(self._humanize_key(raw_topico))
+            else:
+                # Remove emojis para tag SEO limpa
+                clean_text = re.sub(r'[^\w\s,]', '', raw_topico).strip()
+                tags.append(clean_text)
         
+        # Deduplicação
         seen = set()
         final_tags = [x for x in tags if not (x in seen or seen.add(x))]
         
-        return ", ".join(final_tags[:10])
+        return ", ".join(final_tags[:12])
 
     def _get_portal_structure(self, formato_key, editoria, tema):
         if "Resumo" in editoria or "Notícias" in editoria:
-            return f"""
-## 5. ESTRUTURA: REVISTA DIGITAL DIÁRIA (LONGFORM)
-**OBJETIVO:** Prender o leitor por 10 minutos.
-**ORDEM DE EXECUÇÃO:**
-1. **Varredura Completa:** Busque TUDO o que é relevante hoje em Indaiatuba.
-2. **Seleção:** Escolha os 4 ou 5 temas mais quentes.
-
-**ESTRUTURA DO TEXTO:**
-**MANCHETE DE CAPA:** (Impactante e Local)
-**1. A NOTÍCIA PRINCIPAL:** Matéria Completa (Mínimo 4 parágrafos).
-**2. O GIRO PELA CIDADE:** 3 a 4 Sub-Manchetes (H3). Desenvolva o texto.
-**3. COLUNA SOCIAL & EVENTOS:** O que vai acontecer hoje/amanhã?
-**4. SERVIÇO DE UTILIDADE PÚBLICA:** Previsão do Tempo e Trânsito.
-**5. A IMAGEM DO DIA:** Descrição poética de uma cena da cidade.
-"""
-        # Mantém a lógica dos outros formatos...
-        if formato_key == "EXPLAINER":
-            return "## 5. ESTRUTURA: EXPLAINER\nAula completa sobre o tema. Cronologia, Detalhes Técnicos e Impacto Real."
-        elif formato_key == "DOSSIE_INVESTIGATIVO":
-            return "## 5. ESTRUTURA: DOSSIÊ INVESTIGATIVO\nAnálise profunda. Manchete, Problema, Causas, Contraponto e Vozes da Cidade."
-        elif formato_key == "CHECAGEM_FATOS":
-            return "## 5. ESTRUTURA: CHECAGEM DE FATOS\nContexto do boato, Investigação, Evidências e Veredito."
-        elif formato_key == "LISTA_CURADORIA":
-            return "## 5. ESTRUTURA: GUIA COMPLETO\nRoteiro comentado. Intro, Top 5 com resenha e Dica de Insider."
-        elif formato_key == "SERVICO_PASSO_A_PASSO":
-            return "## 5. ESTRUTURA: MANUAL DO CIDADÃO\nIntrodução, Documentação, Procedimento Passo a Passo e Onde Ir."
-        elif formato_key == "NOTICIA_IMPACTO":
-            return "## 5. ESTRUTURA: HARD NEWS COMPLETA\nLide detalhado, Desenvolvimento, Histórico e Repercussão."
-        elif formato_key == "ENTREVISTA_PING_PONG":
-            return "## 5. ESTRUTURA: A GRANDE ENTREVISTA\nPerfil, Perguntas e Respostas profundas e Bastidores."
-        else:
-            return "## 5. ESTRUTURA LIVRE (LONGFORM)\nDesenvolva uma matéria extensa."
+            return "## 5. ESTRUTURA: REVISTA DIGITAL DIÁRIA\n1. Manchete do Dia\n2. Notícia Principal (Longform)\n3. Giro Rápido (Sub-manchetes)\n4. Agenda Cultural\n5. Previsão do Tempo e Trânsito"
+        
+        if formato_key == "EXPLAINER": return "## 5. ESTRUTURA: EXPLAINER\nContexto, Detalhes Técnicos e Impacto na Vida Real."
+        if formato_key == "DOSSIE_INVESTIGATIVO": return "## 5. ESTRUTURA: DOSSIÊ\nProblema, Causas, Contraponto e Histórias Reais."
+        if formato_key == "CHECAGEM_FATOS": return "## 5. ESTRUTURA: FACT-CHECKING\nOrigem do Boato, Investigação, Provas e Veredito."
+        if formato_key == "LISTA_CURADORIA": return "## 5. ESTRUTURA: CURADORIA\nTop 5 Melhores, Endereços, Preços e Dica Secreta."
+        if formato_key == "SERVICO_PASSO_A_PASSO": return "## 5. ESTRUTURA: TUTORIAL\nDocumentos, Prazos, Passo a Passo e Locais."
+        if formato_key == "ENTREVISTA_PING_PONG": return "## 5. ESTRUTURA: ENTREVISTA\nPerfil, Perguntas Diretas e Respostas na Íntegra."
+        
+        return "## 5. ESTRUTURA: HARD NEWS COMPLETA\nLide, Corpo da Notícia, Contexto Histórico e Serviço."
 
     def _get_real_estate_guidelines(self, formato_key, cluster, bairro):
-        base_instruction = f"""
-## 5. CAMINHOS PARA EXPLORAR A FUNDO (MERCADO IMOBILIÁRIO)
-Escreva um texto ÉPICO e detalhado sobre {bairro}.
-Não economize palavras. Use storytelling, dados técnicos e persuasão.
-"""
-        if formato_key == "LISTA_POLEMICA": return base_instruction + "\n- Quebre mitos comuns (Mito vs Verdade)."
-        elif formato_key == "COMPARATIVO_TECNICO": return base_instruction + "\n- Compare com outros bairros. Seja honesto."
-        elif formato_key == "INSIGHT_DE_CORRETOR": return base_instruction + "\n- Use Primeira Pessoa (Eu/Nós). Conte bastidores."
-        else: return base_instruction
+        base = "## 5. ESTRUTURA: COPYWRITING IMOBILIÁRIO\nFoco em Storytelling, Valorização e Estilo de Vida."
+        if formato_key == "LISTA_POLEMICA": return base + "\n- Mitos vs Verdades."
+        if formato_key == "COMPARATIVO_TECNICO": return base + "\n- Prós e Contras honestos."
+        return base
 
     def _get_tone_guidelines(self, gatilho_key):
         if gatilho_key == "NEUTRAL_JOURNALISM":
-            return "### 🧠 MENTALIDADE (JORNALISMO)\n- Escreva MUITO. Profundidade e Contexto. Proibido textos rasos."
-        else:
-            return "### 🧠 MENTALIDADE (COPYWRITING)\n- Texto longo e envolvente. Gatilhos mentais e Storytelling."
+            return "### 🧠 MENTALIDADE (JORNALISMO)\n- Imparcial, Profundo e Baseado em Fatos."
+        return "### 🧠 MENTALIDADE (COPYWRITING)\n- Persuasivo, Envolvente e Focado em Desejo."
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada):
         if d.get('tipo_pauta') == "PORTAL":
@@ -104,43 +110,49 @@ Não economize palavras. Use storytelling, dados técnicos e persuasão.
             return self._build_real_estate_prompt(d, data_pub, data_mod, regras_texto_ajustada)
 
     def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
-        # ⚠️ AQUI ESTÁ A GARANTIA DO FUSO DE BRASÍLIA
-        # O argumento data_mod já deve vir com o fuso correto do app.py, mas reforçamos a formatação
-        
         data_fmt = self._format_date_blogger(data_pub)
-        formato_key = d.get('formato', 'NOTICIA_IMPACTO')
-        editoria = d.get('ativo_definido', 'Geral')
-        tema = d.get('topico', 'Geral')
         
-        structure_guide = self._get_portal_structure(formato_key, editoria, tema)
-        tone_guide = self._get_tone_guidelines("NEUTRAL_JOURNALISM")
+        # Recupera valores limpos para exibição no Prompt
+        formato_key = d.get('formato', 'NOTICIA_IMPACTO')
+        formato_display = self._get_display_value(formato_key)
+        
+        editoria_key = d.get('ativo_definido', 'Geral')
+        # Tenta limpar se for chave interna de editoria
+        editoria_display = editoria_key
+        if "_" in editoria_key and editoria_key.isupper():
+             # Mapeamento manual rápido para editorias conhecidas ou humanização
+             editoria_display = self._humanize_key(editoria_key)
+
+        tema_key = d.get('topico', 'Geral')
+        tema_display = self._get_display_value(tema_key)
+
+        structure = self._get_portal_structure(formato_key, editoria_key, tema_key)
+        tone = self._get_tone_guidelines("NEUTRAL_JOURNALISM")
         
         return f"""
-## GENESIS MAGNETO V.64 — PORTAL NEWS ENGINE (LONGFORM)
-**Objetivo:** JORNALISMO LOCAL DE PROFUNDIDADE (5-10 MINUTOS DE LEITURA).
-**Persona:** PORTAL DA CIDADE (Editor-Chefe).
+## GENESIS MAGNETO V.65 — PORTAL NEWS (POLISHED)
+**Objetivo:** JORNALISMO DE PROFUNDIDADE (LONGFORM).
+**Persona:** PORTAL DA CIDADE.
 **Timestamp:** {data_mod} (Horário de Brasília)
 
 ## 1. A PAUTA
-- **EDITORIA:** {editoria}
-- **TEMA:** {tema}
+- **EDITORIA:** {editoria_display}
+- **TEMA:** {tema_display}
 - **LOCAL:** Indaiatuba (Cidade Inteira)
-- **FORMATO:** {formato_key}
+- **FORMATO:** {formato_display}
 
-## 2. MISSÃO JORNALÍSTICA
-Você é um repórter sênior. EXPANDA CADA TÓPICO.
-- **Dados:** Use dados reais (busque fatos recentes de Indaiatuba). 
-- **Busca:** Se for "Resumo do Dia", A BUSCA É OBRIGATÓRIA (considere o fuso de Brasília).
+## 2. MISSÃO
+Você é um repórter sênior. Escreva um texto denso e completo.
+- **Busca:** Se for "Resumo do Dia", busque fatos reais de HOJE.
+- **Estilo:** Parágrafos bem desenvolvidos. Nada de listas secas.
 
-{structure_guide}
+{structure}
+{tone}
 
-{tone_guide}
-
-## 3. INSUMOS (FILTRO COGNITIVO)
+## 3. INSUMOS
 **DIRETRIZ SUPREMA:**
-1. IGNORAR a persona de Vendas/Imobiliária.
-2. ENCARNAR a persona de JORNALISTA SÊNIOR.
-3. Foco: Verdade, Detalhe e Utilidade Pública.
+1. IGNORAR persona de Vendas.
+2. ENCARNAR JORNALISTA SÊNIOR.
 
 <REGRAS_DO_SISTEMA>
 {regras_texto_ajustada}
@@ -151,45 +163,48 @@ Você é um repórter sênior. EXPANDA CADA TÓPICO.
 
 ## 5. CHECKLIST FINAL
 1. TÍTULO (H1)
-2. LIDE
-3. CONTEÚDO (H2/H3)
-4. JSON-LD: Schema 'NewsArticle'.
-5. MARCADORES: {self._generate_seo_tags(d)}
+2. LIDE + CONTEÚDO
+3. JSON-LD: Schema 'NewsArticle'
+4. MARCADORES: {self._generate_seo_tags(d)}
 """.strip()
 
     def _build_real_estate_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
-        ativo = d['ativo_definido']
-        bairro_nome = d['bairro']['nome'] if d['bairro'] else "Indaiatuba"
-        cluster = d.get('cluster_tecnico', 'FAMILY')
-        formato = d.get('formato', 'GUIA_DEFINITIVO')
-        gatilho = d.get('gatilho', 'AUTORIDADE')
         
-        structure = self._get_real_estate_guidelines(formato, cluster, bairro_nome)
-        tone = self._get_tone_guidelines(gatilho)
+        formato_key = d.get('formato', 'GUIA_DEFINITIVO')
+        formato_display = self._get_display_value(formato_key)
+        
+        gatilho_key = d.get('gatilho', 'AUTORIDADE')
+        gatilho_display = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(gatilho_key, gatilho_key)
+
+        ativo = d['ativo_definido']
+        bairro = d['bairro']['nome'] if d['bairro'] else "Indaiatuba"
+        
+        structure = self._get_real_estate_guidelines(formato_key, d.get('cluster_tecnico'), bairro)
+        tone = self._get_tone_guidelines(gatilho_key)
 
         return f"""
-## GENESIS MAGNETO V.64 — REAL ESTATE (UNCHAINED)
-**Objetivo:** Copywriting Imobiliário Persuasivo e Extenso.
+## GENESIS MAGNETO V.65 — REAL ESTATE (POLISHED)
+**Objetivo:** Copywriting Imobiliário.
 **Persona:** IMOBILIÁRIA SABER.
 **Timestamp:** {data_mod} (Horário de Brasília)
 
 ## 1. O CENÁRIO
 - **ATIVO:** {ativo}
-- **LOCAL:** {bairro_nome}
+- **LOCAL:** {bairro}
 - **CLIENTE:** {d['persona']['nome']}
-- **FORMATO:** {formato}
-- **GATILHO:** {gatilho}
+- **FORMATO:** {formato_display}
+- **GATILHO:** {gatilho_display}
 
-## 2. CARTA DE ALFORRIA
-Escreva um texto rico, longo e detalhado. Venda o sonho com profundidade.
+## 2. MISSÃO
+Escreva um texto rico e persuasivo. Venda o sonho.
 {structure}
 {tone}
 
-## 3. INSUMOS (FILTRO COGNITIVO)
+## 3. INSUMOS
 **DIRETRIZ SUPREMA:**
-1. IGNORAR a persona de Jornalismo.
-2. ENCARNAR a persona de CORRETOR ESPECIALISTA.
+1. IGNORAR persona de Jornalismo.
+2. ENCARNAR CORRETOR ESPECIALISTA.
 
 <REGRAS_DO_SISTEMA>
 {regras_texto_ajustada}
@@ -201,6 +216,6 @@ Escreva um texto rico, longo e detalhado. Venda o sonho com profundidade.
 ## 5. CHECKLIST FINAL
 1. TÍTULO (H1)
 2. CONTEÚDO
-3. MARCADORES: {self._generate_seo_tags(d)}
-4. JSON-LD: Schema 'BlogPosting'.
+3. JSON-LD: Schema 'BlogPosting'
+4. MARCADORES: {self._generate_seo_tags(d)}
 """.strip()
