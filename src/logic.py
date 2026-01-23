@@ -1,5 +1,48 @@
 # src/logic.py
+import random
 from .config import GenesisConfig
+
+class PlanoDiretor:
+    """
+    Lógica de Compatibilidade Física (O 'Engenheiro').
+    Garante que não se venda "Casa em Condomínio" num bairro industrial.
+    """
+    def refinar_ativo(self, cluster, bairro, ativos_base):
+        zona = bairro.get("zona_normalizada", "indefinido")
+        
+        # Se ativos_base for string (seleção manual), transforme em lista para processar
+        if isinstance(ativos_base, str):
+            ativos_base = [ativos_base]
+            
+        ativo_final = random.choice(ativos_base)
+        obs = f"Compatível com {zona}"
+
+        # Lógica de correção de coerência física
+        if zona == "residencial_aberto" and "Condomínio" in ativo_final and "Fechado" in ativo_final:
+            ativo_final = "Casa de Rua / Sobrado"
+            obs = "Ajuste Automático: Bairro aberto não tem condomínio."
+        elif zona == "residencial_fechado" and "Rua" in ativo_final:
+            ativo_final = "Casa em Condomínio Fechado"
+            obs = "Ajuste Automático: Condomínio exige casa interna."
+        elif zona == "industrial" and cluster == "INVESTOR":
+            ativo_final = "Terreno Industrial / Galpão"
+            obs = "Ajuste Automático: Investidor em zona industrial."
+
+        return ativo_final, obs
+
+class SEOHeatmap:
+    """
+    (Placeholder) Analisa tendências de busca para sugerir tópicos quentes.
+    Mantido para compatibilidade com engine.py.
+    """
+    pass
+
+class RiscoJuridico:
+    """
+    (Placeholder) Verifica riscos legais básicos do ativo.
+    Mantido para compatibilidade com engine.py.
+    """
+    pass
 
 class PortalSynchronizer:
     """
@@ -25,6 +68,20 @@ class PortalSynchronizer:
 
     def get_valid_formats(self, editoria_key):
         return list(GenesisConfig.PORTAL_FORMATS_MAP.items())
+    
+    def get_random_set(self):
+        """Retorna um pacote aleatório válido para o Portal"""
+        editoria_key = random.choice(list(GenesisConfig.PORTAL_CATALOG.keys()))
+        editoria_label = GenesisConfig.PORTAL_CATALOG[editoria_key][0] # Pega o primeiro item como exemplo
+        
+        topico = random.choice(list(GenesisConfig.PORTAL_TOPICS_MAP.items()))
+        formato = random.choice(list(GenesisConfig.PORTAL_FORMATS_MAP.items()))
+        
+        return {
+            'editoria': (editoria_key, editoria_label),
+            'topico': topico,
+            'formato': formato
+        }
 
 class RealEstateSynchronizer:
     """
@@ -49,3 +106,19 @@ class RealEstateSynchronizer:
 
     def get_valid_formats(self, cluster_key):
         return list(GenesisConfig.REAL_ESTATE_FORMATS_MAP.items())
+
+    def get_random_set(self):
+        """Retorna um pacote aleatório válido para Imobiliária"""
+        cluster_key = random.choice(list(GenesisConfig.ASSETS_CATALOG.keys()))
+        assets = GenesisConfig.ASSETS_CATALOG[cluster_key]
+        ativo = random.choice(assets)
+        
+        topico = random.choice(list(GenesisConfig.TOPICS_MAP.items()))
+        formato = random.choice(list(GenesisConfig.REAL_ESTATE_FORMATS_MAP.items()))
+        
+        return {
+            'cluster': (cluster_key, cluster_key),
+            'ativo': ativo,
+            'topico': topico,
+            'formato': formato
+        }
