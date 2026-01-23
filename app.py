@@ -59,7 +59,7 @@ def smart_select(label, options, key, icon="", use_label=True):
     if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"): open_selection_dialog(label, options, key)
     return st.session_state[key]
 
-# --- HISTÓRICO COM FUSO E CORREÇÃO DE LOCAL ---
+# --- HISTÓRICO COM NOMES BONITOS ---
 
 def load_history():
     log_file = "historico_geracao.csv"
@@ -77,13 +77,20 @@ def save_history_log(user_inputs, engine_result):
     try:
         log_file = "historico_geracao.csv"
         
-        tipo_pauta = user_inputs.get('tipo_pauta', 'N/A')
+        # 1. TRADUÇÃO DE DADOS TÉCNICOS -> DADOS DE EXIBIÇÃO
         
-        # 1. TRATAMENTO INTELIGENTE DO LOCAL
+        # Formato (ENTREVISTA_PING_PONG -> 📰 Entrevista Ping-Pong...)
+        fmt_key = str(engine_result.get('formato', ''))
+        fmt_display = GenesisConfig.CONTENT_FORMATS_MAP.get(fmt_key, fmt_key.replace("_", " ").title())
+        
+        # Tópico (GIRO_NOTICIAS -> ⚡ Giro de Notícias...)
+        topic_key = str(engine_result.get('topico', ''))
+        # Tenta achar em ambos os mapas
+        topic_display = GenesisConfig.PORTAL_TOPICS_MAP.get(topic_key, GenesisConfig.TOPICS_MAP.get(topic_key, topic_key.replace("_", " ").title()))
+
+        # Local
         bairro_obj = engine_result.get('bairro')
-        
-        if tipo_pauta == "PORTAL":
-            # [CORREÇÃO] Se for Portal, define explicitamente o local
+        if user_inputs.get('tipo_pauta') == "PORTAL":
             bairro_real = "Indaiatuba (Cidade Inteira)"
         elif isinstance(bairro_obj, dict):
             bairro_real = bairro_obj.get('nome', "Indaiatuba")
@@ -92,28 +99,30 @@ def save_history_log(user_inputs, engine_result):
         else:
             bairro_real = "Indaiatuba"
             
-        # Garantia final para não salvar vazio
-        if not bairro_real: bairro_real = "Indaiatuba"
+        # Ativo/Editoria (Limpeza de chaves)
+        ativo_raw = str(engine_result.get('ativo_definido', ''))
+        ativo_display = ativo_raw
+        if "_" in ativo_raw and ativo_raw.isupper():
+            # Tenta mapear ou apenas limpa
+             ativo_display = ativo_raw.replace("_", " ").title()
 
-        # 2. TRATAMENTO DA PERSONA
         persona_obj = engine_result.get('persona')
-        persona_nome = persona_obj.get('nome', "Desconhecida") if isinstance(persona_obj, dict) else (str(persona_obj) if persona_obj else "Desconhecida")
+        persona_nome = persona_obj.get('nome', "Desconhecida") if isinstance(persona_obj, dict) else str(persona_obj)
         
         data_pub = user_inputs.get('data_pub_obj')
         data_pub_str = data_pub.strftime("%Y-%m-%d") if data_pub else datetime.date.today().strftime("%Y-%m-%d")
 
-        # 3. FUSO DE BRASÍLIA
         agora_br = datetime.datetime.now(GenesisConfig.TZ_BRASILIA).strftime("%Y-%m-%d %H:%M:%S")
 
         new_data = {
             "CRIADO_EM": agora_br,
             "DATA_PUB": data_pub_str,
-            "TIPO_PAUTA": tipo_pauta,
+            "TIPO_PAUTA": user_inputs.get('tipo_pauta', 'N/A'),
             "PERSONA": persona_nome,
             "BAIRRO": bairro_real,
-            "ATIVO": str(engine_result.get('ativo_definido', '')),
-            "TOPICO": str(engine_result.get('topico', '')),
-            "FORMATO": str(engine_result.get('formato', ''))
+            "ATIVO": ativo_display,   # AGORA SALVA O NOME BONITO
+            "TOPICO": topic_display,  # AGORA SALVA O NOME BONITO
+            "FORMATO": fmt_display    # AGORA SALVA O NOME BONITO
         }
         
         df_new = pd.DataFrame([new_data])
@@ -146,7 +155,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.7 (Location Fix) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.8 (Final Polish) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -323,18 +332,21 @@ def main():
                 progress_bar.progress(100); time.sleep(0.3); progress_bar.empty(); status_text.empty()
                 st.success("✅ Pauta Gerada com Sucesso!")
                 
-                # Visualização na tela
-                if eh_portal:
-                    b_display = "Indaiatuba (Cidade Inteira)"
-                else:
-                    b_display = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
+                # Cards Visuais (Também limpos)
+                if eh_portal: b_display = "Indaiatuba (Cidade Inteira)"
+                else: b_display = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
                 
-                parent_display = res.get('ativo_definido', 'N/A') if eh_portal else res.get('cluster_tecnico', 'N/A')
+                # Recalcula nome bonito para o card
+                parent_raw = res.get('ativo_definido', 'N/A') if eh_portal else res.get('cluster_tecnico', 'N/A')
+                parent_display = parent_raw.replace("_", " ").title() if "_" in parent_raw and parent_raw.isupper() else parent_raw
+                
+                fmt_raw = res.get('formato', 'N/A')
+                fmt_display = GenesisConfig.CONTENT_FORMATS_MAP.get(fmt_raw, fmt_raw.replace("_", " ").title())
                 
                 k1, k2, k3 = st.columns(3)
                 with k1: st.markdown(f"""<div class="metric-card"><div class="metric-label">Estratégia</div><div class="metric-value">{parent_display}</div></div>""", unsafe_allow_html=True)
                 with k2: st.markdown(f"""<div class="metric-card"><div class="metric-label">Localização</div><div class="metric-value">{b_display}</div></div>""", unsafe_allow_html=True)
-                with k3: st.markdown(f"""<div class="metric-card"><div class="metric-label">Formato</div><div class="metric-value">{res.get('formato', 'N/A')}</div></div>""", unsafe_allow_html=True)
+                with k3: st.markdown(f"""<div class="metric-card"><div class="metric-label">Formato</div><div class="metric-value">{fmt_display}</div></div>""", unsafe_allow_html=True)
 
                 st.markdown("<br>### 📋 Copie seu Prompt:", unsafe_allow_html=True)
                 st.text_area("Prompt Final", value=prompt, height=400, label_visibility="collapsed")
