@@ -7,88 +7,9 @@ from src.database import GenesisData, GenesisRules
 from src.engine import GenesisEngine
 from src.config import GenesisConfig
 from src.builder import PromptBuilder
+# Agora importamos do logic.py que acabamos de criar
+from src.logic import PortalSynchronizer, RealEstateSynchronizer
 from src.utils import slugify
-
-# =========================================================
-# 1. CLASSES DE LOGICA VISUAL (EMBUTIDAS PARA NÃO QUEBRAR)
-# =========================================================
-# Como você não atualizou o logic.py nem o config.py, 
-# defini as estruturas aqui para o app não depender deles.
-
-class PortalSynchronizer:
-    def get_editorias_display(self):
-        # Mapeamento manual para garantir funcionamento sem config.py novo
-        return [
-            ("DESTAQUE_DIARIO", "🚨 Destaque / Resumo do Dia"),
-            ("CIDADE_ALERTA", "🚔 Cidade Alerta (Polícia/Trânsito)"),
-            ("PODER_POLITICA", "⚖️ Poder & Política"),
-            ("VIVER_INDAIATUBA", "Ex: Viver Indaiatuba (Lazer/Cultura)"),
-            ("SEU_DINHEIRO", "💰 Seu Dinheiro (Economia)"),
-            ("EDUCACAO_FUTURO", "🎓 Educação & Futuro"),
-            ("COMUNIDADE", "🤝 Comunidade & Pets")
-        ]
-    
-    def get_valid_topics(self, editoria_key):
-        # Tópicos genéricos de jornalismo
-        return [
-            ("GIRO_NOTICIAS", "⚡ Giro de Notícias"),
-            ("SERVICO_ESSENCIAL", "🛠️ Serviço de Utilidade"),
-            ("FISCAL_DO_POVO", "🔍 Fiscal do Povo"),
-            ("BASTIDORES_PODER", "⚖️ Bastidores do Poder"),
-            ("ECONOMIA_REAL", "💰 Economia Real"),
-            ("VOZ_DA_RUA", "🗣️ Voz da Rua")
-        ]
-
-    def get_valid_formats(self, editoria_key):
-        return [
-            ("NOTICIA_IMPACTO", "📰 Hard News (Notícia)"),
-            ("EXPLAINER", "🧠 Explainer (Entenda o Caso)"),
-            ("DOSSIE_INVESTIGATIVO", "🕵️ Dossiê Investigativo"),
-            ("LISTA_CURADORIA", "📋 Curadoria / Lista"),
-            ("SERVICO_PASSO_A_PASSO", "👣 Serviço Passo-a-Passo")
-        ]
-
-class RealEstateSynchronizer:
-    def get_clusters_display(self):
-        return [
-            ("FAMILY", "👨‍👩‍👧‍👦 Família (Casas/Condomínios)"),
-            ("HIGH_END", "💎 Alto Padrão (Luxo)"),
-            ("URBAN", "🏙️ Urbano (Aptos/Centro)"),
-            ("INVESTOR", "📈 Investidor (Terrenos/Flips)"),
-            ("LOGISTICS", "🚚 Logística/Industrial"),
-            ("RURAL_LIFESTYLE", "🌿 Rural/Chácaras")
-        ]
-
-    def get_valid_assets(self, cluster_key):
-        # Retorna lista simples baseada no cluster (simulação do database)
-        if cluster_key == "HIGH_END": return ["Mansão em Condomínio", "Casa Térrea Alto Padrão"]
-        if cluster_key == "FAMILY": return ["Casa de Condomínio", "Sobrado com Área Gourmet"]
-        if cluster_key == "URBAN": return ["Apartamento 3 Dorms", "Studio Moderno"]
-        if cluster_key == "INVESTOR": return ["Terreno em Condomínio", "Imóvel para Reforma"]
-        return ["Imóvel Padrão"]
-
-    def get_valid_topics(self, cluster_key):
-        # Tópicos imobiliários clássicos
-        return [
-            ("MERCADO_DADOS", "📈 Dados de Mercado"),
-            ("LOCALIZACAO_PREMIUM", "📍 Localização Premium"),
-            ("SEGURANCA_TECH", "🛡️ Segurança Avançada"),
-            ("INVESTIMENTO_ROI", "💰 Potencial de Valorização"),
-            ("BEM_ESTAR_BIOFILIA", "🌿 Qualidade de Vida")
-        ]
-
-    def get_valid_formats(self, cluster_key):
-        return [
-            ("GUIA_DEFINITIVO", "📘 Guia Definitivo"),
-            ("COMPARATIVO_TECNICO", "⚖️ Comparativo Técnico"),
-            ("LISTA_POLEMICA", "🔥 Lista Polêmica (Mitos)"),
-            ("INSIGHT_DE_CORRETOR", "💡 Insight de Corretor"),
-            ("PERGUNTAS_RESPOSTAS", "❓ Perguntas & Respostas")
-        ]
-
-# =========================================================
-# 2. FUNÇÕES DE SUPORTE E HISTÓRICO
-# =========================================================
 
 CONST_RANDOM = "🎲 ALEATÓRIO"
 
@@ -154,14 +75,14 @@ def smart_select(label, options, key, icon="", use_label=True):
     if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"): open_selection_dialog(label, options, key)
     return st.session_state[key]
 
-# --- HISTÓRICO BLINDADO ---
+# --- HISTÓRICO EXCEL (BLINDADO) ---
 
 def load_history():
     log_file = "historico_geracao.csv"
     if os.path.exists(log_file):
         try:
+            # Lê com separador ponto e vírgula e encoding correto
             df = pd.read_csv(log_file, sep=';', encoding='utf-8-sig')
-            # Verifica colunas para evitar erro
             if 'CRIADO_EM' in df.columns:
                 df['CRIADO_EM'] = pd.to_datetime(df['CRIADO_EM'], errors='coerce')
                 df = df.sort_values(by='CRIADO_EM', ascending=False)
@@ -173,21 +94,18 @@ def save_history_log(user_inputs, engine_result):
     try:
         log_file = "historico_geracao.csv"
         
-        # Tratamento seguro do Bairro
+        # Tratamento seguro dos dados
         bairro_obj = engine_result.get('bairro')
         if isinstance(bairro_obj, dict):
             bairro_real = bairro_obj.get('nome', "Indaiatuba")
         elif isinstance(bairro_obj, str):
             bairro_real = "Indaiatuba" if "FORCE" in bairro_obj else bairro_obj
-        else:
-            bairro_real = "Indaiatuba"
+        else: bairro_real = "Indaiatuba"
 
-        # Tratamento seguro da Persona
         persona_obj = engine_result.get('persona')
         if isinstance(persona_obj, dict):
             persona_nome = persona_obj.get('nome', "Desconhecida")
-        else:
-            persona_nome = str(persona_obj) if persona_obj else "Desconhecida"
+        else: persona_nome = str(persona_obj) if persona_obj else "Desconhecida"
         
         data_pub = user_inputs.get('data_pub_obj')
         data_pub_str = data_pub.strftime("%Y-%m-%d") if data_pub else datetime.date.today().strftime("%Y-%m-%d")
@@ -205,6 +123,7 @@ def save_history_log(user_inputs, engine_result):
         
         df_new = pd.DataFrame([new_data])
         
+        # Salva com PONTO E VÍRGULA (sep=';') para Excel no Brasil
         if not os.path.exists(log_file):
             df_new.to_csv(log_file, sep=';', index=False, encoding='utf-8-sig')
         else:
@@ -222,25 +141,19 @@ def main():
     try:
         dados_mestre = GenesisData()
         regras_mestre = GenesisRules()
-        # Instancia as classes locais para não depender do logic.py antigo
         portal_sync = PortalSynchronizer()
         imob_sync = RealEstateSynchronizer()
-    except RuntimeError as e:
-        st.error(f"❌ Erro de Sistema: {e}"); st.stop()
+    except Exception as e:
+        st.error(f"❌ Erro na Inicialização (Verifique config.py e logic.py): {e}")
+        st.stop()
 
     if "k_tipo_pauta" not in st.session_state: st.session_state["k_tipo_pauta"] = "🏢 Imobiliária"
     
-    # Prepara lista de bairros (usando database.py)
     l_bairros = sorted([b['nome'] for b in dados_mestre.bairros])
-    
-    # Prepara gatilhos (usando config.py antigo ou fallback)
-    if hasattr(GenesisConfig, 'EMOTIONAL_TRIGGERS_MAP'):
-        l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
-    else:
-        l_gatilhos = [CONST_RANDOM, "👑 Autoridade", "🚨 Urgência", "💎 Escassez"]
+    l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.4 (Hybrid Fix) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.5 (Full Stack Fix) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -257,7 +170,7 @@ def main():
             tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA")
             eh_portal = (tipo_pauta_code == "PORTAL")
 
-            # --- SETUP DE LISTAS (USANDO CLASSES LOCAIS) ---
+            # --- SINCRONIZAÇÃO DE LISTAS ---
             if eh_portal:
                 label_parent = "1. Editoria (Seção)"
                 icon_parent = "📰"
@@ -290,10 +203,7 @@ def main():
                 current_parent_key = map_parent_inv.get(current_parent_label, None)
 
                 if current_parent_key:
-                    # Tenta pegar do database ou da classe local
-                    ativos_db = dados_mestre.ativos_por_cluster.get(current_parent_key, [])
-                    if not ativos_db: ativos_db = imob_sync.get_valid_assets(current_parent_key)
-                    
+                    ativos_db = imob_sync.get_valid_assets(current_parent_key)
                     lista_ativos_especificos = [CONST_RANDOM] + ativos_db
                     
                     raw_topics = imob_sync.get_valid_topics(current_parent_key)
@@ -309,7 +219,6 @@ def main():
 
             st.markdown("---")
 
-            # --- UI: DATA E LOCAL ---
             c1, c2 = st.columns([1, 2])
             with c1: data_pub = st.date_input("Data de Publicação", datetime.date.today(), key="k_data")
             with c2:
@@ -329,7 +238,6 @@ def main():
 
             st.markdown("---")
 
-            # --- UI: SELETORES EM CASCATA ---
             c3, c4 = st.columns(2)
             with c3: 
                 sel_parent_ui = smart_select(label_parent, lista_parent_ui, "k_ativo", icon_parent, use_label=True)
@@ -358,14 +266,12 @@ def main():
                 else:
                     st.empty()
 
-            # --- UI: GATILHO ---
             if not eh_portal:
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.caption("Configuração Extra:")
                 sel_gatilho = smart_select("Gatilho Mental (Opcional)", l_gatilhos, "k_gatilho", "🧠", use_label=True)
                 gatilho_key = "ALEATÓRIO"
-                # Lógica reversa simples para gatilho (se existir map)
-                if hasattr(GenesisConfig, 'EMOTIONAL_TRIGGERS_MAP') and sel_gatilho != CONST_RANDOM:
+                if sel_gatilho != CONST_RANDOM:
                     for k,v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
                         if v == sel_gatilho: gatilho_key = k; break
             else:
@@ -394,7 +300,6 @@ def main():
                 sub_ativo_val = st.session_state.get("k_sub_ativo", "ALEATÓRIO") if not eh_portal else "N/A"
                 if sub_ativo_val == CONST_RANDOM: sub_ativo_val = "ALEATÓRIO"
 
-                # Define chaves com segurança (fallback se map estiver vazio)
                 final_topico = sel_topico_key if 'sel_topico_key' in locals() and sel_topico_key else "ALEATÓRIO"
                 final_formato = sel_formato_key if 'sel_formato_key' in locals() and sel_formato_key else "ALEATÓRIO"
 
@@ -427,7 +332,7 @@ def main():
                 clean_name = slugify(str(res['ativo_definido']))[:20]
                 nome_arq = f"{data_prefix}_{'PORTAL' if eh_portal else 'IMOB'}_{clean_name}.txt"
                 
-                # --- SALVA HISTÓRICO ---
+                # Salva no histórico
                 save_history_log(user_sel, res)
 
                 progress_bar.progress(100); time.sleep(0.3); progress_bar.empty(); status_text.empty()
@@ -457,7 +362,13 @@ def main():
                 "BAIRRO": "Local"
             }
             st.dataframe(df, use_container_width=True, hide_index=True, column_config=cols_cfg)
-        else: st.info("Nenhuma pauta gerada recentemente.")
+            
+            # BOTÃO DE DOWNLOAD DO CSV (Separado por ponto e vírgula para Excel)
+            csv = df.to_csv(sep=';', index=False).encode('utf-8-sig')
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+            st.download_button("📥 Baixar Planilha (.csv)", data=csv, file_name=f"{now_str}_historico.csv", mime="text/csv", use_container_width=True)
+        else:
+            st.info("Nenhuma pauta gerada recentemente.")
 
 if __name__ == "__main__":
     main()
