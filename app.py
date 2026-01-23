@@ -7,6 +7,7 @@ from src.database import GenesisData, GenesisRules
 from src.engine import GenesisEngine
 from src.config import GenesisConfig
 from src.builder import PromptBuilder
+from src.logic import PortalSynchronizer  # NOVA IMPORTAÇÃO
 from src.utils import slugify
 
 CONST_RANDOM = "🎲 ALEATÓRIO"
@@ -58,20 +59,28 @@ def setup_ui():
 def open_selection_dialog(label, options, key):
     st.write(f"Escolha uma opção para **{label}**:")
     current = st.session_state.get(key, options[0])
+    # Tenta achar o index atual, se falhar (ex: mudou a lista de opções), reseta para 0
     try: idx = options.index(current)
     except: idx = 0
+    
     container_kwargs = {"border": False}
     if len(options) > 10: container_kwargs["height"] = 300
+    
     with st.container(**container_kwargs):
         new_val = st.radio(label, options, index=idx, key=f"radio_modal_{key}", label_visibility="collapsed")
+    
     if new_val != current:
         st.session_state[key] = new_val
         st.rerun()
 
 def smart_select(label, options, key, icon="", use_label=True):
-    if key not in st.session_state: st.session_state[key] = options[0]
+    # Se a chave não existe ou o valor atual não está nas opções válidas, reseta
+    if key not in st.session_state or st.session_state[key] not in options:
+        st.session_state[key] = options[0]
+        
     current_val = str(st.session_state[key])
     display_text = (current_val[:28] + '..') if len(current_val) > 28 else current_val
+    
     if use_label: st.markdown(f"<p class='fake-label'>{label}</p>", unsafe_allow_html=True)
     if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"): open_selection_dialog(label, options, key)
     return st.session_state[key]
@@ -93,6 +102,7 @@ def main():
     try:
         dados_mestre = GenesisData()
         regras_mestre = GenesisRules()
+        portal_sync = PortalSynchronizer() # Novo sincronizador
     except RuntimeError as e:
         st.error(f"❌ Erro de Sistema: {e}"); st.stop()
 
@@ -106,7 +116,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.1 (Synced Editions) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.2 (Synced Portal) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -124,22 +134,52 @@ def main():
             eh_portal = (tipo_pauta_code == "PORTAL")
 
             # --- LÓGICA DINÂMICA DE LISTAS (SINCRONIZAÇÃO) ---
+            
+            # Dicionários de tradução (Label UI -> Key Engine)
+            map_editoria_inv = {}
+            map_topico_inv = {}
+            map_formato_inv = {}
+
             if not eh_portal:
-                # MODO IMOBILIÁRIA
+                # === MODO IMOBILIÁRIA (Lógica Original) ===
                 lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_imoveis
                 l_topicos = [CONST_RANDOM] + sorted(list(GenesisConfig.TOPICS_MAP.values()))
-                # [FIX] Carrega apenas formatos de Imobiliária
                 l_formatos = [CONST_RANDOM] + list(GenesisConfig.REAL_ESTATE_FORMATS_MAP.values())
                 label_ativo = "Imóvel / Ativo"
                 icon_ativo = "🏠"
+            
             else:
-                # MODO PORTAL
-                lista_ativos_display = [CONST_RANDOM] + dados_mestre.todos_ativos_portal
-                l_topicos = [CONST_RANDOM] + sorted(list(GenesisConfig.PORTAL_TOPICS_MAP.values()))
-                # [FIX] Carrega apenas formatos de Jornalismo/Portal
-                l_formatos = [CONST_RANDOM] + list(GenesisConfig.PORTAL_FORMATS_MAP.values())
-                label_ativo = "Editoria (Seção)"
+                # === MODO PORTAL (Lógica Sincronizada) ===
+                st.info("ℹ️ Modo Sincronizado: Editoria define Tópicos e Formatos.")
+
+                # 1. Editoria (Pai)
+                raw_editorias = portal_sync.get_editorias_display() # [(KEY, LABEL)...]
+                map_editoria_inv = {label: key for key, label in raw_editorias}
+                lista_ativos_display = [CONST_RANDOM] + list(map_editoria_inv.keys())
+                
+                label_ativo = "1. Editoria (Seção)"
                 icon_ativo = "📰"
+
+                # Recupera o que está selecionado AGORA na UI para filtrar os filhos
+                # Se for a primeira vez ou aleatório, não filtramos (mostra random ou vazio)
+                current_editoria_label = st.session_state.get("k_ativo", CONST_RANDOM)
+                current_editoria_key = map_editoria_inv.get(current_editoria_label, None)
+
+                # 2. Tópicos (Filho 1)
+                if current_editoria_key:
+                    raw_topics = portal_sync.get_valid_topics(current_editoria_key)
+                    map_topico_inv = {label: key for key, label in raw_topics}
+                    l_topicos = [CONST_RANDOM] + list(map_topico_inv.keys())
+                else:
+                    l_topicos = [CONST_RANDOM] # Se editoria é Aleatória, tópico também será decidido pela IA
+
+                # 3. Formatos (Filho 2)
+                if current_editoria_key:
+                    raw_formats = portal_sync.get_valid_formats(current_editoria_key)
+                    map_formato_inv = {label: key for key, label in raw_formats}
+                    l_formatos = [CONST_RANDOM] + list(map_formato_inv.keys())
+                else:
+                    l_formatos = [CONST_RANDOM]
 
             st.markdown("---")
 
@@ -148,7 +188,7 @@ def main():
             with c2:
                 if not eh_portal: sel_persona = smart_select("Persona Alvo", l_personas, "k_persona", "👤", use_label=True)
                 else: 
-                    st.info("ℹ️ Modo Portal: Persona 'Jornalista' ativada.")
+                    st.info("ℹ️ Persona 'Jornalista' ativada automaticamente.")
                     sel_persona = "CITIZEN_GENERAL"
 
             st.markdown("---")
@@ -168,17 +208,17 @@ def main():
                     final_bairro_input = "FORCE_CITY_MODE"; st.caption("ℹ️ O texto falará sobre Indaiatuba como um todo.")
             else:
                 # MODO PORTAL: TRAVADO EM CIDADE
-                st.caption("📍 Abrangência: **Cidade Inteira (Indaiatuba)**")
+                # st.caption("📍 Abrangência: **Cidade Inteira (Indaiatuba)**")
                 final_bairro_input = "FORCE_CITY_MODE"
 
             st.markdown("---")
 
             c3, c4 = st.columns(2)
             with c3: sel_ativo = smart_select(label_ativo, lista_ativos_display, "k_ativo", icon_ativo, use_label=True)
-            with c4: sel_topico = smart_select("Ângulo / Tema", l_topicos, "k_topico", "🚀", use_label=True)
+            with c4: sel_topico = smart_select("2. Tema / Pauta", l_topicos, "k_topico", "🔥", use_label=True)
 
             c5, c6 = st.columns(2)
-            with c5: sel_formato = smart_select("Formato do Texto", l_formatos, "k_formato", "📝", use_label=True)
+            with c5: sel_formato = smart_select("3. Formato do Texto", l_formatos, "k_formato", "📝", use_label=True)
             
             # --- GATILHO: SOMENTE SE NÃO FOR PORTAL ---
             sel_gatilho = "ALEATÓRIO"
@@ -208,23 +248,30 @@ def main():
                 progress_bar.progress(20)
                 engine = GenesisEngine(dados_mestre)
                 
-                # --- TRADUÇÃO DAS SELEÇÕES ---
+                # --- TRADUÇÃO DAS SELEÇÕES (UI Label -> Engine Key) ---
                 p_key = "CITIZEN_GENERAL" if eh_portal else ("ALEATÓRIO" if sel_persona == CONST_RANDOM else persona_map[sel_persona])
-                final_ativo_selecao = "ALEATÓRIO" if sel_ativo == CONST_RANDOM else sel_ativo
-                final_topico = "ALEATÓRIO" if sel_topico == CONST_RANDOM else sel_topico
                 
-                f_key = "ALEATÓRIO"
-                if sel_formato != CONST_RANDOM:
-                    # Busca reversa no MAPA UNIFICADO para garantir que encontra a chave
-                    for k,v in GenesisConfig.CONTENT_FORMATS_MAP.items():
-                        if v == sel_formato: f_key = k; break
-                
-                g_key = "ALEATÓRIO"
-                if not eh_portal and sel_gatilho != CONST_RANDOM:
-                    for k,v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
-                        if v == sel_gatilho: g_key = k; break
-                elif eh_portal:
-                    g_key = "NEUTRAL_JOURNALISM" # Gatilho nulo para portal
+                if eh_portal:
+                    # No modo Portal, traduzimos os Labels de volta para as Keys que o Engine espera
+                    final_ativo_selecao = map_editoria_inv.get(sel_ativo, "ALEATÓRIO")
+                    final_topico = map_topico_inv.get(sel_topico, "ALEATÓRIO")
+                    f_key = map_formato_inv.get(sel_formato, "ALEATÓRIO")
+                    g_key = "NEUTRAL_JOURNALISM"
+                else:
+                    # Modo Imobiliária
+                    final_ativo_selecao = "ALEATÓRIO" if sel_ativo == CONST_RANDOM else sel_ativo
+                    final_topico = "ALEATÓRIO" if sel_topico == CONST_RANDOM else sel_topico
+                    
+                    f_key = "ALEATÓRIO"
+                    if sel_formato != CONST_RANDOM:
+                        # Busca reversa no MAPA UNIFICADO para garantir que encontra a chave
+                        for k,v in GenesisConfig.CONTENT_FORMATS_MAP.items():
+                            if v == sel_formato: f_key = k; break
+                    
+                    g_key = "ALEATÓRIO"
+                    if sel_gatilho != CONST_RANDOM:
+                        for k,v in GenesisConfig.EMOTIONAL_TRIGGERS_MAP.items():
+                            if v == sel_gatilho: g_key = k; break
 
                 user_sel = {
                     "persona_key": p_key, "bairro_nome": final_bairro_input, "topico": final_topico,
@@ -259,7 +306,11 @@ def main():
                 # Exibição segura do formato bonito
                 f_bonito = GenesisConfig.CONTENT_FORMATS_MAP.get(res['formato'], res['formato'])
                 b_display = res['bairro']['nome'] if res['bairro'] else "Indaiatuba (Macro)"
-                estrategia_display = f_bonito.split()[0] + " " + f_bonito.split()[1] if len(f_bonito.split()) >= 2 else f_bonito
+                
+                # Ajuste visual da estratégia
+                try:
+                    estrategia_display = f_bonito.split()[0] + " " + f_bonito.split()[1] if len(f_bonito.split()) >= 2 else f_bonito
+                except: estrategia_display = f_bonito
 
                 k1, k2, k3 = st.columns(3)
                 with k1: 
