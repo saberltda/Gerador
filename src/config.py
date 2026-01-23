@@ -1,13 +1,22 @@
 # src/config.py
+import datetime
 
 class GenesisConfig:
-    VERSION = "GERADOR V.63 (FULL STACK)"
+    VERSION = "GERADOR V.64 (BRASILIA TIMEZONE ENFORCED)"
 
-    # Cores e URLs
+    # =====================================================
+    # ⛔ CONFIGURAÇÃO CRÍTICA DE FUSO HORÁRIO
+    # =====================================================
+    # O sistema deve operar ESTRITAMENTE no horário de Brasília (UTC-3).
+    # NUNCA altere para UTC ou outro fuso. Isso afeta o SEO (JSON-LD) e o Histórico.
+    # =====================================================
+    TZ_BRASILIA = datetime.timezone(datetime.timedelta(hours=-3))
+    FUSO_PADRAO = "-03:00" # String para concatenação em ISO strings
+
+    # Design System & URLs
     COLOR_PRIMARY = "#003366"   # Azul Saber
     COLOR_ACTION  = "#28a745"   # Verde Ação
     BLOG_URL = "https://blog.saber.imb.br"
-    FUSO_PADRAO = "-03:00"
 
     # =====================================================
     # 1. IMOBILIÁRIA (MODO CORRETOR)
@@ -107,3 +116,24 @@ class GenesisConfig:
         "EXODUS_SP_ELITE_FAMILY": {"cluster_ref": "HIGH_END", "nome": "✈️ FAMÍLIA EXODUS", "dor": "Segurança", "desejo": "Qualidade"},
         "FIRST_HOME_DREAMER": {"cluster_ref": "URBAN", "nome": "🔑 1º IMÓVEL", "dor": "Orçamento", "desejo": "Viabilidade"}
     }
+    
+    # =====================================================
+    # 4. REGRAS DE SEGURANÇA (FILTRO DE CONTEÚDO)
+    # =====================================================
+    RULES = {
+        "FORBIDDEN_WORDS": [
+            "oportunidade única", "venha conferir", "show de ofertas", 
+            "top", "sensacional", "imperdível", "preço baixo",
+            "maravilhoso", "espetacular", "lindo"
+        ],
+        "JOURNALISM_STOPWORDS": [
+            "eu acho", "na minha opinião", "com certeza", "sem dúvida"
+        ]
+    }
+
+    STRICT_GUIDELINES = [
+        "JORNALISMO VERDADE: Nunca invente fatos, datas ou nomes de autoridades.",
+        "IMPARCIALIDADE: Ouça (ou simule com dados) os dois lados da história.",
+        "LOCALISMO RADICAL: Tudo deve ter conexão direta com Indaiatuba.",
+        "SEM OPINIÃO: O jornalista relata, não julga (exceto em editoriais explícitos)."
+    ]
