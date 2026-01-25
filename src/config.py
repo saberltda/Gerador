@@ -2,7 +2,7 @@
 import datetime
 
 class GenesisConfig:
-    VERSION = "GERADOR V.70 (ALL PERSONAS UNLOCKED)"
+    VERSION = "GERADOR V.70 (ALL PERSONAS UNLOCKED - HUMANIZED)"
 
     # =====================================================
     # ⛔ CONFIGURAÇÃO CRÍTICA DE FUSO HORÁRIO
@@ -39,7 +39,6 @@ class GenesisConfig:
         "COMUNIDADE_VIZINHANCA": "🤝 Vizinhança e Vida em Comunidade"
     }
 
-    # Alias de compatibilidade
     REAL_ESTATE_TOPICS_DISPLAY = TOPICS_MAP 
 
     REAL_ESTATE_FORMATS_MAP = {
@@ -114,15 +113,12 @@ class GenesisConfig:
     # 3. PERSONAS & FILTROS (LISTA COMPLETA)
     # =====================================================
     PERSONAS = {
-        # --- PORTAL DA CIDADE ---
         "CITIZEN_GENERAL": {
             "cluster_ref": "PORTAL", 
             "nome": "🗞️ Redação (Jornalismo)", 
             "dor": "Desinformação e Fake News", 
             "desejo": "Informação confiável e Verdade"
         },
-
-        # --- IMOBILIÁRIA: INVESTIDORES ---
         "INVESTOR_SHARK_ROI": {
             "cluster_ref": "INVESTOR", 
             "nome": "🦈 Investidor Tubarão (Agressivo)", 
@@ -135,8 +131,6 @@ class GenesisConfig:
             "dor": "Medo da vacância e Depredação", 
             "desejo": "Renda passiva segura e Liquidez"
         },
-
-        # --- IMOBILIÁRIA: FAMÍLIA & EXODUS ---
         "EXODUS_SP_ELITE_FAMILY": {
             "cluster_ref": "HIGH_END", 
             "nome": "✈️ Família Exodus (Elite SP)", 
@@ -149,8 +143,6 @@ class GenesisConfig:
             "dor": "Falta de espaço e Quintal pequeno", 
             "desejo": "Espaço gourmet e Quarto extra"
         },
-
-        # --- IMOBILIÁRIA: PERFIS ESPECÍFICOS ---
         "REMOTE_WORKER": {
             "cluster_ref": "FAMILY", 
             "nome": "💻 Profissional Home Office", 
@@ -181,8 +173,6 @@ class GenesisConfig:
             "dor": "Rotina estressante e Plantões", 
             "desejo": "Oásis de descanso e Proximidade HAOC"
         },
-
-        # --- IMOBILIÁRIA: URBANO & ENTRADA ---
         "FIRST_HOME_DREAMER": {
             "cluster_ref": "URBAN", 
             "nome": "🔑 1º Imóvel (Jovem)", 
@@ -203,8 +193,18 @@ class GenesisConfig:
         }
     }
     
+    # =====================================================
+    # ⚖️ REGRAS DE VOCABULÁRIO (HUMANIZAÇÃO ATIVA)
+    # =====================================================
     RULES = {
-        "FORBIDDEN_WORDS": ["oportunidade única", "venha conferir", "top", "sensacional"],
+        # Lista flexibilizada: Adjetivos como "tranquilo", "lindo" e "maravilhoso" são PERMITIDOS.
+        # Proibidos apenas clichês de baixo valor que reduzem a autoridade do texto.
+        "FORBIDDEN_WORDS": [
+            "oportunidade única", 
+            "venha conferir", 
+            "top", 
+            "sensacional", 
+            "imperdível"
+        ],
         "JOURNALISM_STOPWORDS": ["eu acho", "na minha opinião"]
     }
-
