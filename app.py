@@ -33,6 +33,7 @@ def setup_ui():
         .metric-label {{ font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
         .metric-value {{ font-size: 16px; font-weight: 700; color: #333; }}
         .fake-label {{ font-size: 14px; margin-bottom: 7px; color: #31333F; font-family: "Source Sans Pro", sans-serif; visibility: visible; }}
+        .auto-tag {{ font-size: 12px; background-color: #e9ecef; color: #495057; padding: 4px 8px; border-radius: 4px; border: 1px solid #ced4da; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -59,7 +60,7 @@ def smart_select(label, options, key, icon="", use_label=True):
     if st.button(f"{icon} {display_text}", key=f"btn_trig_{key}"): open_selection_dialog(label, options, key)
     return st.session_state[key]
 
-# --- HISTÓRICO COM NOMES BONITOS ---
+# --- HISTÓRICO ---
 
 def load_history():
     log_file = "historico_geracao.csv"
@@ -77,18 +78,12 @@ def save_history_log(user_inputs, engine_result):
     try:
         log_file = "historico_geracao.csv"
         
-        # 1. TRADUÇÃO DE DADOS TÉCNICOS -> DADOS DE EXIBIÇÃO
-        
-        # Formato (ENTREVISTA_PING_PONG -> 📰 Entrevista Ping-Pong...)
         fmt_key = str(engine_result.get('formato', ''))
         fmt_display = GenesisConfig.CONTENT_FORMATS_MAP.get(fmt_key, fmt_key.replace("_", " ").title())
         
-        # Tópico (GIRO_NOTICIAS -> ⚡ Giro de Notícias...)
         topic_key = str(engine_result.get('topico', ''))
-        # Tenta achar em ambos os mapas
         topic_display = GenesisConfig.PORTAL_TOPICS_MAP.get(topic_key, GenesisConfig.TOPICS_MAP.get(topic_key, topic_key.replace("_", " ").title()))
 
-        # Local
         bairro_obj = engine_result.get('bairro')
         if user_inputs.get('tipo_pauta') == "PORTAL":
             bairro_real = "Indaiatuba (Cidade Inteira)"
@@ -99,11 +94,9 @@ def save_history_log(user_inputs, engine_result):
         else:
             bairro_real = "Indaiatuba"
             
-        # Ativo/Editoria (Limpeza de chaves)
         ativo_raw = str(engine_result.get('ativo_definido', ''))
         ativo_display = ativo_raw
         if "_" in ativo_raw and ativo_raw.isupper():
-            # Tenta mapear ou apenas limpa
              ativo_display = ativo_raw.replace("_", " ").title()
 
         persona_obj = engine_result.get('persona')
@@ -120,9 +113,9 @@ def save_history_log(user_inputs, engine_result):
             "TIPO_PAUTA": user_inputs.get('tipo_pauta', 'N/A'),
             "PERSONA": persona_nome,
             "BAIRRO": bairro_real,
-            "ATIVO": ativo_display,   # AGORA SALVA O NOME BONITO
-            "TOPICO": topic_display,  # AGORA SALVA O NOME BONITO
-            "FORMATO": fmt_display    # AGORA SALVA O NOME BONITO
+            "ATIVO": ativo_display,
+            "TOPICO": topic_display,
+            "FORMATO": fmt_display
         }
         
         df_new = pd.DataFrame([new_data])
@@ -155,7 +148,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.9 (Persona Sync) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 9.0 (Smart Sync) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -172,9 +165,7 @@ def main():
             tipo_pauta_code = MAPA_MODOS.get(tipo_pauta_ui, "IMOBILIARIA")
             eh_portal = (tipo_pauta_code == "PORTAL")
 
-            # --- SETUP DE LISTAS ---
-            
-            # 1. SETUP DE PERSONAS (SYNC COM MODO)
+            # --- SETUP DE PERSONAS ---
             if eh_portal:
                 personas_validas = {k: v for k, v in GenesisConfig.PERSONAS.items() if v.get('cluster_ref') == 'PORTAL'}
             else:
@@ -183,55 +174,9 @@ def main():
             map_personas = {v['nome']: k for k, v in personas_validas.items()}
             l_personas = [CONST_RANDOM] + list(map_personas.keys())
 
-            # 2. SETUP DE LISTAS GERAIS
-            if eh_portal:
-                label_parent = "1. Editoria (Seção)"
-                icon_parent = "📰"
-                raw_parent = portal_sync.get_editorias_display()
-                map_parent_inv = {label: key for key, label in raw_parent}
-                lista_parent_ui = [CONST_RANDOM] + list(map_parent_inv.keys())
-
-                current_parent_label = st.session_state.get("k_ativo", CONST_RANDOM)
-                current_parent_key = map_parent_inv.get(current_parent_label, None)
-
-                if current_parent_key:
-                    raw_topics = portal_sync.get_valid_topics(current_parent_key)
-                    map_topico_inv = {label: key for key, label in raw_topics}
-                    l_topicos = [CONST_RANDOM] + list(map_topico_inv.keys())
-                    
-                    raw_formats = portal_sync.get_valid_formats(current_parent_key)
-                    map_formato_inv = {label: key for key, label in raw_formats}
-                    l_formatos = [CONST_RANDOM] + list(map_formato_inv.keys())
-                else:
-                    l_topicos = [CONST_RANDOM]; l_formatos = [CONST_RANDOM]; map_topico_inv = {}; map_formato_inv = {}
-
-            else:
-                label_parent = "1. Categoria (Perfil)"
-                icon_parent = "🏠"
-                raw_parent = imob_sync.get_clusters_display()
-                map_parent_inv = {label: key for key, label in raw_parent}
-                lista_parent_ui = [CONST_RANDOM] + list(map_parent_inv.keys())
-
-                current_parent_label = st.session_state.get("k_ativo", CONST_RANDOM)
-                current_parent_key = map_parent_inv.get(current_parent_label, None)
-
-                if current_parent_key:
-                    ativos_db = imob_sync.get_valid_assets(current_parent_key)
-                    lista_ativos_especificos = [CONST_RANDOM] + ativos_db
-                    
-                    raw_topics = imob_sync.get_valid_topics(current_parent_key)
-                    map_topico_inv = {label: key for key, label in raw_topics}
-                    l_topicos = [CONST_RANDOM] + list(map_topico_inv.keys())
-
-                    raw_formats = imob_sync.get_valid_formats(current_parent_key)
-                    map_formato_inv = {label: key for key, label in raw_formats}
-                    l_formatos = [CONST_RANDOM] + list(map_formato_inv.keys())
-                else:
-                    lista_ativos_especificos = [CONST_RANDOM]; l_topicos = [CONST_RANDOM]; l_formatos = [CONST_RANDOM]
-                    map_topico_inv = {}; map_formato_inv = {}
-
             st.markdown("---")
 
+            # SELETOR DE DATA E LOCAL
             c1, c2 = st.columns([1, 2])
             with c1: data_pub = st.date_input("Data de Publicação", datetime.date.today(), key="k_data")
             with c2:
@@ -251,40 +196,100 @@ def main():
 
             st.markdown("---")
 
-            # --- SELETOR DE PERSONA (NOVA FUNCIONALIDADE) ---
-            sel_persona_ui = smart_select("Público Alvo (Quem vai ler?)", l_personas, "k_persona", "👥", use_label=True)
+            # --- SELEÇÃO INTELIGENTE (SEM CATEGORIA NO MODO IMOBILIÁRIA) ---
+            
+            # 1. PERSONA
+            sel_persona_ui = smart_select("1. Público Alvo (Quem vai ler?)", l_personas, "k_persona", "👥", use_label=True)
             sel_persona_key = map_personas.get(sel_persona_ui, "ALEATÓRIO")
             
-            st.markdown("<br>", unsafe_allow_html=True)
+            # 2. DEFINIÇÃO DA CATEGORIA (AUTOMÁTICA OU MANUAL)
+            sel_parent_key = "ALEATÓRIO"
+            lista_ativos_especificos = [CONST_RANDOM]
 
-            c3, c4 = st.columns(2)
-            with c3: 
+            if eh_portal:
+                # No Portal, a Categoria é a Editoria e DEVE ser escolhida
+                label_parent = "2. Editoria (Seção)"
+                icon_parent = "📰"
+                raw_parent = portal_sync.get_editorias_display()
+                map_parent_inv = {label: key for key, label in raw_parent}
+                lista_parent_ui = [CONST_RANDOM] + list(map_parent_inv.keys())
+                
                 sel_parent_ui = smart_select(label_parent, lista_parent_ui, "k_ativo", icon_parent, use_label=True)
                 sel_parent_key = map_parent_inv.get(sel_parent_ui, "ALEATÓRIO")
+                
+                # Listas derivadas (Portal)
+                if sel_parent_key and sel_parent_key != "ALEATÓRIO":
+                    raw_topics = portal_sync.get_valid_topics(sel_parent_key)
+                    raw_formats = portal_sync.get_valid_formats(sel_parent_key)
+                else:
+                    raw_topics = []; raw_formats = []
+
+            else:
+                # No Imobiliária, a Categoria é ESCONDIDA e derivada da Persona
+                if sel_persona_key != "ALEATÓRIO":
+                    # Busca a categoria vinculada à Persona no Config
+                    cluster_ref = GenesisConfig.PERSONAS[sel_persona_key].get('cluster_ref', 'FAMILY')
+                    sel_parent_key = cluster_ref
+                    
+                    # Mostra feedback visual discreto
+                    st.markdown(f"<div style='margin-top: -10px; margin-bottom: 10px;'><span class='auto-tag'>Categoria Automática: {cluster_ref}</span></div>", unsafe_allow_html=True)
+                    
+                    # Pega ativos válidos para essa categoria
+                    ativos_db = imob_sync.get_valid_assets(cluster_ref)
+                    lista_ativos_especificos = [CONST_RANDOM] + ativos_db
+
+                else:
+                    # Se Persona for Aleatória, pegamos TODOS os ativos
+                    sel_parent_key = "ALEATÓRIO"
+                    lista_ativos_especificos = [CONST_RANDOM] + dados_mestre.todos_ativos_imoveis
+
+                # Listas derivadas (Imob) - são gerais
+                raw_topics = imob_sync.get_valid_topics(sel_parent_key)
+                raw_formats = imob_sync.get_valid_formats(sel_parent_key)
+
+            # Prepara listas de Tópico e Formato
+            map_topico_inv = {label: key for key, label in raw_topics}
+            l_topicos = [CONST_RANDOM] + list(map_topico_inv.keys()) if raw_topics else [CONST_RANDOM]
+            
+            map_formato_inv = {label: key for key, label in raw_formats}
+            l_formatos = [CONST_RANDOM] + list(map_formato_inv.keys()) if raw_formats else [CONST_RANDOM]
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # --- SELETORES FINAIS ---
+            c3, c4 = st.columns(2)
+            
+            with c3:
+                if not eh_portal:
+                    # Item 2 vira Imóvel Específico
+                    sel_sub_ativo = smart_select("2. Imóvel Específico (Filtrado)", lista_ativos_especificos, "k_sub_ativo", "🔑", use_label=True)
+                else:
+                    # Item 3 Portal
+                    sel_topico_ui = smart_select("3. Tema Específico", l_topicos, "k_topico", "🔥", use_label=True)
+                    sel_topico_key = map_topico_inv.get(sel_topico_ui, "ALEATÓRIO")
             
             with c4:
                 if not eh_portal:
-                    sel_sub_ativo = smart_select("2. Imóvel Específico", lista_ativos_especificos, "k_sub_ativo", "🔑", use_label=True)
-                else:
-                    sel_topico_ui = smart_select("2. Tema Específico", l_topicos, "k_topico", "🔥", use_label=True)
-                    sel_topico_key = map_topico_inv.get(sel_topico_ui, "ALEATÓRIO")
-
-            c5, c6 = st.columns(2)
-            with c5:
-                if not eh_portal:
+                    # Item 3 Imob
                     sel_topico_ui = smart_select("3. Tópico / Ângulo", l_topicos, "k_topico", "💡", use_label=True)
                     sel_topico_key = map_topico_inv.get(sel_topico_ui, "ALEATÓRIO")
                 else:
-                    sel_formato_ui = smart_select("3. Formato Jornalístico", l_formatos, "k_formato", "📝", use_label=True)
+                    # Item 4 Portal
+                    sel_formato_ui = smart_select("4. Formato Jornalístico", l_formatos, "k_formato", "📝", use_label=True)
                     sel_formato_key = map_formato_inv.get(sel_formato_ui, "ALEATÓRIO")
-            
-            with c6:
+
+            # Item final
+            c5, c6 = st.columns(2)
+            with c5:
                 if not eh_portal:
                     sel_formato_ui = smart_select("4. Formato do Texto", l_formatos, "k_formato", "📝", use_label=True)
                     sel_formato_key = map_formato_inv.get(sel_formato_ui, "ALEATÓRIO")
                 else:
                     st.empty()
+            with c6:
+                st.empty()
 
+            # Gatilhos
             if not eh_portal:
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.caption("Configuração Extra:")
@@ -321,7 +326,7 @@ def main():
                 final_formato = sel_formato_key if 'sel_formato_key' in locals() and sel_formato_key else "ALEATÓRIO"
 
                 user_sel = {
-                    "persona_key": sel_persona_key, # AGORA USA A CHAVE SELECIONADA
+                    "persona_key": sel_persona_key,
                     "bairro_nome": final_bairro_input,
                     "topico": final_topico, "ativo": sel_parent_key,
                     "sub_ativo": sub_ativo_val, "formato": final_formato,
@@ -350,11 +355,9 @@ def main():
                 progress_bar.progress(100); time.sleep(0.3); progress_bar.empty(); status_text.empty()
                 st.success("✅ Pauta Gerada com Sucesso!")
                 
-                # Cards Visuais (Também limpos)
                 if eh_portal: b_display = "Indaiatuba (Cidade Inteira)"
                 else: b_display = res['bairro']['nome'] if (res.get('bairro') and isinstance(res['bairro'], dict)) else "Indaiatuba"
                 
-                # Recalcula nome bonito para o card
                 parent_raw = res.get('ativo_definido', 'N/A') if eh_portal else res.get('cluster_tecnico', 'N/A')
                 parent_display = parent_raw.replace("_", " ").title() if "_" in parent_raw and parent_raw.isupper() else parent_raw
                 
