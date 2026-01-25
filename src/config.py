@@ -2,7 +2,7 @@
 import datetime
 
 class GenesisConfig:
-    VERSION = "GERADOR V.66 (COMPATIBILITY FIX)"
+    VERSION = "GERADOR V.70 (ALL PERSONAS UNLOCKED)"
 
     # =====================================================
     # ⛔ CONFIGURAÇÃO CRÍTICA DE FUSO HORÁRIO
@@ -39,7 +39,7 @@ class GenesisConfig:
         "COMUNIDADE_VIZINHANCA": "🤝 Vizinhança e Vida em Comunidade"
     }
 
-    # [FIX] ALIAS DE COMPATIBILIDADE (Para evitar o erro que você viu)
+    # Alias de compatibilidade
     REAL_ESTATE_TOPICS_DISPLAY = TOPICS_MAP 
 
     REAL_ESTATE_FORMATS_MAP = {
@@ -47,22 +47,29 @@ class GenesisConfig:
         "LISTA_POLEMICA": "🔥 Lista Polêmica (Imobiliário)",
         "COMPARATIVO_TECNICO": "⚖️ Comparativo Técnico (Imobiliário)",
         "INSIGHT_DE_CORRETOR": "💡 Insight de Corretor",
-        "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas"
+        "PERGUNTAS_RESPOSTAS": "❓ Perguntas & Respostas",
+        "CENARIO_ANALITICO": "📊 Cenário Analítico (Previsão)",
+        "CHECKLIST_TECNICO": "📝 Checklist Técnico (Vistoria)"
     }
 
     ASSETS_CATALOG = {
-        "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO"],
-        "FAMILY": ["CASA EM CONDOMÍNIO", "SOBRADO COM ÁREA GOURMET"],
-        "URBAN": ["APARTAMENTO 3 DORMITÓRIOS", "STUDIO / LOFT MODERNO"],
-        "INVESTOR": ["TERRENO EM CONDOMÍNIO", "IMÓVEL PARA REFORMA"],
-        "LOGISTICS": ["GALPÃO INDUSTRIAL AAA", "ÁREA PARA CD"],
-        "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO OU HARAS"],
-        "CORPORATE": ["SALA COMERCIAL", "LAJE CORPORATIVA"]
+        "HIGH_END": ["MANSÃO EM CONDOMÍNIO", "CASA TÉRREA ALTO PADRÃO", "TERRENO EM CONDOMÍNIO DE LUXO"],
+        "FAMILY": ["CASA EM CONDOMÍNIO FECHADO", "SOBRADO COM ÁREA GOURMET", "CASA TÉRREA COM QUINTAL"],
+        "URBAN": ["APARTAMENTO 3 DORMITÓRIOS", "STUDIO / LOFT MODERNO", "COBERTURA DUPLEX"],
+        "INVESTOR": ["TERRENO EM CONDOMÍNIO (LOTE)", "IMÓVEL PARA REFORMA (FLIP)", "KITNET PARA RENDA"],
+        "LOGISTICS": ["GALPÃO INDUSTRIAL AAA", "ÁREA PARA CD LOGÍSTICO", "TERRENO INDUSTRIAL"],
+        "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO DE LAZER", "HARAS OU ESTÂNCIA"],
+        "CORPORATE": ["SALA COMERCIAL", "LAJE CORPORATIVA", "PRÉDIO MONOUSUÁRIO"]
     }
 
     EMOTIONAL_TRIGGERS_MAP = {
-        "AUTORIDADE": "👑 Autoridade", "ESCASSEZ": "💎 Escassez",
-        "URGENCIA": "🚨 Urgência", "PROVA_SOCIAL": "👥 Prova Social"
+        "AUTORIDADE": "👑 Autoridade (Especialista)", 
+        "ESCASSEZ": "💎 Escassez (Últimas Unidades)",
+        "URGENCIA": "🚨 Urgência (Agora)", 
+        "PROVA_SOCIAL": "👥 Prova Social (Outros compraram)",
+        "SEGURANCA": "🛡️ Segurança (Risco Zero)",
+        "GANANCIA": "💰 Ganância (Lucro)",
+        "EXCLUSIVIDADE": "✨ Exclusividade (Só para você)"
     }
 
     # =====================================================
@@ -104,13 +111,96 @@ class GenesisConfig:
     CONTENT_FORMATS_MAP = {**PORTAL_FORMATS_MAP, **REAL_ESTATE_FORMATS_MAP}
 
     # =====================================================
-    # 3. PERSONAS & FILTROS
+    # 3. PERSONAS & FILTROS (LISTA COMPLETA V.70)
     # =====================================================
     PERSONAS = {
-        "CITIZEN_GENERAL": {"cluster_ref": "PORTAL", "nome": "🗞️ REDAÇÃO (Jornalismo)", "dor": "Desinformação", "desejo": "Verdade"},
-        "INVESTOR_SHARK_ROI": {"cluster_ref": "INVESTOR", "nome": "🦈 INVESTIDOR TUBARÃO", "dor": "Risco", "desejo": "Retorno"},
-        "EXODUS_SP_ELITE_FAMILY": {"cluster_ref": "HIGH_END", "nome": "✈️ FAMÍLIA EXODUS", "dor": "Segurança", "desejo": "Qualidade"},
-        "FIRST_HOME_DREAMER": {"cluster_ref": "URBAN", "nome": "🔑 1º IMÓVEL", "dor": "Orçamento", "desejo": "Viabilidade"}
+        # --- PORTAL DA CIDADE ---
+        "CITIZEN_GENERAL": {
+            "cluster_ref": "PORTAL", 
+            "nome": "🗞️ Redação (Jornalismo)", 
+            "dor": "Desinformação e Fake News", 
+            "desejo": "Informação confiável e Verdade"
+        },
+
+        # --- IMOBILIÁRIA: INVESTIDORES ---
+        "INVESTOR_SHARK_ROI": {
+            "cluster_ref": "INVESTOR", 
+            "nome": "🦈 Investidor Tubarão (Agressivo)", 
+            "dor": "Baixo retorno e Custo de Oportunidade", 
+            "desejo": "ROI máximo e Valorização rápida"
+        },
+        "INVESTOR_SAFE": {
+            "cluster_ref": "INVESTOR", 
+            "nome": "🛡️ Investidor Conservador (Renda)", 
+            "dor": "Medo da vacância e Depredação", 
+            "desejo": "Renda passiva segura e Liquidez"
+        },
+
+        # --- IMOBILIÁRIA: FAMÍLIA & EXODUS ---
+        "EXODUS_SP_ELITE_FAMILY": {
+            "cluster_ref": "HIGH_END", 
+            "nome": "✈️ Família Exodus (Elite SP)", 
+            "dor": "Violência urbana e Trânsito", 
+            "desejo": "Segurança armada e Qualidade de vida"
+        },
+        "FAMILY_FIRST_TIME": {
+            "cluster_ref": "FAMILY", 
+            "nome": "👨‍👩‍👧‍👦 Família em Crescimento", 
+            "dor": "Falta de espaço e Quintal pequeno", 
+            "desejo": "Espaço gourmet e Quarto extra"
+        },
+
+        # --- IMOBILIÁRIA: PERFIS ESPECÍFICOS ---
+        "REMOTE_WORKER": {
+            "cluster_ref": "FAMILY", 
+            "nome": "💻 Profissional Home Office", 
+            "dor": "Barulho e Falta de escritório", 
+            "desejo": "Silêncio e Cômodo dedicado"
+        },
+        "HYBRID_COMMUTER": {
+            "cluster_ref": "URBAN", 
+            "nome": "🚗 O Pendular (Trabalha em SP)", 
+            "dor": "Cansaço da estrada", 
+            "desejo": "Acesso rápido à Rodovia e Praticidade"
+        },
+        "RETIREE_ACTIVE": {
+            "cluster_ref": "FAMILY", 
+            "nome": "🍷 Melhor Idade Ativa", 
+            "dor": "Escadas e Solidão", 
+            "desejo": "Casa térrea e Proximidade de serviços"
+        },
+        "PET_LOVER": {
+            "cluster_ref": "FAMILY", 
+            "nome": "🐾 Tutor de Grandes Animais", 
+            "dor": "Condomínio restritivo", 
+            "desejo": "Quintal gramado e Espaço pet"
+        },
+        "MEDICAL_PRO": {
+            "cluster_ref": "HIGH_END", 
+            "nome": "⚕️ Profissional de Saúde (Médico)", 
+            "dor": "Rotina estressante e Plantões", 
+            "desejo": "Oásis de descanso e Proximidade HAOC"
+        },
+
+        # --- IMOBILIÁRIA: URBANO & ENTRADA ---
+        "FIRST_HOME_DREAMER": {
+            "cluster_ref": "URBAN", 
+            "nome": "🔑 1º Imóvel (Jovem)", 
+            "dor": "Orçamento apertado e Aprovação", 
+            "desejo": "Sair do aluguel e Viabilidade"
+        },
+        "LUXURY_SEEKER": {
+            "cluster_ref": "HIGH_END", 
+            "nome": "💎 Buscador de Exclusividade", 
+            "dor": "Padronização e Falta de privacidade", 
+            "desejo": "Arquitetura autoral e Status"
+        },
+        "LOGISTICS_MANAGER": {
+            "cluster_ref": "LOGISTICS", 
+            "nome": "🚚 Gestor Logístico / Empresário", 
+            "dor": "Custo logístico (Last Mile)", 
+            "desejo": "Proximidade Viracopos e Pé direito alto"
+        }
     }
     
     RULES = {
