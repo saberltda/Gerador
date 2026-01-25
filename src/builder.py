@@ -8,6 +8,7 @@ class PromptBuilder:
     """
     O 'Redator' (Versão 65 - Clean & Polished).
     Garante que Tags, CSV e Prompt não tenham 'lixo' visual (underlines).
+    Humanização ativada para o modo Imobiliária.
     """
 
     CTA_CAPTURE_CODE = """
@@ -40,43 +41,33 @@ class PromptBuilder:
             return GenesisConfig.TOPICS_MAP[key]
         if key in GenesisConfig.PORTAL_TOPICS_MAP:
             return GenesisConfig.PORTAL_TOPICS_MAP[key]
-        # Fallback para limpeza simples
         return self._humanize_key(key)
 
     def _generate_seo_tags(self, d):
-        # Define base de tags
         if d.get('tipo_pauta') == "PORTAL":
             tags = ["Indaiatuba", "Notícias Indaiatuba", "Portal da Cidade", "Giro de Notícias"]
         else:
             tags = ["Indaiatuba", "Imóveis Indaiatuba", "Mercado Imobiliário", "Morar em Indaiatuba"]
 
-        # Local
         if d.get('bairro') and d['bairro']['nome'] != "Indaiatuba":
             tags.append(d['bairro']['nome'])
         
-        # Ativo (Limpeza de sufixos)
         raw_ativo = d.get('ativo_definido', '')
         ativo_limpo = raw_ativo.split('(')[0].strip()
-        # Se for chave interna (ex: CIDADE_ALERTA), humaniza
         if "_" in ativo_limpo and ativo_limpo.isupper():
             ativo_limpo = self._humanize_key(ativo_limpo)
         if ativo_limpo: tags.append(ativo_limpo)
         
-        # Tópico (Limpeza total)
         raw_topico = d.get('topico', '')
         if raw_topico:
-            # Se for chave interna, humaniza. Se for display, remove emojis.
             if "_" in raw_topico and raw_topico.isupper():
                 tags.append(self._humanize_key(raw_topico))
             else:
-                # Remove emojis para tag SEO limpa
                 clean_text = re.sub(r'[^\w\s,]', '', raw_topico).strip()
                 tags.append(clean_text)
         
-        # Deduplicação
         seen = set()
         final_tags = [x for x in tags if not (x in seen or seen.add(x))]
-        
         return ", ".join(final_tags[:12])
 
     def _get_portal_structure(self, formato_key, editoria, tema):
@@ -101,7 +92,12 @@ class PromptBuilder:
     def _get_tone_guidelines(self, gatilho_key):
         if gatilho_key == "NEUTRAL_JOURNALISM":
             return "### 🧠 MENTALIDADE (JORNALISMO)\n- Imparcial, Profundo e Baseado em Fatos."
-        return "### 🧠 MENTALIDADE (COPYWRITING)\n- Persuasivo, Envolvente e Focado em Desejo."
+        
+        return """### 🧠 MENTALIDADE (COPYWRITING HUMANIZADO)
+- Persuasivo e Acolhedor.
+- Use vocabulário que remeta a 'Lar' (ex: tranquilo, aconchego, refúgio, convivência).
+- Evite termos técnicos frios em excesso; foque no benefício emocional do espaço.
+- Fale como um consultor humano, não como um catálogo de vendas."""
 
     def build(self, d, data_pub, data_mod, regras_texto_ajustada):
         if d.get('tipo_pauta') == "PORTAL":
@@ -111,16 +107,11 @@ class PromptBuilder:
 
     def _build_portal_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
-        
-        # Recupera valores limpos para exibição no Prompt
         formato_key = d.get('formato', 'NOTICIA_IMPACTO')
         formato_display = self._get_display_value(formato_key)
-        
         editoria_key = d.get('ativo_definido', 'Geral')
-        # Tenta limpar se for chave interna de editoria
         editoria_display = editoria_key
         if "_" in editoria_key and editoria_key.isupper():
-             # Mapeamento manual rápido para editorias conhecidas ou humanização
              editoria_display = self._humanize_key(editoria_key)
 
         tema_key = d.get('topico', 'Geral')
@@ -170,16 +161,12 @@ Você é um repórter sênior. Escreva um texto denso e completo.
 
     def _build_real_estate_prompt(self, d, data_pub, data_mod, regras_texto_ajustada):
         data_fmt = self._format_date_blogger(data_pub)
-        
         formato_key = d.get('formato', 'GUIA_DEFINITIVO')
         formato_display = self._get_display_value(formato_key)
-        
         gatilho_key = d.get('gatilho', 'AUTORIDADE')
         gatilho_display = GenesisConfig.EMOTIONAL_TRIGGERS_MAP.get(gatilho_key, gatilho_key)
-
         ativo = d['ativo_definido']
         bairro = d['bairro']['nome'] if d['bairro'] else "Indaiatuba"
-        
         structure = self._get_real_estate_guidelines(formato_key, d.get('cluster_tecnico'), bairro)
         tone = self._get_tone_guidelines(gatilho_key)
 
