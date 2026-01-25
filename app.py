@@ -155,7 +155,7 @@ def main():
     l_gatilhos = [CONST_RANDOM] + list(GenesisConfig.EMOTIONAL_TRIGGERS_MAP.values())
 
     st.title("Gerador de Pautas IA")
-    st.caption(f"Versão 8.8 (Final Polish) | {GenesisConfig.VERSION}")
+    st.caption(f"Versão 8.9 (Persona Sync) | {GenesisConfig.VERSION}")
     
     tab_painel, tab_hist = st.tabs(["🎛️ CRIAÇÃO", "📂 HISTÓRICO"])
 
@@ -173,6 +173,17 @@ def main():
             eh_portal = (tipo_pauta_code == "PORTAL")
 
             # --- SETUP DE LISTAS ---
+            
+            # 1. SETUP DE PERSONAS (SYNC COM MODO)
+            if eh_portal:
+                personas_validas = {k: v for k, v in GenesisConfig.PERSONAS.items() if v.get('cluster_ref') == 'PORTAL'}
+            else:
+                personas_validas = {k: v for k, v in GenesisConfig.PERSONAS.items() if v.get('cluster_ref') != 'PORTAL'}
+            
+            map_personas = {v['nome']: k for k, v in personas_validas.items()}
+            l_personas = [CONST_RANDOM] + list(map_personas.keys())
+
+            # 2. SETUP DE LISTAS GERAIS
             if eh_portal:
                 label_parent = "1. Editoria (Seção)"
                 icon_parent = "📰"
@@ -240,6 +251,12 @@ def main():
 
             st.markdown("---")
 
+            # --- SELETOR DE PERSONA (NOVA FUNCIONALIDADE) ---
+            sel_persona_ui = smart_select("Público Alvo (Quem vai ler?)", l_personas, "k_persona", "👥", use_label=True)
+            sel_persona_key = map_personas.get(sel_persona_ui, "ALEATÓRIO")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+
             c3, c4 = st.columns(2)
             with c3: 
                 sel_parent_ui = smart_select(label_parent, lista_parent_ui, "k_ativo", icon_parent, use_label=True)
@@ -304,7 +321,8 @@ def main():
                 final_formato = sel_formato_key if 'sel_formato_key' in locals() and sel_formato_key else "ALEATÓRIO"
 
                 user_sel = {
-                    "persona_key": "ALEATÓRIO", "bairro_nome": final_bairro_input,
+                    "persona_key": sel_persona_key, # AGORA USA A CHAVE SELECIONADA
+                    "bairro_nome": final_bairro_input,
                     "topico": final_topico, "ativo": sel_parent_key,
                     "sub_ativo": sub_ativo_val, "formato": final_formato,
                     "gatilho": gatilho_key, "data_pub_obj": data_pub,
