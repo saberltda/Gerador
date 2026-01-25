@@ -58,7 +58,7 @@ class GenesisConfig:
         "URBAN": ["APARTAMENTO 3 DORMITÓRIOS", "STUDIO / LOFT MODERNO", "COBERTURA DUPLEX"],
         "INVESTOR": ["TERRENO EM CONDOMÍNIO (LOTE)", "IMÓVEL PARA REFORMA (FLIP)", "KITNET PARA RENDA"],
         "LOGISTICS": ["GALPÃO INDUSTRIAL AAA", "ÁREA PARA CD LOGÍSTICO", "TERRENO INDUSTRIAL"],
-        "RURAL_LIFESTYLE": ["CHÁCARA EM ITAICI", "SÍTIO DE LAZER", "HARAS OU ESTÂNCIA"],
+        "RURAL_LIFESTYLE": ["CHÁCARA", "SÍTIO DE LAZER", "HARAS OU ESTÂNCIA"],
         "CORPORATE": ["SALA COMERCIAL", "LAJE CORPORATIVA", "PRÉDIO MONOUSUÁRIO"]
     }
 
@@ -207,3 +207,4 @@ class GenesisConfig:
         "FORBIDDEN_WORDS": ["oportunidade única", "venha conferir", "top", "sensacional"],
         "JOURNALISM_STOPWORDS": ["eu acho", "na minha opinião"]
     }
+
